@@ -1,0 +1,2374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BabyCenter - Pregnancy, Baby, Toddler & Family Information</title>
+    <link rel="stylesheet" href="styles.css">
+    <base target="_blank">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <span>👶 The #1 pregnancy & parenting resource worldwide</span>
+                <div class="top-links">
+                    <a href="#">Get Our App</a>
+                    <a href="#">Newsletters</a>
+                    <a href="#">Help Center</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <a class="logo" onclick="navigateTo('home')">
+                    <div class="logo-icon">B</div>
+                    BabyCenter
+                </a>
+                
+                <nav class="main-nav">
+                    <a onclick="navigateTo('getting-pregnant')" data-page="getting-pregnant">Getting Pregnant <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('pregnancy')" data-page="pregnancy">Pregnancy <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('baby')" data-page="baby">Baby <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('toddler')" data-page="toddler">Toddler <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('family')" data-page="family">Family <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('courses')" data-page="courses">Courses <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('registry')" data-page="registry">Registry <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('names')" data-page="names">Baby Names <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('babble-game')" data-page="babble-game">Babble Game <span class="account-badge">PRO</span></a>
+                </nav>
+
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search..." id="globalSearch">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                    <button class="login-btn" onclick="navigateTo('login')">Login</button>
+                    <button class="join-btn" onclick="navigateTo('signup')">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HOME PAGE -->
+    <section id="home" class="page-section active">
+        <!-- Hero -->
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1>The Most <span class="highlight">Accurate</span> & Trustworthy Pregnancy & Parenting Information</h1>
+                        <p>Track your pregnancy week-by-week, find perfect baby name, create your registry, and connect with millions of parents in our community.</p>
+                        <div class="cta-group">
+                            <button class="btn-primary" onclick="navigateTo('pregnancy')">Start Tracking</button>
+                            <button class="btn-secondary" onclick="navigateTo('getting-pregnant')">Plan Pregnancy</button>
+                        </div>
+                    </div>
+
+                    <div class="calculator-card">
+                        <div class="calculator-header">
+                            <h2>📅 Due Date Calculator</h2>
+                            <p>Find out when your baby is due</p>
+                        </div>
+                        <div class="form-group">
+                            <label>First day of last period</label>
+                            <input type="date" id="homeLastPeriod">
+                        </div>
+                        <div class="form-group">
+                            <label>Cycle length</label>
+                            <select id="homeCycleLength">
+                                <option value="28">28 days</option>
+                                <option value="21">21 days</option>
+                                <option value="25">25 days</option>
+                                <option value="30">30 days</option>
+                                <option value="35">35 days</option>
+                            </select>
+                        </div>
+                        <button class="calculate-btn" onclick="calculateHomeDueDate()">Calculate Due Date</button>
+                        <div class="result-box" id="homeResult">
+                            <p style="color: var(--text-gray); margin-bottom: 8px;">Estimated due date:</p>
+                            <div class="result-date" id="homeDueDate">--</div>
+                            <p style="color: var(--primary-pink); font-size: 14px; margin-top: 8px;">You are <strong id="homeWeeks">--</strong> weeks pregnant</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Tools Grid -->
+        <div class="section section-path">
+            <div class="container">
+                <h2 class="popular-tools-title">Popular tools</h2>
+                <div class="popular-tools-grid">
+                    <div class="popular-tool-card" onclick="navigateToTool('getting-pregnant')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                            <span class="popular-tool-emoji">🌸</span>
+                        </div>
+                        <span class="popular-tool-label">Ovulation Calculator</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('due-date-calculator')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <span class="popular-tool-emoji">🤱</span>
+                        </div>
+                        <span class="popular-tool-label">Due Date Calculator</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('pregnancy')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <span class="popular-tool-emoji">📊</span>
+                        </div>
+                        <span class="popular-tool-label">Pregnancy Tracker</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('baby')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <span class="popular-tool-emoji">👣</span>
+                        </div>
+                        <span class="popular-tool-label">Baby Care</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('names')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <span class="popular-tool-emoji">👶</span>
+                        </div>
+                        <span class="popular-tool-label">Baby Names Finder</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('pregnancy')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                            <span class="popular-tool-emoji">⏱️</span>
+                        </div>
+                        <span class="popular-tool-label">Contraction Timer</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('baby')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                            <span class="popular-tool-emoji">🍼</span>
+                        </div>
+                        <span class="popular-tool-label">Breastfeeding Guide</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('baby')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                            <span class="popular-tool-emoji">😴</span>
+                        </div>
+                        <span class="popular-tool-label">Baby Sleep Tracker</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('baby')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);">
+                            <span class="popular-tool-emoji">💉</span>
+                        </div>
+                        <span class="popular-tool-label">Vaccine Scheduler</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('baby')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);">
+                            <span class="popular-tool-emoji">📈</span>
+                        </div>
+                        <span class="popular-tool-label">Growth Chart</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('courses')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                            <span class="popular-tool-emoji">🦉</span>
+                        </div>
+                        <span class="popular-tool-label">BabyCenter Courses</span>
+                    </div>
+                    <div class="popular-tool-card" onclick="navigateToTool('babble-game')">
+                        <div class="popular-tool-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                            <span class="popular-tool-emoji">🔤</span>
+                        </div>
+                        <span class="popular-tool-label">Babble Word Game</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community -->
+        <div class="community-section">
+            <div class="container">
+                <div class="community-grid">
+                    <div>
+                        <h2 style="font-size: 36px; margin-bottom: 20px;">Join Our Supportive Community</h2>
+                        <p style="font-size: 18px; opacity: 0.9; margin-bottom: 30px;">Connect with millions of parents. Share your journey, ask questions, and find support in our safe, moderated forums.</p>
+                        <div class="community-stats">
+                            <div class="stat">
+                                <h3>50M+</h3>
+                                <p>Monthly Visitors</p>
+                            </div>
+                            <div class="stat">
+                                <h3>1M+</h3>
+                                <p>Community Members</p>
+                            </div>
+                            <div class="stat">
+                                <h3>24/7</h3>
+                                <p>Support Available</p>
+                            </div>
+                        </div>
+                        <button class="btn-primary" style="background: var(--primary-pink);" onclick="alert('Join our community! Sign up or log in to connect with other parents, join birth clubs, and get support.')">Join Community</button>
+                    </div>
+                    <div class="birth-clubs">
+                        <h3 style="margin-bottom: 20px;">Popular Birth Clubs</h3>
+                        <div class="club-item" onclick="alert('Birth Clubs: Sign up or log in to join a birth club for your due month and connect with other expectant parents!')">
+                            <span>February 2026 Babies</span>
+                            <span style="opacity: 0.8;">45,230 members</span>
+                        </div>
+                        <div class="club-item" onclick="alert('Birth Clubs: Sign up or log in to join a birth club for your due month!')">
+                            <span>March 2026 Babies</span>
+                            <span style="opacity: 0.8;">38,912 members</span>
+                        </div>
+                        <div class="club-item" onclick="alert('Birth Clubs: Sign up or log in to join a birth club for your due month!')">
+                            <span>April 2026 Babies</span>
+                            <span style="opacity: 0.8;">32,156 members</span>
+                        </div>
+                        <div class="club-item" onclick="alert('Trying to Conceive: Sign up or log in to join our TTC community for support!')">
+                            <span>Trying to Conceive</span>
+                            <span style="opacity: 0.8;">156,892 members</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter -->
+    <div class="newsletter">
+        <div class="container">
+            <h2>Get Weekly Updates</h2>
+            <p>Personalized pregnancy and parenting guidance delivered to your inbox.</p>
+            <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thank you for subscribing!');">
+                <input type="email" placeholder="Enter your email address" required>
+                <button type="submit">Subscribe Free</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- LOGIN PAGE -->
+    <section id="login" class="page-section">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Welcome Back</h2>
+                    <p>Log in to your BabyCenter account</p>
+                </div>
+                
+                <form class="auth-form" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" required>
+                    </div>
+                    
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rememberMe">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="forgot-link">Forgot password?</a>
+                    </div>
+                    
+                    <button type="submit" class="auth-btn">Log In</button>
+                </form>
+                
+                <div class="auth-divider">
+                    <span>OR</span>
+                </div>
+                
+                <div class="social-login">
+                    <button class="social-btn google-btn">
+                        <span class="social-icon">G</span>
+                        Continue with Google
+                    </button>
+                    <button class="social-btn facebook-btn">
+                        <span class="social-icon">f</span>
+                        Continue with Facebook
+                    </button>
+                </div>
+                
+                <div class="auth-footer">
+                    <p>Don't have an account? <a href="javascript:void(0)" onclick="navigateTo('signup')">Sign up</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SIGN UP PAGE -->
+    <section id="signup" class="page-section">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2>Join BabyCenter</h2>
+                    <p>Create your free account and start your parenting journey</p>
+                </div>
+                
+                <form class="auth-form" onsubmit="handleSignup(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" id="firstName" placeholder="First name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" id="lastName" placeholder="Last name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupEmail">Email Address</label>
+                        <input type="email" id="signupEmail" placeholder="Enter your email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signupPassword">Password</label>
+                        <input type="password" id="signupPassword" placeholder="Create a password" autocomplete="new-password" required>
+                        <small>Must be at least 8 characters</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm your password" autocomplete="new-password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dueDate">Baby's Due Date (Optional)</label>
+                        <input type="date" id="dueDate">
+                    </div>
+                    
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="agreeTerms" required>
+                            <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="auth-btn">Create Account</button>
+                </form>
+                
+                <div class="auth-footer">
+                    <p>Already have an account? <a href="javascript:void(0)" onclick="navigateTo('login')">Log in</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GETTING PREGNANT PAGE -->
+    <section id="getting-pregnant" class="page-section">
+        <div class="gp-hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1>Getting Pregnant</h1>
+                        <p>Ready to start your journey? Use our ovulation calculator, learn about fertility, and get tips for conception.</p>
+                        <div class="fertility-tools">
+                            <div class="fertility-tool-card" onclick="scrollToCalc()">
+                                <div class="tool-icon">🧮</div>
+                                <h3>Ovulation Calculator</h3>
+                                <p>Find your fertile window and increase your chances of conception.</p>
+                                <button class="btn-primary">Calculate Now</button>
+                            </div>
+                            <div class="fertility-tool-card" onclick="showFertilityTracker()">
+                                <div class="tool-icon">📊</div>
+                                <h3>Fertility Tracker</h3>
+                                <p>Track your cycle, symptoms, and basal body temperature.</p>
+                                <button class="btn-secondary">Start Tracking</button>
+                            </div>
+                            <div class="fertility-tool-card" onclick="showPregnancyTest()">
+                                <div class="tool-icon">🤰</div>
+                                <h3>Pregnancy Test Calculator</h3>
+                                <p>Find the best time to take a pregnancy test.</p>
+                                <button class="btn-outline">Test Calculator</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ovulation-calculator" id="ovulationCalc">
+                        <h2>Ovulation Calculator</h2>
+                        <div class="calculator-form">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="ovulationDate">First day of last period</label>
+                                    <input type="date" id="ovulationDate" class="form-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="ovulationCycle">Average cycle length</label>
+                                    <select id="ovulationCycle" class="form-select">
+                                        <option value="21">21 days</option>
+                                        <option value="22">22 days</option>
+                                        <option value="23">23 days</option>
+                                        <option value="24">24 days</option>
+                                        <option value="25">25 days</option>
+                                        <option value="26">26 days</option>
+                                        <option value="27">27 days</option>
+                                        <option value="28" selected>28 days</option>
+                                        <option value="29">29 days</option>
+                                        <option value="30">30 days</option>
+                                        <option value="31">31 days</option>
+                                        <option value="32">32 days</option>
+                                        <option value="33">33 days</option>
+                                        <option value="34">34 days</option>
+                                        <option value="35">35 days</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="calculate-btn" onclick="calculateOvulation()">Find Fertile Window</button>
+                            <div class="result-box" id="ovulationResult">
+                                <div class="result-header">
+                                    <h3>Your Fertility Results</h3>
+                                </div>
+                                <div class="result-content">
+                                    <div class="result-item">
+                                        <span class="result-label">Fertile Window:</span>
+                                        <span class="result-value" id="fertileWindow">--</span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Most Fertile Day:</span>
+                                        <span class="result-value highlight" id="ovulationDay">--</span>
+                                    </div>
+                                    <div class="result-item">
+                                        <span class="result-label">Next Period:</span>
+                                        <span class="result-value" id="nextPeriod">--</span>
+                                    </div>
+                                </div>
+                                <div class="fertility-tips">
+                                    <h4>💡 Tips for Conception</h4>
+                                    <ul>
+                                        <li>Have intercourse every 1-2 days during your fertile window</li>
+                                        <li>Maintain a healthy lifestyle with balanced diet and exercise</li>
+                                        <li>Reduce stress through relaxation techniques</li>
+                                        <li>Take prenatal vitamins with folic acid</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fertility Tracker Modal -->
+        <div class="modal" id="fertilityTrackerModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>📊 Fertility Tracker</h3>
+                    <button class="modal-close" onclick="closeFertilityTracker()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="tracker-form">
+                        <div class="form-group">
+                            <label>Today's Date</label>
+                            <input type="date" id="trackerDate" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Basal Body Temperature</label>
+                            <input type="number" step="0.1" placeholder="98.6" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Cervical Mucus</label>
+                            <select class="form-select">
+                                <option value="">Select...</option>
+                                <option value="dry">Dry</option>
+                                <option value="sticky">Sticky</option>
+                                <option value="creamy">Creamy</option>
+                                <option value="watery">Watery</option>
+                                <option value="eggwhite">Egg White</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Symptoms</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox"> Ovulation Pain</label>
+                                <label><input type="checkbox"> Breast Tenderness</label>
+                                <label><input type="checkbox"> Bloating</label>
+                                <label><input type="checkbox"> Headache</label>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="saveFertilityData()">Save Entry</button>
+                    </div>
+                    <div class="tracker-summary">
+                        <h4>📈 This Month's Overview</h4>
+                        <div id="trackerChart" class="chart-placeholder">
+                            <p>Track your daily symptoms to see your fertility pattern</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregnancy Test Calculator Modal -->
+        <div class="modal" id="pregnancyTestModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🤰 Pregnancy Test Calculator</h3>
+                    <button class="modal-close" onclick="closePregnancyTest()">×</button>
+                </div>
+                <div class="modal-body">
+                    <div class="test-form">
+                        <div class="form-group">
+                            <label>Date of Ovulation</label>
+                            <input type="date" id="ovulationDateTest" class="form-input">
+                        </div>
+                        <button class="calculate-btn" onclick="calculateTestDate()">Calculate Best Test Date</button>
+                        <div class="result-box" id="testResult">
+                            <div class="result-item">
+                                <span class="result-label">Earliest Test Date:</span>
+                                <span class="result-value" id="earliestTest">--</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Best Test Date:</span>
+                                <span class="result-value highlight" id="bestTest">--</span>
+                            </div>
+                            <div class="test-tips">
+                                <h4>🧪 Testing Tips</h4>
+                                <ul>
+                                    <li>Test first thing in the morning for most accurate results</li>
+                                    <li>Use a sensitive pregnancy test for early detection</li>
+                                    <li>Wait at least 19 days after ovulation for reliable results</li>
+                                    <li>Follow up with a doctor for confirmation</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Getting Pregnant Tools -->
+        <div class="section" id="gp-tools">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Getting Pregnant Tools</h2>
+                    <p>Quick calculators and helpers for your conception journey.</p>
+                </div>
+                <div class="tools-grid">
+                    <div class="tool-card" onclick="scrollToCalc()">
+                        <div class="tool-icon">🧮</div>
+                        <h4>Ovulation Calculator</h4>
+                        <p>Find your fertile window</p>
+                        <span class="tool-status">Available</span>
+                    </div>
+                    <div class="tool-card" onclick="navigateTo('due-date-calculator')">
+                        <div class="tool-icon">📅</div>
+                        <h4>Due Date Calculator</h4>
+                        <p>Estimate delivery date</p>
+                        <span class="tool-status">Available</span>
+                    </div>
+                    <div class="tool-card" onclick="showConceptionCalculator()">
+                        <div class="tool-icon">🍼</div>
+                        <h4>Conception Date Calculator</h4>
+                        <p>Estimate conception day</p>
+                        <span class="tool-status">New</span>
+                    </div>
+                    <div class="tool-card" onclick="showPregnancySymptoms()">
+                        <div class="tool-icon">❓</div>
+                        <h4>Early Pregnancy Signs</h4>
+                        <p>Check symptoms checklist</p>
+                        <span class="tool-status">Updated</span>
+                    </div>
+                    <div class="tool-card" onclick="showBabyCosts()">
+                        <div class="tool-icon">💰</div>
+                        <h4>Baby Costs Calculator</h4>
+                        <p>Plan monthly expenses</p>
+                        <span class="tool-status">Coming Soon</span>
+                    </div>
+                    <div class="tool-card" onclick="showFertilityDiet()">
+                        <div class="tool-icon">🥗</div>
+                        <h4>Fertility Diet Guide</h4>
+                        <p>Nutrition for conception</p>
+                        <span class="tool-status">Popular</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Fertility & Conception Resources</h2>
+                    <p>Expert advice to help you on your journey to parenthood.</p>
+                </div>
+                <div class="resource-grid">
+                    <div class="resource-card" onclick="showFertilityDiet()">
+                        <div class="resource-icon">🥗</div>
+                        <h3>Fertility Diet</h3>
+                        <p>Foods that boost fertility for both men and women.</p>
+                        <div class="resource-tags">
+                            <span class="tag">Nutrition</span>
+                            <span class="tag">Health</span>
+                        </div>
+                    </div>
+                    <div class="resource-card" onclick="showPreconceptionHealth()">
+                        <div class="resource-icon">🏃‍♀️</div>
+                        <h3>Preconception Health</h3>
+                        <p>Exercise, vitamins, and lifestyle changes to prepare.</p>
+                        <div class="resource-tags">
+                            <span class="tag">Fitness</span>
+                            <span class="tag">Wellness</span>
+                        </div>
+                    </div>
+                    <div class="resource-card" onclick="showFertilityTreatments()">
+                        <div class="resource-icon">🔬</div>
+                        <h3>Fertility Treatments</h3>
+                        <p>Understanding IVF, IUI, and other options.</p>
+                        <div class="resource-tags">
+                            <span class="tag">Medical</span>
+                            <span class="tag">Advanced</span>
+                        </div>
+                    </div>
+                    <div class="resource-card" onclick="showStressManagement()">
+                        <div class="resource-icon">😌</div>
+                        <h3>Stress & Fertility</h3>
+                        <p>Managing anxiety while trying to conceive.</p>
+                        <div class="resource-tags">
+                            <span class="tag">Mental Health</span>
+                            <span class="tag">Support</span>
+                        </div>
+                    </div>
+                    <div class="resource-card" onclick="showAgeFertility()">
+                        <div class="resource-icon">📊</div>
+                        <h3>Age & Fertility</h3>
+                        <p>Understanding fertility at different life stages.</p>
+                        <div class="resource-tags">
+                            <span class="tag">Education</span>
+                            <span class="tag">Planning</span>
+                        </div>
+                    </div>
+                    <div class="resource-card" onclick="showPartnerHealth()">
+                        <div class="resource-icon">👥</div>
+                        <h3>Partner Fertility</h3>
+                        <p>Male fertility factors and optimization tips.</p>
+                        <div class="resource-tags">
+                            <span class="tag">Couples</span>
+                            <span class="tag">Health</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Stories Section -->
+        <div class="section bg-light">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Success Stories</h2>
+                    <p>Real stories from our community members.</p>
+                </div>
+                <div class="stories-grid">
+                    <div class="story-card">
+                        <div class="story-avatar">👩‍👦</div>
+                        <div class="story-content">
+                            <h4>Sarah's Journey</h4>
+                            <p>"After 8 months of trying, the ovulation calculator helped me pinpoint my fertile window. Now we're expecting!"</p>
+                            <span class="story-tag">Success</span>
+                        </div>
+                    </div>
+                    <div class="story-card">
+                        <div class="story-avatar">👨‍👩‍👧</div>
+                        <div class="story-content">
+                            <h4>Mike & Jen</h4>
+                            <p>"The fertility tracker revealed patterns we never noticed. Lifestyle changes made all the difference."</p>
+                            <span class="story-tag">Inspiring</span>
+                        </div>
+                    </div>
+                    <div class="story-card">
+                        <div class="story-avatar">👩‍👩‍👦</div>
+                        <div class="story-content">
+                            <h4>Emma & Lisa</h4>
+                            <p>"The preconception health guide prepared us perfectly. Healthy pregnancy confirmed at 12 weeks!"</p>
+                            <span class="story-tag">Planning</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PREGNANCY PAGE -->
+    <section id="pregnancy" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1>Your Pregnancy Journey</h1>
+                        <p>Week-by-week guidance, symptoms tracker, and preparation for your baby's arrival.</p>
+                        <button class="btn-primary" onclick="document.getElementById('weeksSection').scrollIntoView({behavior: 'smooth'})">View Week by Week</button>
+                    </div>
+                    <div class="calculator-card">
+                        <h2 style="margin-bottom: 20px;">Pregnancy Calculator</h2>
+                        <div class="form-group">
+                            <label>Due date or last period</label>
+                            <input type="date" id="pregDate" title="Enter last period (past date) or due date (future date)">
+                            <small style="color: var(--text-gray); font-size: 12px;">Past date = last period • Future date = due date</small>
+                        </div>
+                        <button class="calculate-btn" onclick="calculatePregnancyWeek()">Calculate Current Week</button>
+                        <div class="result-box" id="pregResult">
+                            <p>You are currently:</p>
+                            <div class="result-date" id="currentWeek">Week 24</div>
+                            <p style="margin-top: 10px; font-size: 14px;">Second Trimester</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="weeksSection">
+            <div class="container">
+                <div class="weeks-container">
+                    <div class="trimester">
+                        <h3>🌱 First Trimester (Weeks 1-13)</h3>
+                        <div class="weeks-row" id="firstTrimester"></div>
+                    </div>
+                    <div class="trimester">
+                        <h3>🌿 Second Trimester (Weeks 14-27)</h3>
+                        <div class="weeks-row" id="secondTrimester"></div>
+                    </div>
+                    <div class="trimester">
+                        <h3>🌳 Third Trimester (Weeks 28-42)</h3>
+                        <div class="weeks-row" id="thirdTrimester"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pregnancy Topics -->
+        <div class="section" id="pregnancyTopics">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Pregnancy topics</h2>
+                    <p style="color: var(--text-gray);">Curated guides across pregnancy, body, baby, and fitness.</p>
+                </div>
+
+                <!-- Overview -->
+                <p style="font-size: 12px; color: var(--text-gray); margin-bottom: 10px;">cross section of the female belly in the 40th week of pregnancy</p>
+                <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                    <div class="card"><h3>Pregnancy Week by Week</h3><p>Your guide from week 1 to 40.</p></div>
+                    <div class="card"><h3>First Trimester of Pregnancy</h3><p>Weeks 1–13: what to expect.</p></div>
+                    <div class="card"><h3>Second Trimester of Pregnancy</h3><p>Weeks 14–27: milestones and care.</p></div>
+                    <div class="card"><h3>Third Trimester of Pregnancy</h3><p>Weeks 28–42: preparing for birth.</p></div>
+                </div>
+
+                <!-- Your Body -->
+                <p style="font-size: 12px; color: var(--text-gray); margin: 20px 0 10px;">pregnant woman admiring herself in mirror</p>
+                <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                    <div class="card"><h3>Your Body</h3><p>Changes and self-care tips.</p></div>
+                    <div class="card"><h3>Symptoms</h3><p>Common and unusual signs.</p></div>
+                    <div class="card"><h3>Your Pregnancy Week by Week</h3><p>Body changes each week.</p></div>
+                    <div class="card"><h3>Labor & Delivery</h3><p>Birth plans, stages, pain relief.</p></div>
+                    <div class="card"><h3>Early Signs of Pregnancy</h3><p>What to look for before testing.</p></div>
+                    <div class="card"><h3>Sleep</h3><p>Positions and tips for better rest.</p></div>
+                </div>
+
+                <!-- Your Baby -->
+                <p style="font-size: 12px; color: var(--text-gray); margin: 20px 0 10px;">profile of a pregnant woman who is looking at ultrasound photo</p>
+                <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                    <div class="card"><h3>Your Baby</h3><p>Development milestones and care.</p></div>
+                    <div class="card"><h3>Twins & More</h3><p>Expecting multiples guidance.</p></div>
+                    <div class="card"><h3>Fetal Health & Development</h3><p>Growth, screenings, and safety.</p></div>
+                    <div class="card"><h3>Cord Blood Banking</h3><p>What it is and considerations.</p></div>
+                </div>
+
+                <!-- Diet & Fitness -->
+                <p style="font-size: 12px; color: var(--text-gray); margin: 20px 0 10px;">pregnant woman walking while holding hand weights</p>
+                <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+                    <div class="card"><h3>Fitness</h3><p>Safe workouts by trimester.</p></div>
+                    <div class="card"><h3>Pregnancy Nutrients</h3><p>Key vitamins and minerals.</p></div>
+                    <div class="card"><h3>Healthy Eating</h3><p>Balanced meals and snacks.</p></div>
+                    <div class="card"><h3>The Best Foods</h3><p>Smart choices for you and baby.</p></div>
+                    <div class="card"><h3>Pregnancy Diet</h3><p>Guidelines and sample plans.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- BABY NAMES PAGE -->
+    <section id="names" class="page-section">
+        <div class="names-hero">
+            <div class="container">
+                <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Baby Names Finder</h1>
+                <p style="font-size: 18px; color: var(--text-gray); max-width: 600px; margin: 0 auto;">Discover over 100,000 baby names with meanings, origins, and popularity rankings.</p>
+                
+                <div class="names-search">
+                    <input type="text" placeholder="Search for a name..." id="nameSearchInput">
+                    <button onclick="searchNames()">🔍</button>
+                </div>
+
+                <div class="name-categories">
+                    <a class="category-pill active" onclick="filterNames('all', this)">All Names</a>
+                    <a class="category-pill" onclick="filterNames('boy', this)">Boy Names</a>
+                    <a class="category-pill" onclick="filterNames('girl', this)">Girl Names</a>
+                    <a class="category-pill" onclick="filterNames('unisex', this)">Unisex</a>
+                    <a class="category-pill" onclick="filterNames('unique', this)">Unique</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 id="namesTitle">Popular Names</h2>
+                    <select style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" onchange="sortNames(this.value)">
+                        <option value="popular">Most Popular</option>
+                        <option value="az">A-Z</option>
+                        <option value="za">Z-A</option>
+                    </select>
+                </div>
+                <div class="names-list" id="namesList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- REGISTRY PAGE -->
+    <section id="registry" class="page-section">
+        <div class="registry-hero">
+            <div class="container">
+                <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Baby Registry Checklist</h1>
+                <p style="font-size: 18px; color: var(--text-gray); max-width: 700px; margin: 0 auto;">Everything you need for baby's first year. Check off items as you go!</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="checklist-container">
+                    <div style="margin-bottom: 30px; padding: 20px; background: var(--secondary-pink); border-radius: 12px; text-align: center;">
+                        <h3 style="color: var(--primary-pink); margin-bottom: 10px;">Your Progress</h3>
+                        <div style="background: white; height: 20px; border-radius: 10px; overflow: hidden; max-width: 400px; margin: 0 auto;">
+                            <div id="progressBar" style="background: var(--primary-pink); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                        </div>
+                        <p style="margin-top: 10px; color: var(--text-gray);"><span id="checkedCount">0</span> of <span id="totalCount">0</span> items checked</p>
+                    </div>
+
+                    <div id="registryCategories">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COURSES PAGE -->
+    <section id="courses" class="page-section">
+        <div class="courses-hero">
+            <div class="container">
+                <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Parenting Courses</h1>
+                <p style="font-size: 18px; color: var(--text-gray); max-width: 600px; margin: 0 auto;">Expert-led classes to help you prepare for childbirth, breastfeeding, and newborn care.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                    <div class="course-card" onclick="enrollCourse('childbirth')">
+                        <div class="course-image">🤰</div>
+                        <div class="course-content">
+                            <span class="course-tag">Most Popular</span>
+                            <h3>Childbirth Preparation</h3>
+                            <p>Complete guide to labor, delivery, and postpartum recovery.</p>
+                            <div class="course-meta">
+                                <span>⏱️ 4 weeks</span>
+                                <span>👥 12k enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-card" onclick="enrollCourse('breastfeeding')">
+                        <div class="course-image">🤱</div>
+                        <div class="course-content">
+                            <span class="course-tag">Essential</span>
+                            <h3>Breastfeeding 101</h3>
+                            <p>Learn latching techniques, milk supply tips, and troubleshooting.</p>
+                            <div class="course-meta">
+                                <span>⏱️ 2 weeks</span>
+                                <span>👥 8k enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-card" onclick="enrollCourse('newborn')">
+                        <div class="course-image">👶</div>
+                        <div class="course-content">
+                            <span class="course-tag">New</span>
+                            <h3>Newborn Care Basics</h3>
+                            <p>Diapering, bathing, soothing, and sleep safety for newborns.</p>
+                            <div class="course-meta">
+                                <span>⏱️ 3 weeks</span>
+                                <span>👥 15k enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-card" onclick="enrollCourse('sleep')">
+                        <div class="course-image">😴</div>
+                        <div class="course-content">
+                            <span class="course-tag">Trending</span>
+                            <h3>Sleep Training</h3>
+                            <p>Establish healthy sleep habits for your baby (4+ months).</p>
+                            <div class="course-meta">
+                                <span>⏱️ 2 weeks</span>
+                                <span>👥 6k enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-card" onclick="enrollCourse('cpr')">
+                        <div class="course-image">❤️</div>
+                        <div class="course-content">
+                            <span class="course-tag">Certified</span>
+                            <h3>Infant CPR & Safety</h3>
+                            <p>Life-saving skills every parent should know.</p>
+                            <div class="course-meta">
+                                <span>⏱️ 1 day</span>
+                                <span>👥 22k enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="course-card" onclick="enrollCourse('solids')">
+                        <div class="course-image">🥄</div>
+                        <div class="course-content">
+                            <span class="course-tag">Nutrition</span>
+                            <h3>Starting Solids</h3>
+                            <p>Introduction to baby-led weaning and purees.</p>
+                            <div class="course-meta">
+                                <span>⏱️ 2 weeks</span>
+                                <span>👥 5k enrolled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="course-account">
+            <div class="container">
+                <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                    <div>
+                        <h2>My Dashboard</h2>
+                        <p style="color: var(--text-gray);">See enrolled courses, progress, and upcoming sessions. Manage your profile.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="calculate-btn" onclick="toggleCourseTab('dashboard')">My Dashboard</button>
+                        <button class="calculate-btn" style="background: var(--bg-gray); color: var(--text-dark);" onclick="toggleCourseTab('profile')">Profile</button>
+                    </div>
+                </div>
+
+                <div id="dashboardPanel">
+                    <div style="margin-bottom: 20px; padding: 16px; background: var(--secondary-pink); border-radius: 12px;">
+                        <h3 style="color: var(--primary-pink);">Enrolled Courses</h3>
+                        <ul class="tools-list" id="enrolledCourses" style="margin-top: 10px;">
+                            <!-- Populated by JS -->
+                        </ul>
+                    </div>
+
+                    <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+                        <div class="card">
+                            <div class="card-icon">📅</div>
+                            <h3>Upcoming Sessions</h3>
+                            <p style="color: var(--text-gray);">Check your email for schedule details after enrollment.</p>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon">🏆</div>
+                            <h3>Certificates</h3>
+                            <p style="color: var(--text-gray);">Complete courses to unlock certificates here.</p>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon">📈</div>
+                            <h3>Progress</h3>
+                            <p style="color: var(--text-gray);">Progress tracking coming soon.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="profilePanel" style="display: none;">
+                    <div style="padding: 16px; background: var(--white); border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.06); max-width: 640px;">
+                        <h3 style="margin-bottom: 12px;">Profile</h3>
+                        <div class="form-group">
+                            <label for="profileName">Full Name</label>
+                            <input type="text" id="profileName" placeholder="e.g., Alex Johnson">
+                        </div>
+                        <div class="form-group">
+                            <label for="profileEmail">Email</label>
+                            <input type="email" id="profileEmail" placeholder="you@example.com">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="profileNotifications">
+                            <label for="profileNotifications" style="margin: 0;">Email me course updates</label>
+                        </div>
+                        <button class="calculate-btn" onclick="saveCourseProfile()">Save Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ACCOUNT PAGE -->
+    <section id="account" class="page-section">
+        <div class="section">
+            <div class="container">
+                <div class="section-header" style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
+                    <div>
+                        <h2>My Account</h2>
+                        <p style="color: var(--text-gray);">Manage your profile, settings, and community features.</p>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="calculate-btn" onclick="showAccountPanel('profile')">Profile</button>
+                        <button class="calculate-btn" style="background: var(--bg-gray); color: var(--text-dark);" onclick="showAccountPanel('settings')">Settings</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 16px; padding: 16px; background: var(--secondary-pink); border-radius: 12px;">
+                    <h3 style="color: var(--primary-pink); margin-bottom: 8px;">Create Screen Name</h3>
+                    <div class="form-group" style="display: flex; gap: 8px;">
+                        <input type="text" id="screenNameInput" placeholder="e.g., SunnyParent123" style="flex: 1;">
+                        <button class="calculate-btn" onclick="saveScreenName()">Save</button>
+                    </div>
+                    <p id="screenNameStatus" style="color: var(--text-gray); margin-top: 8px;"></p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 280px 1fr; gap: 20px;">
+                    <div>
+                        <h3 style="margin-bottom: 10px;">Quick Access</h3>
+                        <ul class="tools-list">
+                            <li class="tool-item" onclick="showAccountPanel('activity')">Activity</li>
+                            <li class="tool-item" onclick="showAccountPanel('messages')">My messages</li>
+                            <li class="tool-item" onclick="showAccountPanel('clubs')">My birth clubs & groups</li>
+                            <li class="tool-item" onclick="goToRegistry()">My registry</li>
+                            <li class="tool-item" onclick="goToCourses()">My courses</li>
+                            <li class="tool-item" onclick="showAccountPanel('names')">My baby name list</li>
+                            <li class="tool-item" onclick="showAccountPanel('profile')">Profile</li>
+                            <li class="tool-item" onclick="navigateTo('family')">My family</li>
+                            <li class="tool-item" onclick="showAccountPanel('communityProfile')">My community profile</li>
+                            <li class="tool-item" onclick="showAccountPanel('settings')">Settings</li>
+                            <li class="tool-item" onclick="showAccountPanel('personalInfo')">Personal info</li>
+                            <li class="tool-item" onclick="showAccountPanel('emailSubscriptions')">Email subscriptions</li>
+                            <li class="tool-item" onclick="showAccountPanel('communityPreferences')">Community preferences</li>
+                            <li class="tool-item" onclick="logoutAccount()">Log out</li>
+                        </ul>
+                    </div>
+
+                    <div id="accountContent">
+                        <div id="accountActivityPanel" class="account-panel">
+                            <h3>Activity</h3>
+                            <p style="color: var(--text-gray);">No recent activity yet.</p>
+                        </div>
+
+                        <div id="accountMessagesPanel" class="account-panel" style="display: none;">
+                            <h3>My messages</h3>
+                            <p style="color: var(--text-gray);">Your inbox is empty.</p>
+                        </div>
+
+                        <div id="accountClubsPanel" class="account-panel" style="display: none;">
+                            <h3>My birth clubs & groups</h3>
+                            <p style="color: var(--text-gray);">Join birth clubs by due month and local groups soon.</p>
+                        </div>
+
+                        <div id="accountNamesPanel" class="account-panel" style="display: none;">
+                            <h3>My baby name list</h3>
+                            <ul id="savedBabyNames" class="tools-list"></ul>
+                            <p style="color: var(--text-gray);">Add names from the Names page; saved favorites appear here.</p>
+                        </div>
+
+                        <div id="accountProfilePanel" class="account-panel" style="display: none;">
+                            <h3>Profile</h3>
+                            <div class="form-group">
+                                <label for="accountName">Full Name</label>
+                                <input type="text" id="accountName" placeholder="e.g., Alex Johnson">
+                            </div>
+                            <div class="form-group">
+                                <label for="accountEmail">Email</label>
+                                <input type="email" id="accountEmail" placeholder="you@example.com">
+                            </div>
+                            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="accountNotifications">
+                                <label for="accountNotifications" style="margin: 0;">Email me updates</label>
+                            </div>
+                            <button class="calculate-btn" onclick="saveAccountProfile()">Save Profile</button>
+                        </div>
+
+                        <div id="accountSettingsPanel" class="account-panel" style="display: none;">
+                            <h3>Settings</h3>
+                            <div id="accountPersonalInfoPanel" style="margin-bottom: 16px;">
+                                <h4>Personal info</h4>
+                                <div class="form-group">
+                                    <label for="accountCity">City</label>
+                                    <input type="text" id="accountCity" placeholder="e.g., Nairobi">
+                                </div>
+                                <div class="form-group">
+                                    <label for="accountDueMonth">Due month</label>
+                                    <input type="text" id="accountDueMonth" placeholder="e.g., March 2026">
+                                </div>
+                            </div>
+                            <div id="accountEmailSubscriptionsPanel" style="margin-bottom: 16px;">
+                                <h4>Email subscriptions</h4>
+                                <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="accountWeeklyEmails">
+                                    <label for="accountWeeklyEmails" style="margin: 0;">Weekly tips and updates</label>
+                                </div>
+                            </div>
+                            <div id="accountCommunityPreferencesPanel" style="margin-bottom: 16px;">
+                                <h4>Community preferences</h4>
+                                <div class="form-group">
+                                    <label for="accountVisibility">Profile visibility</label>
+                                    <select id="accountVisibility">
+                                        <option value="public">Public</option>
+                                        <option value="members">Members only</option>
+                                        <option value="private">Private</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="calculate-btn" onclick="saveAccountSettings()">Save Settings</button>
+                        </div>
+
+                        <div id="accountCommunityProfilePanel" class="account-panel" style="display: none;">
+                            <h3>My community profile</h3>
+                            <p style="color: var(--text-gray);">Your screen name and visibility control how others see you.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAMILY PAGE -->
+    <section id="family" class="page-section">
+        <div class="family-hero">
+            <div class="container">
+                <div class="family-content">
+                    <div class="hero-text">
+                        <h1>Family Life</h1>
+                        <p>Recipes, activities, and advice for raising a happy, healthy family beyond baby years.</p>
+                        <div class="topic-list">
+                            <div class="topic-item" onclick="showFamilyTopic('recipes')">
+                                <div class="topic-icon">🍎</div>
+                                <div>
+                                    <h4>Family Recipes</h4>
+                                    <p style="font-size: 14px; color: var(--text-gray);">Healthy meals kids will love</p>
+                                </div>
+                            </div>
+                            <div class="topic-item" onclick="showFamilyTopic('activities')">
+                                <div class="topic-icon">🎨</div>
+                                <div>
+                                    <h4>Activities & Crafts</h4>
+                                    <p style="font-size: 14px; color: var(--text-gray);">Fun ideas for rainy days</p>
+                                </div>
+                            </div>
+                            <div class="topic-item" onclick="showFamilyTopic('discipline')">
+                                <div class="topic-icon">❤️</div>
+                                <div>
+                                    <h4>Positive Discipline</h4>
+                                    <p style="font-size: 14px; color: var(--text-gray);">Gentle parenting techniques</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="background: var(--white); padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                        <h3 style="margin-bottom: 20px; color: var(--text-dark);">This Week's Featured</h3>
+                        <div style="background: var(--secondary-pink); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                            <h4 style="color: var(--primary-pink); margin-bottom: 8px;">🍪 Recipe: Toddler Muffins</h4>
+                            <p style="font-size: 14px; color: var(--text-gray);">Hidden veggie muffins that toddlers devour!</p>
+                        </div>
+                        <div style="background: var(--bg-gray); padding: 20px; border-radius: 12px; margin-bottom: 15px;">
+                            <h4 style="color: var(--text-dark); margin-bottom: 8px;">🎮 Activity: Sensory Bin</h4>
+                            <p style="font-size: 14px; color: var(--text-gray);">DIY sensory play for 1-3 year olds</p>
+                        </div>
+                        <div style="background: var(--bg-gray); padding: 20px; border-radius: 12px;">
+                            <h4 style="color: var(--text-dark); margin-bottom: 8px;">📚 Topic: Sibling Prep</h4>
+                            <p style="font-size: 14px; color: var(--text-gray);">Helping your firstborn welcome a new baby</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Family Resources</h2>
+                </div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-icon">🎂</div>
+                        <h3>Party Planning</h3>
+                        <p>Birthday themes, cakes, and celebration ideas.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">✈️</div>
+                        <h3>Travel with Kids</h3>
+                        <p>Tips for stress-free family vacations.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">📸</div>
+                        <h3>Milestones</h3>
+                        <p>Capturing and celebrating special moments.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🏠</div>
+                        <h3>Home Safety</h3>
+                        <p>Childproofing tips for every room.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="family-topics">
+            <div class="container">
+                <div class="section-header">
+                    <h2>You & Your Family topics</h2>
+                    <p style="color: var(--text-gray);">Guides on parenting, relationships, finances, celebrations, and everyday family life.</p>
+                </div>
+
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-icon">👩</div>
+                        <h3>Motherhood</h3>
+                        <p style="color: var(--text-gray);">Mother smiling with joy while child kisses her cheek</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Life as a Mom</li>
+                            <li>Beauty</li>
+                            <li>Emotional Wellness</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">🚗</div>
+                        <h3>Auto</h3>
+                        <p style="color: var(--text-gray);">Family with car</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Choosing a Family Car</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">👨</div>
+                        <h3>Fatherhood</h3>
+                        <p style="color: var(--text-gray);">Little girl climbing on dad's back</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Advice for New Dads</li>
+                            <li>Being a Good Dad</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">🤝</div>
+                        <h3>Relationships</h3>
+                        <p style="color: var(--text-gray);">A pair of hands clasped together</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Romantic Relationships</li>
+                            <li>Family & Friends</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">🍭</div>
+                        <h3>Parenting Styles</h3>
+                        <p style="color: var(--text-gray);">Lollipops on pink background</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Different Parenting Styles</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">😴</div>
+                        <h3>Sleep for Mom & Dad</h3>
+                        <p style="color: var(--text-gray);">Mother, father and their daughter sleeping in a bed</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Sleep Deprivation</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">💰</div>
+                        <h3>Money</h3>
+                        <p style="color: var(--text-gray);">Family going over finances</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Family Finance Basics</li>
+                            <li>Health Insurance</li>
+                            <li>Childcare & School Costs</li>
+                            <li>Life Insurance & Estate Planning</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">💼</div>
+                        <h3>Working or Staying Home</h3>
+                        <p style="color: var(--text-gray);">Mother smiling at child while working at a laptop</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Stay-at-Home Parents</li>
+                            <li>Working Parents</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">👶</div>
+                        <h3>Siblings</h3>
+                        <p style="color: var(--text-gray);">Big sister kissing new baby sibling</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Having Another Baby</li>
+                            <li>Coping With Two or More</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">🏡</div>
+                        <h3>House & Home</h3>
+                        <p style="color: var(--text-gray);">Two women with child in the kitchen</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Meal Planning & Recipes</li>
+                            <li>Managing Time & Housework</li>
+                            <li>Pets</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">🎂</div>
+                        <h3>Birthdays</h3>
+                        <p style="color: var(--text-gray);">Twins blowing out birthday candles</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>First birthday</li>
+                            <li>Birthday Basics</li>
+                            <li>Second birthday</li>
+                            <li>Grade-schooler birthdays</li>
+                        </ul>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-icon">🎉</div>
+                        <h3>Holidays & Celebrations</h3>
+                        <p style="color: var(--text-gray);">Mother snuggling with her two babies</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Holidays With Kids</li>
+                            <li>Father's Day</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BABY PAGE -->
+    <section id="baby" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1>Baby Care & Development</h1>
+                        <p>Everything you need to know about feeding, sleep, milestones, and health for your little one.</p>
+                    </div>
+                    <div class="calculator-card">
+                        <h3 style="margin-bottom: 15px;">Baby Milestone Tracker</h3>
+                        <p style="color: var(--text-gray); margin-bottom: 20px; font-size: 14px;">Enter your baby's birth date to see upcoming milestones.</p>
+                        <div class="form-group">
+                            <label>Baby's birth date</label>
+                            <input type="date" id="babyBirthDate">
+                        </div>
+                        <button class="calculate-btn" onclick="trackMilestones()">See Milestones</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-icon">🍼</div>
+                        <h3>Feeding</h3>
+                        <p>Breastfeeding, formula, and starting solids.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">😴</div>
+                        <h3>Sleep</h3>
+                        <p>Sleep schedules, training, and safety.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">📏</div>
+                        <h3>Growth</h3>
+                        <p>Charts and milestones for first year.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">💉</div>
+                        <h3>Health</h3>
+                        <p>Vaccines, checkups, and when to call doctor.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="baby-tools">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Baby tools</h2>
+                    <p>Quick helpers for feeding, growth, and planning.</p>
+                </div>
+                <div class="tools-list">
+                    <div class="tool-item" onclick="navigateTo('baby')">
+                        <div class="tool-icon-small">💰</div>
+                        <div class="tool-info">
+                            <h4>Baby Costs Calculator</h4>
+                            <p>Plan monthly expenses</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" onclick="navigateTo('baby')">
+                        <div class="tool-icon-small">🤱</div>
+                        <div class="tool-info">
+                            <h4>Breastfeeding Problem Solver</h4>
+                            <p>Troubleshoot latch, supply, and more</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" onclick="navigateTo('baby')">
+                        <div class="tool-icon-small">🍼</div>
+                        <div class="tool-info">
+                            <h4>Formula Feeding Problem Solver</h4>
+                            <p>Address common issues</p>
+                        </div>
+                    </div>
+                    <div class="tool-item" onclick="navigateTo('registry')">
+                        <div class="tool-icon-small">🧾</div>
+                        <div class="tool-info">
+                            <h4>Registry</h4>
+                            <p>Build and track your list</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TODDLER PAGE -->
+    <section id="toddler" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1>Toddler Years (1-3)</h1>
+                        <p>Navigating tantrums, potty training, and explosive learning.</p>
+                    </div>
+                    <div class="calculator-card">
+                        <h3 style="margin-bottom: 15px;">Toddler Milestones</h3>
+                        <div class="form-group">
+                            <label>Toddler's age</label>
+                            <select id="toddlerAge">
+                                <option value="12">12 months</option>
+                                <option value="18">18 months</option>
+                                <option value="24">2 years</option>
+                                <option value="30">30 months</option>
+                                <option value="36">3 years</option>
+                            </select>
+                        </div>
+                        <button class="calculate-btn" onclick="showToddlerMilestones()">View Milestones</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-icon">🚽</div>
+                        <h3>Potty Training</h3>
+                        <p>Signs of readiness and training tips.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🗣️</div>
+                        <h3>Speech & Language</h3>
+                        <p>Encouraging communication development.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🥦</div>
+                        <h3>Picky Eating</h3>
+                        <p>Strategies for mealtime battles.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🧸</div>
+                        <h3>Behavior</h3>
+                        <p>Tantrums, sharing, and social skills.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" id="toddler-topics">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Toddler topics</h2>
+                    <p>Sleep, feeding, potty training, and age-by-age development.</p>
+                </div>
+                <div class="cards-grid">
+                    <div class="card">
+                        <div class="card-icon">📅</div>
+                        <h3>By Age (12–23 months)</h3>
+                        <p style="color: var(--text-gray);">Toddler age girl • 1 year old</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>12 months</li>
+                            <li>13 months</li>
+                            <li>14 months</li>
+                            <li>15 months</li>
+                            <li>16 months</li>
+                            <li>17 months</li>
+                            <li>18 months</li>
+                            <li>19 months</li>
+                            <li>20 months</li>
+                            <li>21 months</li>
+                            <li>22 months</li>
+                            <li>23 months</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">😴</div>
+                        <h3>Toddler Sleep Guides</h3>
+                        <p style="color: var(--text-gray);">Young boy asleep on the bed</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Getting Your Toddler to Sleep</li>
+                            <li>Naps</li>
+                            <li>Sleep Problems & Concerns</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🥣</div>
+                        <h3>Feeding</h3>
+                        <p style="color: var(--text-gray);">Young boy spoon feeding himself yogurt</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Healthy Eating</li>
+                            <li>Feeding Problems & Concerns</li>
+                            <li>Toddler Breastfeeding</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">🚽</div>
+                        <h3>Toddler Potty Training Guides</h3>
+                        <p style="color: var(--text-gray);">Toddler girl smiling in the bathroom</p>
+                        <ul style="text-align: left; margin-top: 10px;">
+                            <li>Potty Training Basics</li>
+                            <li>Potty Training Tips</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BABBLE WORD GAME PAGE -->
+    <section id="babble-game" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Babble Word Game</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">A fun interactive word game to help your toddler learn new words and sounds!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="babble-game-container">
+                    <div class="game-header">
+                        <h2>Let's Learn Words Together!</h2>
+                        <p>Click on the pictures to hear the words and help your little one learn!</p>
+                    </div>
+
+                    <div class="game-categories">
+                        <div class="category-tabs">
+                            <button class="category-tab active" onclick="showCategory('animals', event)">🦁 Animals</button>
+                            <button class="category-tab" onclick="showCategory('food', event)">🍎 Food</button>
+                            <button class="category-tab" onclick="showCategory('objects', event)">🧸 Objects</button>
+                            <button class="category-tab" onclick="showCategory('actions', event)">🎈 Actions</button>
+                            <button class="category-tab" onclick="showCategory('family-category', event)">👨‍👩‍👧 Family</button>
+                            <button class="category-tab" onclick="showCategory('nature', event)">🌿 Nature</button>
+                            <button class="category-tab" onclick="showAllWords()">🌟 All Words</button>
+                        </div>
+
+                        <div id="animals" class="category-content active">
+                            <div class="word-grid">
+                                <div class="word-card" onclick="playWord('cat', '🐱')">
+                                    <div class="word-emoji">🐱</div>
+                                    <div class="word-text">Cat</div>
+                                    <div class="word-sound">Meow!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('dog', '🐶')">
+                                    <div class="word-emoji">🐶</div>
+                                    <div class="word-text">Dog</div>
+                                    <div class="word-sound">Woof!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('duck', '🦆')">
+                                    <div class="word-emoji">🦆</div>
+                                    <div class="word-text">Duck</div>
+                                    <div class="word-sound">Quack!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('cow', '🐄')">
+                                    <div class="word-emoji">🐄</div>
+                                    <div class="word-text">Cow</div>
+                                    <div class="word-sound">Moo!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('bird', '🐦')">
+                                    <div class="word-emoji">🐦</div>
+                                    <div class="word-text">Bird</div>
+                                    <div class="word-sound">Tweet!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('fish', '🐠')">
+                                    <div class="word-emoji">🐠</div>
+                                    <div class="word-text">Fish</div>
+                                    <div class="word-sound">Blub blub!</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="food" class="category-content">
+                            <div class="word-grid">
+                                <div class="word-card" onclick="playWord('apple', '🍎')">
+                                    <div class="word-emoji">🍎</div>
+                                    <div class="word-text">Apple</div>
+                                    <div class="word-sound">Yum!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('banana', '🍌')">
+                                    <div class="word-emoji">🍌</div>
+                                    <div class="word-text">Banana</div>
+                                    <div class="word-sound">Yummy!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('milk', '🥛')">
+                                    <div class="word-emoji">🥛</div>
+                                    <div class="word-text">Milk</div>
+                                    <div class="word-sound">Slurp!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('cookie', '🍪')">
+                                    <div class="word-emoji">🍪</div>
+                                    <div class="word-text">Cookie</div>
+                                    <div class="word-sound">Nom nom!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('bread', '🍞')">
+                                    <div class="word-emoji">🍞</div>
+                                    <div class="word-text">Bread</div>
+                                    <div class="word-sound">Tasty!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('juice', '🧃')">
+                                    <div class="word-emoji">🧃</div>
+                                    <div class="word-text">Juice</div>
+                                    <div class="word-sound">Delicious!</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="objects" class="category-content">
+                            <div class="word-grid">
+                                <div class="word-card" onclick="playWord('ball', '⚽')">
+                                    <div class="word-emoji">⚽</div>
+                                    <div class="word-text">Ball</div>
+                                    <div class="word-sound">Bounce!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('book', '📚')">
+                                    <div class="word-emoji">📚</div>
+                                    <div class="word-text">Book</div>
+                                    <div class="word-sound">Story time!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('teddy', '🧸')">
+                                    <div class="word-emoji">🧸</div>
+                                    <div class="word-text">Teddy</div>
+                                    <div class="word-sound">Hug!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('car', '🚗')">
+                                    <div class="word-emoji">🚗</div>
+                                    <div class="word-text">Car</div>
+                                    <div class="word-sound">Vroom!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('blocks', '🧱')">
+                                    <div class="word-emoji">🧱</div>
+                                    <div class="word-text">Blocks</div>
+                                    <div class="word-sound">Stack!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('crayon', '🖍️')">
+                                    <div class="word-emoji">🖍️</div>
+                                    <div class="word-text">Crayon</div>
+                                    <div class="word-sound">Draw!</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="actions" class="category-content">
+                            <div class="word-grid">
+                                <div class="word-card" onclick="playWord('clap', '👏')">
+                                    <div class="word-emoji">👏</div>
+                                    <div class="word-text">Clap</div>
+                                    <div class="word-sound">Clap clap!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('wave', '👋')">
+                                    <div class="word-emoji">👋</div>
+                                    <div class="word-text">Wave</div>
+                                    <div class="word-sound">Hello!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('jump', '🦘')">
+                                    <div class="word-emoji">🦘</div>
+                                    <div class="word-text">Jump</div>
+                                    <div class="word-sound">Boing!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('dance', '💃')">
+                                    <div class="word-emoji">💃</div>
+                                    <div class="word-text">Dance</div>
+                                    <div class="word-sound">Let's dance!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('sleep', '😴')">
+                                    <div class="word-emoji">😴</div>
+                                    <div class="word-text">Sleep</div>
+                                    <div class="word-sound">Zzz...</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('play', '🎮')">
+                                    <div class="word-emoji">🎮</div>
+                                    <div class="word-text">Play</div>
+                                    <div class="word-sound">Fun time!</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="family-category" class="category-content">
+                            <div class="word-grid">
+                                <div class="word-card" onclick="playWord('Mommy', '👩')">
+                                    <div class="word-emoji">👩</div>
+                                    <div class="word-text">Mommy</div>
+                                    <div class="word-sound">Love you!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Daddy', '👨')">
+                                    <div class="word-emoji">👨</div>
+                                    <div class="word-text">Daddy</div>
+                                    <div class="word-sound">Big hug!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Baby', '👶')">
+                                    <div class="word-emoji">👶</div>
+                                    <div class="word-text">Baby</div>
+                                    <div class="word-sound">That's me!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Grandma', '👵')">
+                                    <div class="word-emoji">👵</div>
+                                    <div class="word-text">Grandma</div>
+                                    <div class="word-sound">Sweet kisses!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Grandpa', '👴')">
+                                    <div class="word-emoji">👴</div>
+                                    <div class="word-text">Grandpa</div>
+                                    <div class="word-sound">Strong hugs!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Sister', '👧')">
+                                    <div class="word-emoji">👧</div>
+                                    <div class="word-text">Sister</div>
+                                    <div class="word-sound">Play together!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Brother', '👦')">
+                                    <div class="word-emoji">👦</div>
+                                    <div class="word-text">Brother</div>
+                                    <div class="word-sound">Best friend!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Family', '👨‍👩‍👧‍👦')">
+                                    <div class="word-emoji">👨‍👩‍👧‍👦</div>
+                                    <div class="word-text">Family</div>
+                                    <div class="word-sound">All together!</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="nature" class="category-content">
+                            <div class="word-grid">
+                                <div class="word-card" onclick="playWord('Sun', '☀️')">
+                                    <div class="word-emoji">☀️</div>
+                                    <div class="word-text">Sun</div>
+                                    <div class="word-sound">Bright warm!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Moon', '🌙')">
+                                    <div class="word-emoji">🌙</div>
+                                    <div class="word-text">Moon</div>
+                                    <div class="word-sound">Night night!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Star', '⭐')">
+                                    <div class="word-emoji">⭐</div>
+                                    <div class="word-text">Star</div>
+                                    <div class="word-sound">Twinkle sparkle!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Cloud', '☁️')">
+                                    <div class="word-emoji">☁️</div>
+                                    <div class="word-text">Cloud</div>
+                                    <div class="word-sound">Fluffy white!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Rain', '🌧️')">
+                                    <div class="word-emoji">🌧️</div>
+                                    <div class="word-text">Rain</div>
+                                    <div class="word-sound">Pitter patter!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Flower', '🌸')">
+                                    <div class="word-emoji">🌸</div>
+                                    <div class="word-text">Flower</div>
+                                    <div class="word-sound">Pretty bloom!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Tree', '🌳')">
+                                    <div class="word-emoji">🌳</div>
+                                    <div class="word-text">Tree</div>
+                                    <div class="word-sound">Tall strong!</div>
+                                </div>
+                                <div class="word-card" onclick="playWord('Grass', '🌱')">
+                                    <div class="word-emoji">🌱</div>
+                                    <div class="word-text">Grass</div>
+                                    <div class="word-sound">Green soft!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="game-tips">
+                        <h3>Tips for Parents</h3>
+                        <ul>
+                            <li>Repeat the words multiple times to help with learning</li>
+                            <li>Encourage your child to say the words back to you</li>
+                            <li>Use hand gestures and facial expressions</li>
+                            <li>Keep sessions short and fun (5-10 minutes)</li>
+                            <li>Celebrate their attempts, even if not perfect</li>
+                        </ul>
+                    </div>
+        </div>
+    </section>
+
+    <!-- DUE DATE CALCULATOR PAGE -->
+    <section id="due-date-calculator" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Due Date Calculator</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Calculate your baby's due date based on your last menstrual period or conception date.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="calculator-container">
+                    <div class="calc-card">
+                        <h3>Calculate Your Due Date</h3>
+                        <div class="form-group">
+                            <label>Last Menstrual Period:</label>
+                            <input type="date" id="dueDateLMP" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Average Cycle Length:</label>
+                            <select id="cycleLength" class="form-input">
+                                <option value="28">28 days</option>
+                                <option value="26">26 days</option>
+                                <option value="27">27 days</option>
+                                <option value="29">29 days</option>
+                                <option value="30">30 days</option>
+                                <option value="31">31 days</option>
+                                <option value="32">32 days</option>
+                            </select>
+                        </div>
+                        <button onclick="calculateDueDate()" class="btn-primary">Calculate Due Date</button>
+                        <div id="dueDateResult" class="result-box" style="display: none;"></div>
+                    </div>
+
+                    <div class="info-section">
+                        <h4>About Due Date Calculation</h4>
+                        <p>The due date is calculated as 280 days (40 weeks) from the first day of your last menstrual period. This method assumes a 28-day menstrual cycle.</p>
+                        <ul>
+                            <li>Only 5% of babies are born on their exact due date</li>
+                            <li>Most babies are born between 37-42 weeks</li>
+                            <li>Your healthcare provider may adjust your due date after ultrasound</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PREGNANCY TRACKER PAGE -->
+    <section id="pregnancy-tracker" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Pregnancy Tracker</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Track your pregnancy week by week with personalized updates and milestones.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="tracker-container">
+                    <div class="tracker-input">
+                        <h3>Track Your Pregnancy</h3>
+                        <div class="form-group">
+                            <label>Due Date:</label>
+                            <input type="date" id="trackerDueDate" class="form-input">
+                        </div>
+                        <button onclick="trackPregnancy()" class="btn-primary">Track Pregnancy</button>
+                        <div id="pregnancyResult" class="result-box" style="display: none;"></div>
+                    </div>
+
+                    <div class="milestone-section">
+                        <h4>Pregnancy Milestones</h4>
+                        <div class="milestone-grid">
+                            <div class="milestone-card">
+                                <div class="milestone-week">Week 12</div>
+                                <div class="milestone-text">End of first trimester</div>
+                            </div>
+                            <div class="milestone-card">
+                                <div class="milestone-week">Week 20</div>
+                                <div class="milestone-text">Anatomy scan</div>
+                            </div>
+                            <div class="milestone-card">
+                                <div class="milestone-week">Week 28</div>
+                                <div class="milestone-text">Third trimester begins</div>
+                            </div>
+                            <div class="milestone-card">
+                                <div class="milestone-week">Week 37</div>
+                                <div class="milestone-text">Full term pregnancy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BABY KICK COUNTER PAGE -->
+    <section id="baby-kick-counter" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Baby Kick Counter</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Monitor your baby's movements to ensure they're active and healthy.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="kick-counter-container">
+                    <div class="kick-display">
+                        <h3>Kick Counter</h3>
+                        <div class="kick-stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="kickCount">0</div>
+                                <div class="stat-label">Kicks</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="kickTimer">00:00</div>
+                                <div class="stat-label">Time</div>
+                            </div>
+                        </div>
+                        <div class="kick-controls">
+                            <button id="kickStartBtn" onclick="startKickCounter()" class="btn-primary">Start Counting</button>
+                            <button id="kickBtn" onclick="countKick()" class="btn-secondary" disabled>Kick!</button>
+                            <button onclick="resetKickCounter()" class="btn-outline">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="kick-info">
+                        <h4>How to Count Kicks</h4>
+                        <ul>
+                            <li>Count 10 kicks and note how long it takes</li>
+                            <li>Most babies complete 10 kicks within 2 hours</li>
+                            <li>Best time to count is when baby is usually active</li>
+                            <li>Lie on your left side for better counting</li>
+                            <li>Contact your provider if it takes longer than 2 hours</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTRACTION TIMER PAGE -->
+    <section id="contraction-timer" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Contraction Timer</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Time your contractions to know when it's time to go to the hospital.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="contraction-timer-container">
+                    <div class="timer-display">
+                        <h3>Contraction Timer</h3>
+                        <div class="timer-stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="currentTimer">00:00</div>
+                                <div class="stat-label">Current</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="frequencyTime">--:--</div>
+                                <div class="stat-label">Frequency</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="durationTime">00:00</div>
+                                <div class="stat-label">Duration</div>
+                            </div>
+                        </div>
+                        <div class="timer-controls">
+                            <button id="contractionStartBtn" onclick="startContraction()" class="btn-primary">Contraction Start</button>
+                            <button id="contractionEndBtn" onclick="endContraction()" class="btn-secondary" disabled>Contraction End</button>
+                            <button onclick="resetContractionTimer()" class="btn-outline">Reset</button>
+                        </div>
+                        <div id="contractionLog" class="contraction-log"></div>
+                    </div>
+
+                    <div class="contraction-info">
+                        <h4>When to Call Your Provider</h4>
+                        <div class="alert-box">
+                            <strong>5-1-1 Rule:</strong> Call when contractions are 5 minutes apart, lasting 1 minute, for 1 hour.
+                        </div>
+                        <ul>
+                            <li>Contractions getting stronger and closer together</li>
+                            <li>Can't walk or talk during contractions</li>
+                            <li>Water breaks or bleeding occurs</li>
+                            <li>Baby movements decrease significantly</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BREASTFEEDING GUIDE PAGE -->
+    <section id="breastfeeding-guide" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Breastfeeding Guide</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Complete guide to successful breastfeeding for new mothers.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="breastfeeding-container">
+                    <div class="guide-sections">
+                        <div class="guide-section">
+                            <h3>Getting Started</h3>
+                            <div class="guide-cards">
+                                <div class="guide-card">
+                                    <h4>First Latch</h4>
+                                    <p>Initiate breastfeeding within the first hour after birth when baby is most alert.</p>
+                                </div>
+                                <div class="guide-card">
+                                    <h4>Positioning</h4>
+                                    <p>Find comfortable positions like cradle hold, football hold, or side-lying.</p>
+                                </div>
+                                <div class="guide-card">
+                                    <h4>Latch Signs</h4>
+                                    <p>Look for wide mouth, flanged lips, and rhythmic sucking and swallowing.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="guide-section">
+                            <h3>Feeding Schedule</h3>
+                            <div class="schedule-grid">
+                                <div class="schedule-item">
+                                    <div class="schedule-age">Newborn</div>
+                                    <div class="schedule-info">8-12 times per day (every 2-3 hours)</div>
+                                </div>
+                                <div class="schedule-item">
+                                    <div class="schedule-age">1-3 Months</div>
+                                    <div class="schedule-info">7-9 times per day (every 2-4 hours)</div>
+                                </div>
+                                <div class="schedule-item">
+                                    <div class="schedule-age">3-6 Months</div>
+                                    <div class="schedule-info">6-8 times per day (every 3-4 hours)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="guide-section">
+                            <h3>Common Concerns</h3>
+                            <div class="concerns-list">
+                                <div class="concern-item">
+                                    <h4>Sore Nipples</h4>
+                                    <p>Ensure proper latch and use lanolin cream. Contact lactation consultant if pain persists.</p>
+                                </div>
+                                <div class="concern-item">
+                                    <h4>Low Milk Supply</h4>
+                                    <p>Nurse frequently, stay hydrated, and ensure proper nutrition. Consider pumping between feeds.</p>
+                                </div>
+                                <div class="concern-item">
+                                    <h4>Engorgement</h4>
+                                    <p>Nurse frequently, apply warm compresses before feeding, and cold compresses after.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BABY SLEEP TRACKER PAGE -->
+    <section id="sleep-tracker" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Baby Sleep Tracker</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Track your baby's sleep patterns and establish healthy sleep habits.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="sleep-tracker-container">
+                    <div class="sleep-input">
+                        <h3>Track Sleep Session</h3>
+                        <div class="form-group">
+                            <label>Sleep Start Time:</label>
+                            <input type="time" id="sleepStart" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Sleep End Time:</label>
+                            <input type="time" id="sleepEnd" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Sleep Quality:</label>
+                            <select id="sleepQuality" class="form-input">
+                                <option value="excellent">Excellent - Peaceful sleep</option>
+                                <option value="good">Good - Some stirring</option>
+                                <option value="fair">Fair - Frequent waking</option>
+                                <option value="poor">Poor - Very restless</option>
+                            </select>
+                        </div>
+                        <button onclick="trackSleep()" class="btn-primary">Track Sleep</button>
+                        <div id="sleepResult" class="result-box" style="display: none;"></div>
+                    </div>
+
+                    <div class="sleep-tips">
+                        <h4>Sleep Tips by Age</h4>
+                        <div class="age-tips">
+                            <div class="age-tip">
+                                <h5>0-3 Months</h5>
+                                <p>14-17 hours total, including naps every 2-3 hours.</p>
+                            </div>
+                            <div class="age-tip">
+                                <h5>4-6 Months</h5>
+                                <p>12-16 hours total, with longer night stretches.</p>
+                            </div>
+                            <div class="age-tip">
+                                <h5>7-12 Months</h5>
+                                <p>11-14 hours total, typically 2-3 naps per day.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VACCINE SCHEDULER PAGE -->
+    <section id="vaccine-scheduler" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Vaccine Scheduler</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Track your baby's vaccination schedule and stay up to date.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="vaccine-container">
+                    <div class="vaccine-input">
+                        <h3>Baby Information</h3>
+                        <div class="form-group">
+                            <label>Baby's Birth Date:</label>
+                            <input type="date" id="vaccineBabyBirthDate" class="form-input">
+                        </div>
+                        <button onclick="generateVaccineSchedule()" class="btn-primary">Generate Schedule</button>
+                        <div id="vaccineSchedule" class="schedule-result" style="display: none;"></div>
+                    </div>
+
+                    <div class="vaccine-info">
+                        <h4>Recommended Vaccines</h4>
+                        <div class="vaccine-timeline">
+                            <div class="vaccine-milestone">
+                                <div class="milestone-age">Birth</div>
+                                <div class="milestone-vaccines">Hepatitis B</div>
+                            </div>
+                            <div class="vaccine-milestone">
+                                <div class="milestone-age">2 Months</div>
+                                <div class="milestone-vaccines">DTaP, Hib, IPV, PCV, Rotavirus</div>
+                            </div>
+                            <div class="vaccine-milestone">
+                                <div class="milestone-age">4 Months</div>
+                                <div class="milestone-vaccines">DTaP, Hib, IPV, PCV, Rotavirus</div>
+                            </div>
+                            <div class="vaccine-milestone">
+                                <div class="milestone-age">6 Months</div>
+                                <div class="milestone-vaccines">DTaP, Hib, IPV, PCV, Rotavirus, Flu</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GROWTH CHART PAGE -->
+    <section id="growth-chart-page" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Growth Chart</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Track your baby's growth and development with our interactive charts.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="growth-container">
+                    <div class="growth-input">
+                        <h3>Track Growth</h3>
+                        <div class="form-group">
+                            <label>Baby's Age (months):</label>
+                            <input type="number" id="babyAge" class="form-input" min="0" max="60" placeholder="Enter age in months">
+                        </div>
+                        <div class="form-group">
+                            <label>Weight (kg):</label>
+                            <input type="number" id="babyWeight" class="form-input" step="0.1" placeholder="Enter weight">
+                        </div>
+                        <div class="form-group">
+                            <label>Height (cm):</label>
+                            <input type="number" id="babyHeight" class="form-input" step="0.1" placeholder="Enter height">
+                        </div>
+                        <button onclick="trackGrowth()" class="btn-primary">Track Growth</button>
+                        <div id="growthResult" class="result-box" style="display: none;"></div>
+                    </div>
+
+                    <div class="growth-info">
+                        <h4>Growth Milestones</h4>
+                        <div class="milestone-grid">
+                            <div class="milestone-card">
+                                <h5>0-3 Months</h5>
+                                <p>Doubles birth weight, gains 1-2 lbs monthly</p>
+                            </div>
+                            <div class="milestone-card">
+                                <h5>4-6 Months</h5>
+                                <p>Gains 1-1.5 lbs monthly, grows 1/2 inch monthly</p>
+                            </div>
+                            <div class="milestone-card">
+                                <h5>6-12 Months</h5>
+                                <p>Triples birth weight, grows 1/2 inch monthly</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Getting Pregnant</h4>
+                    <ul>
+                        <li><a onclick="navigateTo('getting-pregnant')">Ovulation Calculator</a></li>
+                        <li><a onclick="navigateTo('getting-pregnant')">Fertility</a></li>
+                        <li><a onclick="navigateTo('getting-pregnant')">Preconception Health</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Pregnancy</h4>
+                    <ul>
+                        <li><a onclick="navigateTo('pregnancy')">Week by Week</a></li>
+                        <li><a onclick="navigateTo('pregnancy')">Symptoms</a></li>
+                        <li><a onclick="navigateTo('pregnancy')">Labor & Delivery</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Baby</h4>
+                    <ul>
+                        <li><a onclick="navigateTo('baby')">Newborn Care</a></li>
+                        <li><a onclick="navigateTo('baby')">Feeding</a></li>
+                        <li><a onclick="navigateTo('baby')">Sleep</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a onclick="navigateTo('names')">Baby Names</a></li>
+                        <li><a onclick="navigateTo('registry')">Registry</a></li>
+                        <li><a onclick="navigateTo('courses')">Courses</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a>Birth Clubs</a></li>
+                        <li><a>Forums</a></li>
+                        <li><a>App Download</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div style="font-weight: bold; color: var(--primary-pink); font-size: 20px;">BabyCenter</div>
+                <div class="social-links">
+                    <a href="#">f</a>
+                    <a href="#">in</a>
+                    <a href="#">P</a>
+                    <a href="#">Y</a>
+                </div>
+                <div style="color: #95a5a6; font-size: 14px;">© 2026 BabyCenter, LLC. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="babble.js"></script>
+    <script>
+        // Ensure navigateToTool function is available
+        function navigateToTool(pageId) {
+            // Check if user is logged in
+            const isLoggedIn = localStorage.getItem('bc_logged_in') === 'true';
+            
+            if (isLoggedIn) {
+                // User is logged in, navigate directly to the tool
+                navigateTo(pageId);
+            } else {
+                // User is not logged in, redirect to login page
+                // Store the intended destination for after login
+                localStorage.setItem('bc_intended_page', pageId);
+                navigateTo('login');
+                
+                // Show a message explaining why they need to login
+                setTimeout(() => {
+                    const message = document.createElement('div');
+                    message.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 15px 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        z-index: 10000;
+                        font-size: 14px;
+                        max-width: 300px;
+                        animation: slideIn 0.3s ease;
+                    `;
+                    message.innerHTML = `
+                        <strong>🔐 Login Required</strong><br>
+                        Please log in or sign up to access this premium feature.
+                    `;
+                    document.body.appendChild(message);
+                    
+                    // Remove message after 4 seconds
+                    setTimeout(() => {
+                        message.style.animation = 'slideOut 0.3s ease';
+                        setTimeout(() => message.remove(), 300);
+                    }, 4000);
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>

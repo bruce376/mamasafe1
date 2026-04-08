@@ -1,0 +1,76 @@
+127.0.0.1 - - [23/Mar/2026 14:28:28] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:28:35] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:29:08] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:29:08] "GET /script.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:29:08] "GET /babble.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:35:59] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:35:59] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:35:59] "GET /script.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:35:59] "GET /babble.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:36:00] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 14:36:00] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 14:36:14] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:50:05] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:59:45] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:59:45] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:59:45] "GET /script.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:59:45] "GET /babble.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 14:59:45] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 14:59:46] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 15:00:23] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:00:23] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:00:23] "GET /script.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:00:23] "GET /babble.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:00:24] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 15:00:24] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 15:00:43] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:00:43] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:00:43] "GET /script.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:00:43] "GET /babble.js HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:00:43] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 15:00:43] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 15:02:00] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:02:04] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:02:04] "GET /styles.css?v=20260323-ovulation-modal HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:02:05] "GET /babble.js?v=20260323-ovulation-modal HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:02:05] "GET /script.js?v=20260323-ovulation-modal HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:02:05] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 15:02:05] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 15:08:19] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:19:23] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:43:54] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:43:54] "GET /styles.css?v=20260323-gp-tools HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:43:54] "GET /script.js?v=20260323-gp-tools HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:43:54] "GET /babble.js?v=20260323-gp-tools HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:43:54] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 15:43:54] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 15:56:05] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:56:05] "GET /styles.css?v=20260323-early-signs-score HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:56:05] "GET /babble.js?v=20260323-early-signs-score HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:56:05] "GET /script.js?v=20260323-early-signs-score HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 15:56:05] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 15:56:06] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 16:05:25] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:05:25] "GET /styles.css?v=20260323-sign-result HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:05:25] "GET /script.js?v=20260323-sign-result HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:05:25] "GET /babble.js?v=20260323-sign-result HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:05:26] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 16:05:26] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 16:13:24] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:13:24] "GET /styles.css?v=20260323-sign-page-result HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:13:24] "GET /babble.js?v=20260323-sign-page-result HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:13:24] "GET /script.js?v=20260323-sign-page-result HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:13:24] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 16:13:24] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 16:21:57] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:21:57] "GET /styles.css?v=20260323-sign-logic-fix HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:21:57] "GET /script.js?v=20260323-sign-logic-fix HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:21:57] "GET /babble.js?v=20260323-sign-logic-fix HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:21:57] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 16:21:57] "GET /favicon.ico HTTP/1.1" 404 -
+127.0.0.1 - - [23/Mar/2026 16:35:10] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:35:10] "GET /styles.css?v=20260323-sign-points-ui HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:35:10] "GET /babble.js?v=20260323-sign-points-ui HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:35:10] "GET /script.js?v=20260323-sign-points-ui HTTP/1.1" 200 -
+127.0.0.1 - - [23/Mar/2026 16:35:10] code 404, message File not found
+127.0.0.1 - - [23/Mar/2026 16:35:10] "GET /favicon.ico HTTP/1.1" 404 -

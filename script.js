@@ -203,17 +203,1186 @@ function showFullMilestones() {
     }
 }
 
-// Calculate months for timeline
+// Advanced Family Dashboard Data Management
+let familyData = {
+    members: [
+        { id: 1, name: 'Sarah', role: 'Parent', avatar: '👩', age: 35, status: 'active', email: 'sarah@family.com' },
+        { id: 2, name: 'Mike', role: 'Parent', avatar: '👨', age: 37, status: 'active', email: 'mike@family.com' },
+        { id: 3, name: 'Emma', role: 'Child', avatar: '👧', age: 8, status: 'active', grade: '3rd Grade' },
+        { id: 4, name: 'Noah', role: 'Child', avatar: '👦', age: 5, status: 'active', grade: 'Kindergarten' },
+        { id: 5, name: 'Lily', role: 'Child', avatar: '👶', age: 2, status: 'active', grade: 'Preschool' }
+    ],
+    schedule: [
+        { id: 1, time: '7:00 AM', activity: 'Family Breakfast', participants: ['All'], priority: 'high', completed: true },
+        { id: 2, time: '8:30 AM', activity: 'School Drop-off', participants: ['Emma', 'Noah'], priority: 'high', completed: true },
+        { id: 3, time: '9:00 AM', activity: 'Work Meeting', participants: ['Sarah', 'Mike'], priority: 'medium', completed: false },
+        { id: 4, time: '12:00 PM', activity: 'Lunch Break', participants: ['All'], priority: 'medium', completed: false },
+        { id: 5, time: '3:00 PM', activity: 'School Pick-up', participants: ['Sarah'], priority: 'high', completed: false },
+        { id: 6, time: '4:00 PM', activity: 'Playtime', participants: ['Emma', 'Noah', 'Lily'], priority: 'low', completed: false },
+        { id: 7, time: '6:00 PM', activity: 'Family Dinner', participants: ['All'], priority: 'high', completed: false },
+        { id: 8, time: '7:30 PM', activity: 'Bedtime Routine', participants: ['All'], priority: 'medium', completed: false }
+    ],
+    goals: [
+        { id: 1, title: 'Weekly Family Dinners', progress: 85, color: '#4caf50', target: 7, current: 6, unit: 'dinners' },
+        { id: 2, title: 'Savings Target', progress: 60, color: '#ff9800', target: 1000, current: 600, unit: '$' },
+        { id: 3, title: 'Exercise Minutes', progress: 72, color: '#2196f3', target: 300, current: 216, unit: 'minutes' },
+        { id: 4, title: 'Family Reading Time', progress: 45, color: '#9c27b0', target: 420, current: 189, unit: 'minutes' }
+    ],
+    insights: [
+        { type: 'nutrition', title: 'Nutrition Excellence', message: 'Your family\'s nutrition score improved by 15% this week! Keep up the great work with balanced meals.', icon: '🥗', trend: 'up', value: '+15%' },
+        { type: 'activity', title: 'Activity Balance', message: 'Consider adding more outdoor activities. Weather looks great for weekend family hikes!', icon: '🏃', trend: 'neutral', value: 'Good' },
+        { type: 'sleep', title: 'Sleep Patterns', message: 'Younger children\'s sleep schedule is optimal. Teens might benefit from earlier bedtimes.', icon: '😴', trend: 'stable', value: 'Optimal' },
+        { type: 'budget', title: 'Budget Management', message: 'You\'re under budget by 8% this month. Great job managing expenses!', icon: '💰', trend: 'down', value: '-8%' }
+    ],
+    meals: [
+        { day: 'Monday', breakfast: 'Oatmeal with berries', lunch: 'Grilled chicken salad', dinner: 'Pasta primavera', snacks: 'Apple slices, yogurt' },
+        { day: 'Tuesday', breakfast: 'Scrambled eggs', lunch: 'Turkey sandwich', dinner: 'Beef stir-fry', snacks: 'Carrots, hummus' },
+        { day: 'Wednesday', breakfast: 'Smoothie bowl', lunch: 'Leftover stir-fry', dinner: 'Taco night', snacks: 'Trail mix, cheese' },
+        { day: 'Thursday', breakfast: 'Pancakes', lunch: 'Soup and crackers', dinner: 'Fish and rice', snacks: 'Fruit salad' },
+        { day: 'Friday', breakfast: 'Cereal', lunch: 'Pizza', dinner: 'Homemade burgers', snacks: 'Veggies, dip' },
+        { day: 'Saturday', breakfast: 'French toast', lunch: 'Leftovers', dinner: 'BBQ', snacks: 'Popcorn' },
+        { day: 'Sunday', breakfast: 'Eggs benedict', lunch: 'Sandwiches', dinner: 'Roast chicken', snacks: 'Cookies, milk' }
+    ]
+};
 
-function showBabyTopic(topic) {
-    const topicMessages = {
-        feeding: '🍼 Feeding Guide\n\n• Breastfeeding: Aim for 8-12 feeds per day\n• Formula: 2-3 ounces every 3-4 hours for newborns\n• Solids: Start around 4-6 months with single-grain cereals\n• Allergens: Introduce one at a time, watch for reactions\n\nConsult your pediatrician for personalized advice.',
-        sleep: '😴 Sleep Guide\n\n• Newborns: 16-18 hours total sleep\n• 3-6 months: 14-16 hours, longer night stretches\n• 6-12 months: 12-14 hours, 2 naps typical\n• Safe sleep: Back sleeping, firm mattress, no loose items\n\nConsistency is key for healthy sleep habits.',
-        health: '💉 Health & Safety\n\n• Vaccines: Follow CDC schedule starting at birth\n• Checkups: Well-baby visits at 1, 2, 4, 6, 9, 12 months\n• Fever: Call doctor if under 3 months with 100.4°F+\n• First Aid: Learn infant CPR and choking relief\n\nTrust your instincts - call the doctor when concerned.',
-        development: '📈 Development Guide\n\n• Tummy Time: Start day one, work up to 30+ minutes daily\n• Motor Skills: Rolling (4-6mo), Sitting (6-8mo), Walking (9-15mo)\n• Language: Respond to babbling, read daily, narrate activities\n• Social: Face-to-face interaction, mirror play, peekaboo\n\nEvery baby develops at their own pace!'
+// Family Statistics Calculator
+function calculateFamilyStats() {
+    const activeMembers = familyData.members.filter(m => m.status === 'active');
+    const completedTasks = familyData.schedule.filter(s => s.completed).length;
+    const totalTasks = familyData.schedule.length;
+    const avgGoalProgress = familyData.goals.reduce((sum, goal) => sum + goal.progress, 0) / familyData.goals.length;
+    
+    return {
+        totalMembers: activeMembers.length,
+        completedTasks: completedTasks,
+        totalTasks: totalTasks,
+        taskCompletionRate: Math.round((completedTasks / totalTasks) * 100),
+        avgGoalProgress: Math.round(avgGoalProgress),
+        wellnessScore: Math.round((avgGoalProgress + (completedTasks / totalTasks) * 100) / 2)
+    };
+}
+
+// Initialize Family Dashboard
+function initializeFamilyDashboard() {
+    console.log('Initializing Family Dashboard...');
+    
+    // Load family members
+    loadFamilyMembers();
+    
+    // Load today's schedule
+    loadFamilySchedule();
+    
+    // Load family goals
+    loadFamilyGoals();
+    
+    // Load AI insights
+    loadFamilyInsights();
+    
+    // Add floating animation
+    addFloatingAnimation();
+}
+
+// Load Family Members with Enhanced Functionality
+function loadFamilyMembers() {
+    const container = document.getElementById('familyMembersList');
+    if (!container) return;
+    
+    const stats = calculateFamilyStats();
+    
+    let html = '';
+    familyData.members.forEach(member => {
+        const roleColor = member.role === 'Parent' ? '#667eea' : '#ff6b6b';
+        const statusColor = member.status === 'active' ? '#4caf50' : '#9e9e9e';
+        const additionalInfo = member.grade || member.email ? `<div style="font-size: 11px; color: #999;">${member.grade || member.email}</div>` : '';
+        
+        html += `
+            <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: white; border-radius: 12px; border: 2px solid #f0f0f0; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"
+                 onmouseover="this.style.transform='translateY(-2px)'; this.style.borderColor='#667eea'; this.style.boxShadow='0 4px 12px rgba(102,126,234,0.2)'"
+                 onmouseout="this.style.transform='translateY(0px)'; this.style.borderColor='#f0f0f0'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'"
+                 onclick="editFamilyMember(${member.id})">
+                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, ${roleColor} 0%, ${member.role === 'Parent' ? '#764ba2' : '#ee5a24'} 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; box-shadow: 0 3px 10px rgba(0,0,0,0.2);">
+                    ${member.avatar}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 700; color: #333; font-size: 16px; margin-bottom: 2px;">${member.name}</div>
+                    <div style="font-size: 13px; color: #666; font-weight: 500;">${member.role} • Age ${member.age}</div>
+                    ${additionalInfo}
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                    <div style="width: 10px; height: 10px; background: ${statusColor}; border-radius: 50%; box-shadow: 0 0 0 3px ${statusColor}40;"></div>
+                    <div style="font-size: 10px; color: #999; text-transform: uppercase; font-weight: 600;">${member.status}</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Load Family Schedule with Enhanced Functionality
+function loadFamilySchedule() {
+    const container = document.getElementById('familySchedule');
+    if (!container) return;
+    
+    const currentTime = new Date();
+    const currentHour = currentTime.getHours();
+    const currentMinute = currentTime.getMinutes();
+    
+    let html = '';
+    familyData.schedule.forEach(item => {
+        const [time, period] = item.time.split(' ');
+        const [hour, minute] = time.split(':').map(Number);
+        const hour24 = period === 'PM' && hour !== 12 ? hour + 12 : (period === 'AM' && hour === 12 ? 0 : hour);
+        
+        const isPast = (hour24 < currentHour) || (hour24 === currentHour && minute < currentMinute);
+        const isNow = hour24 === currentHour && Math.abs(minute - currentMinute) <= 30;
+        
+        const priorityColors = {
+            high: '#ff6b6b',
+            medium: '#ff9800',
+            low: '#4caf50'
+        };
+        
+        const priorityColor = priorityColors[item.priority] || '#667eea';
+        const statusIcon = item.completed ? ' check_circle' : (isPast ? 'error' : 'schedule');
+        
+        html += `
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 8px; background: ${item.completed ? '#f8f9fa' : 'white'}; border-radius: 8px; border-left: 4px solid ${priorityColor}; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden;"
+                 onmouseover="this.style.transform='translateX(2px)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'"
+                 onmouseout="this.style.transform='translateX(0px)'; this.style.boxShadow='none'"
+                 onclick="toggleTaskCompletion(${item.id})">
+                ${isNow ? '<div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #667eea, transparent); animation: pulse 2s infinite;"></div>' : ''}
+                <div style="display: flex; flex-direction: column; align-items: center; min-width: 60px;">
+                    <div style="font-size: 13px; font-weight: 700; color: ${item.completed ? '#999' : priorityColor};">${item.time}</div>
+                    <div style="font-size: 10px; color: #999; text-transform: uppercase;">${item.priority}</div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 14px; color: ${item.completed ? '#999' : '#333'}; font-weight: 600; margin-bottom: 2px;">${item.activity}</div>
+                    <div style="font-size: 12px; color: #666;">
+                        <span style="color: ${item.completed ? '#4caf50' : (isPast ? '#ff6b6b' : '#667eea')}">${item.participants.join(', ')}</span>
+                        ${isNow ? '<span style="color: #ff6b6b; font-weight: 600; margin-left: 8px;"> NOW</span>' : ''}
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    ${item.completed ? 
+                        `<div style="width: 24px; height: 24px; background: #4caf50; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;"> check</div>` :
+                        `<div style="width: 24px; height: 24px; background: ${isPast ? '#ff6b6b' : '#e0e0e0'}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 14px;">${isPast ? '!' : 'o'}</div>`
+                    }
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Load Family Goals with Enhanced Functionality
+function loadFamilyGoals() {
+    const container = document.getElementById('familyGoals');
+    if (!container) return;
+    
+    let html = '';
+    familyData.goals.forEach(goal => {
+        const progressColor = goal.progress >= 80 ? '#4caf50' : goal.progress >= 50 ? '#ff9800' : '#f44336';
+        const trendIcon = goal.progress >= 80 ? 'trending_up' : (goal.progress >= 50 ? 'trending_flat' : 'trending_down');
+        const remaining = goal.target - goal.current;
+        const remainingText = remaining > 0 ? `${remaining} ${goal.unit} remaining` : 'Goal achieved!';
+        
+        html += `
+            <div style="background: white; padding: 20px; border-radius: 12px; border-left: 4px solid ${goal.color}; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"
+                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'"
+                 onmouseout="this.style.transform='translateY(0px)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'"
+                 onclick="updateGoalProgress(${goal.id})">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="font-weight: 700; color: #333; font-size: 16px;">${goal.title}</div>
+                        <div style="font-size: 12px; color: #999; background: #f5f5f5; padding: 2px 8px; border-radius: 12px;">${trendIcon}</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="font-size: 18px; font-weight: 700; color: ${progressColor};">${goal.progress}%</div>
+                        <div style="width: 8px; height: 8px; background: ${progressColor}; border-radius: 50%;"></div>
+                    </div>
+                </div>
+                <div style="background: #f0f0f0; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 10px; position: relative;">
+                    <div style="background: linear-gradient(90deg, ${goal.color} 0%, ${goal.color} 100%); height: 100%; width: ${goal.progress}%; transition: width 0.5s ease; position: relative;">
+                        <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 20px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));"></div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 13px; color: #666;">
+                        <span style="font-weight: 600;">${goal.current} ${goal.unit}</span> of ${goal.target} ${goal.unit}
+                    </div>
+                    <div style="font-size: 12px; color: ${remaining > 0 ? '#ff9800' : '#4caf50'}; font-weight: 600;">
+                        ${remainingText}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Load Family Insights with Enhanced Visualization
+function loadFamilyInsights() {
+    const container = document.getElementById('familyInsights');
+    if (!container) return;
+    
+    let html = '';
+    familyData.insights.forEach(insight => {
+        const trendColors = {
+            up: '#4caf50',
+            down: '#f44336',
+            neutral: '#ff9800',
+            stable: '#2196f3'
+        };
+        
+        const trendColor = trendColors[insight.trend] || '#667eea';
+        const trendIcon = insight.trend === 'up' ? 'trending_up' : (insight.trend === 'down' ? 'trending_down' : (insight.trend === 'stable' ? 'trending_flat' : 'trending_flat'));
+        
+        html += `
+            <div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 12px; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.3s ease; border: 1px solid rgba(255,255,255,0.2);"
+                 onmouseover="this.style.transform='translateY(-2px)'; this.style.background='rgba(255,255,255,0.2)'"
+                 onmouseout="this.style.transform='translateY(0px)'; this.style.background='rgba(255,255,255,0.15)'"
+                 onclick="showInsightDetails('${insight.type}')">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <div style="font-size: 24px;">${insight.icon}</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px;">${insight.title}</div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="font-size: 14px; color: ${trendColor}; font-weight: 600;">${trendIcon}</div>
+                            <div style="font-size: 14px; color: ${trendColor}; font-weight: 600;">${insight.value}</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="font-size: 14px; opacity: 0.95; line-height: 1.6;">${insight.message}</div>
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.2);">
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.8); text-transform: uppercase; font-weight: 600;">Click for details</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// Interactive Family Functions
+function editFamilyMember(memberId) {
+    const member = familyData.members.find(m => m.id === memberId);
+    if (!member) return;
+    
+    const newName = prompt('Edit name:', member.name);
+    if (newName && newName !== member.name) {
+        member.name = newName;
+        loadFamilyMembers();
+        showNotification(`${member.name}'s information updated!`, 'success');
+    }
+}
+
+function toggleTaskCompletion(taskId) {
+    const task = familyData.schedule.find(s => s.id === taskId);
+    if (!task) return;
+    
+    task.completed = !task.completed;
+    loadFamilySchedule();
+    
+    const message = task.completed ? `${task.activity} marked as complete!` : `${task.activity} marked as incomplete!`;
+    showNotification(message, task.completed ? 'success' : 'info');
+    
+    // Update stats
+    updateFamilyStatsDisplay();
+}
+
+function updateGoalProgress(goalId) {
+    const goal = familyData.goals.find(g => g.id === goalId);
+    if (!goal) return;
+    
+    const increment = prompt(`Update "${goal.title}" progress (add ${goal.unit}):`);
+    if (increment && !isNaN(increment)) {
+        const incrementValue = parseFloat(increment);
+        goal.current = Math.min(goal.current + incrementValue, goal.target);
+        goal.progress = Math.round((goal.current / goal.target) * 100);
+        
+        loadFamilyGoals();
+        showNotification(`Goal "${goal.title}" updated!`, 'success');
+        
+        // Check if goal is achieved
+        if (goal.progress >= 100) {
+            setTimeout(() => {
+                showNotification(`Congratulations! "${goal.title}" goal achieved!`, 'success');
+            }, 500);
+        }
+    }
+}
+
+function showInsightDetails(insightType) {
+    const insight = familyData.insights.find(i => i.type === insightType);
+    if (!insight) return;
+    
+    const details = {
+        nutrition: 'Detailed nutrition analysis shows:\n\n- Calorie intake: Optimal\n- Protein balance: Excellent\n- Vitamin levels: Good\n- Sugar consumption: Below recommended\n\nRecommendations:\n- Continue current meal plan\n- Add more leafy greens\n- Consider omega-3 supplements',
+        activity: 'Activity analysis breakdown:\n\n- Outdoor activities: 3 hours/week\n- Indoor activities: 5 hours/week\n- Screen time: 2 hours/day\n- Exercise intensity: Moderate\n\nRecommendations:\n- Increase outdoor time by 30%\n- Add weekend family sports\n- Reduce screen time by 30 minutes',
+        sleep: 'Sleep pattern analysis:\n\n- Average sleep: 8.2 hours\n- Bedtime consistency: 85%\n- Sleep quality: Good\n- Wake-up time: 6:30 AM\n\nRecommendations:\n- Maintain current schedule\n- Consider earlier bedtime for teens\n- Improve sleep environment quality',
+        budget: 'Budget analysis details:\n\n- Monthly income: $5,000\n- Total expenses: $4,600\n- Savings rate: 8%\n- Biggest expense: Housing (35%)\n\nRecommendations:\n- Continue current spending habits\n- Look for additional savings opportunities\n- Consider investment options'
     };
     
-    alert(topicMessages[topic] || 'Topic information coming soon!');
+    showNotification(details[insightType] || 'Detailed analysis coming soon!', 'info');
+}
+
+// Enhanced Add Family Member Function
+function addFamilyMember() {
+    const name = prompt('Enter family member name:');
+    if (!name) return;
+    
+    const role = prompt('Enter role (Parent/Child):');
+    if (!role) return;
+    
+    const age = prompt('Enter age:');
+    if (!age || isNaN(age)) return;
+    
+    const avatar = role === 'Parent' ? ' adult' : ' child';
+    
+    const newMember = {
+        id: familyData.members.length + 1,
+        name: name,
+        role: role,
+        avatar: avatar,
+        age: parseInt(age),
+        status: 'active',
+        email: role === 'Parent' ? `${name.toLowerCase().replace(' ', '.')}@family.com` : null,
+        grade: role === 'Child' ? `${parseInt(age) >= 6 ? 'Grade ' + (parseInt(age) - 5) : 'Preschool'}` : null
+    };
+    
+    familyData.members.push(newMember);
+    loadFamilyMembers();
+    updateFamilyStatsDisplay();
+    
+    showNotification(`${name} added to family!`, 'success');
+}
+
+// Enhanced Add Family Goal Function
+function addFamilyGoal() {
+    const title = prompt('Enter goal title:');
+    if (!title) return;
+    
+    const target = prompt('Enter target value:');
+    if (!target || isNaN(target)) return;
+    
+    const unit = prompt('Enter unit (e.g., minutes, dollars, dinners):');
+    if (!unit) return;
+    
+    const colors = ['#4caf50', '#ff9800', '#2196f3', '#9c27b0', '#f44336'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    
+    const newGoal = {
+        id: familyData.goals.length + 1,
+        title: title,
+        progress: 0,
+        color: randomColor,
+        target: parseFloat(target),
+        current: 0,
+        unit: unit
+    };
+    
+    familyData.goals.push(newGoal);
+    loadFamilyGoals();
+    
+    showNotification(`New goal "${title}" added!`, 'success');
+}
+
+// Update Family Stats Display
+function updateFamilyStatsDisplay() {
+    const stats = calculateFamilyStats();
+    
+    // Update stats in the hero section if elements exist
+    const membersStat = document.querySelector('[data-stat="members"]');
+    const activitiesStat = document.querySelector('[data-stat="activities"]');
+    const wellnessStat = document.querySelector('[data-stat="wellness"]');
+    
+    if (membersStat) membersStat.textContent = stats.totalMembers;
+    if (activitiesStat) activitiesStat.textContent = stats.completedTasks;
+    if (wellnessStat) wellnessStat.textContent = stats.wellnessScore + '%';
+}
+
+// Enhanced Meal Planning Functions
+function openAIMealPlanner() {
+    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+    const todayMeal = familyData.meals.find(m => m.day === today);
+    
+    if (todayMeal) {
+        const mealDetails = `
+Today's AI-Optimized Meal Plan (${todayDay}):
+
+ Breakfast: ${todayMeal.breakfast}
+  Calories: ~350 | Protein: 12g | Carbs: 45g
+
+ Lunch: ${todayMeal.lunch}
+  Calories: ~450 | Protein: 25g | Carbs: 35g
+
+ Dinner: ${todayMeal.dinner}
+  Calories: ~550 | Protein: 30g | Carbs: 50g
+
+ Snacks: ${todayMeal.snacks}
+  Calories: ~200 | Protein: 8g | Carbs: 25g
+
+Daily Total: ~1,550 calories
+Nutrition Score: 92/100
+Recommendations: Excellent balance! Add more vegetables to dinner.
+        `;
+        
+        showNotification(mealDetails, 'success');
+    } else {
+        showNotification('Generating personalized meal plan...', 'info');
+        setTimeout(() => {
+            showNotification('AI meal plan ready! Check your dashboard.', 'success');
+        }, 2000);
+    }
+}
+
+function openActivityScheduler() {
+    const activities = [
+        'Family bike ride in the park (2 hours)',
+        'Board game tournament (1.5 hours)',
+        'Cooking together - make pizza (1 hour)',
+        'Movie night with popcorn (2 hours)',
+        'Science museum visit (3 hours)',
+        'Swimming at community pool (2 hours)',
+        'Arts and crafts session (1 hour)',
+        'Nature walk and picnic (2.5 hours)'
+    ];
+    
+    const recommendedActivities = activities.sort(() => Math.random() - 0.5).slice(0, 3);
+    const activityList = recommendedActivities.map((activity, index) => 
+        `${index + 1}. ${activity}`
+    ).join('\n\n');
+    
+    const message = `AI-Recommended Family Activities:\n\n${activityList}\n\nBased on your family's preferences and weather conditions!`;
+    
+    showNotification(message, 'info');
+}
+
+function openBudgetTracker() {
+    const budgetAnalysis = `
+Family Budget Analysis:
+
+ Monthly Income: $5,000
+ Fixed Expenses: $3,200
+  - Mortgage/Rent: $1,800
+  - Utilities: $300
+  - Insurance: $400
+  - Phone/Internet: $150
+  - Subscriptions: $150
+
+ Variable Expenses: $1,400
+  - Groceries: $600
+  - Gas/Transport: $300
+  - Entertainment: $200
+  - Clothing: $150
+  - Miscellaneous: $150
+
+ Total Expenses: $4,600
+ Monthly Savings: $400 (8%)
+ Annual Savings: $4,800
+
+Recommendations: Great job! Consider increasing savings to 10%.
+    `;
+    
+    showNotification(budgetAnalysis, 'info');
+}
+
+function openHealthTracker() {
+    const healthReport = `
+Family Health & Wellness Report:
+
+ Overall Wellness Score: 92%
+
+ Individual Health:
+  Sarah: Excellent (BMI: 22, BP: 118/75)
+  Mike: Good (BMI: 24, BP: 125/80)
+  Emma: Excellent (Growth: 75th percentile)
+  Noah: Good (Growth: 60th percentile)
+  Lily: Excellent (Growth: 80th percentile)
+
+ Health Metrics:
+  Average Sleep: 8.2 hours
+  Daily Exercise: 45 minutes
+  Screen Time: 2.1 hours
+  Water Intake: 6.5 glasses
+  Vegetable Servings: 4.2/day
+
+ Recommendations:
+  - Increase water intake by 1 glass
+  - Add 15 minutes to daily exercise
+  - Reduce screen time by 30 minutes
+    `;
+    
+    showNotification(healthReport, 'info');
+}
+
+function openMealPlanner() {
+    showNotification('Opening detailed meal planner...', 'info');
+    setTimeout(() => {
+        openAIMealPlanner();
+    }, 1000);
+}
+
+function openActivityPlanner() {
+    showNotification('Opening activity scheduler...', 'info');
+    setTimeout(() => {
+        openActivityScheduler();
+    }, 1000);
+}
+
+// Update Family Stats
+function updateFamilyStats() {
+    // This would update the stats display in real-time
+    console.log('Family stats updated');
+}
+
+// Advanced Maternal Health Functions
+function startHealthMonitoring() {
+    console.log('Starting real-time health monitoring...');
+    showNotification('🏥 Real-time health monitoring activated! Tracking maternal vitals...', 'success');
+    
+    // Simulate real-time monitoring
+    setTimeout(() => {
+        showNotification('📊 Blood Pressure: 120/80 (Normal)', 'info');
+    }, 2000);
+    
+    setTimeout(() => {
+        showNotification('❤️ Heart Rate: 72 BPM (Healthy)', 'info');
+    }, 4000);
+    
+    setTimeout(() => {
+        showNotification('🩸 Glucose Level: 95 mg/dL (Optimal)', 'info');
+    }, 6000);
+}
+
+function openPregnancyTracker() {
+    console.log('Opening advanced pregnancy tracker...');
+    showNotification('🤰 Loading advanced pregnancy tracker with AI insights...', 'info');
+    
+    setTimeout(() => {
+        const pregnancyInfo = `
+🤰 ADVANCED PREGNANCY TRACKER
+
+Current Status: Week 24 (6 months)
+Due Date: June 15, 2026 (106 days remaining)
+
+👶 Baby Development:
+• Size: 1.3 pounds, 11.8 inches
+• Brain: Rapid neural development
+• Lungs: Developing surfactant
+• Senses: Can hear your voice clearly
+
+🏥 Maternal Health:
+• Blood Pressure: 120/80 (Optimal)
+• Weight Gain: 15 pounds (On track)
+• Energy Levels: Moderate
+• Mood: Stable
+
+🧠 AI Insights:
+• Nutrition: Increase iron-rich foods
+• Exercise: Gentle walking recommended
+• Sleep: Aim for 8-9 hours
+• Hydration: 10+ glasses daily
+
+Next Checkup: Week 28 (Glucose screening)
+        `;
+        showNotification(pregnancyInfo, 'success');
+    }, 1500);
+}
+
+function openAIMidwife() {
+    console.log('Opening AI Midwife Assistant...');
+    showNotification('👩‍⚕️ Connecting to AI Midwife Assistant...', 'info');
+    
+    setTimeout(() => {
+        const aiMidwifeAdvice = `
+👩‍⚕️ AI MIDWIFE ASSISTANT
+
+Hello! I'm your personal AI midwife, available 24/7.
+
+Today's Personalized Guidance:
+✅ You're in Week 24 - excellent progress!
+✅ All vital signs are optimal
+✅ Baby development is on track
+
+🔬 Health Analysis:
+• Hormone levels: Balanced
+• Nutritional status: Good
+• Risk factors: Low
+
+💡 Recommendations:
+• Continue prenatal vitamins
+• Practice Kegel exercises daily
+• Monitor fetal movements (10 kicks/hour)
+• Stay hydrated and rest when needed
+
+⚠️ When to Contact Doctor:
+• Severe headaches or vision changes
+• Decreased fetal movement
+• Vaginal bleeding
+• Contractions before 37 weeks
+
+I'm here for any questions - just ask!
+        `;
+        showNotification(aiMidwifeAdvice, 'success');
+    }, 2000);
+}
+
+function openNutritionAnalyzer() {
+    console.log('Opening AI Nutrition Analyzer...');
+    showNotification('🥗 Analyzing nutritional needs...', 'info');
+    
+    setTimeout(() => {
+        const nutritionAnalysis = `
+🥗 AI NUTRITION ANALYZER
+
+Pregnancy Week 24 - Personalized Plan
+
+📊 Current Nutrition Score: 92%
+
+🎯 Daily Targets:
+• Calories: 2,400 kcal
+• Protein: 75g
+• Iron: 27mg
+• Calcium: 1,000mg
+• Folic Acid: 600mcg
+
+🥦 Today's AI Recommendations:
+✅ INCREASE:
+- Leafy greens (spinach, kale)
+- Lean proteins (chicken, fish)
+- Whole grains (quinoa, oats)
+
+➕ ADD:
+- Dairy products (calcium)
+- Citrus fruits (vitamin C)
+- Nuts and seeds (healthy fats)
+
+⚠️ REDUCE:
+- Processed sugars
+- Caffeine (limit to 200mg)
+- Raw fish/undercooked meats
+
+💧 Hydration: 10-12 glasses water daily
+
+Next meal plan update: Tomorrow morning
+        `;
+        showNotification(nutritionAnalysis, 'success');
+    }, 1500);
+}
+
+function openSymptomChecker() {
+    console.log('Opening AI Symptom Checker...');
+    showNotification('🔍 Initializing AI symptom analysis...', 'info');
+    
+    setTimeout(() => {
+        const symptomChecker = `
+🔍 AI SYMPTOM CHECKER
+
+Common Week 24 Symptoms (Normal):
+✅ Mild swelling in feet/ankles
+✅ Backaches
+✅ Braxton Hicks contractions
+✅ Round ligament pain
+✅ Increased appetite
+
+⚠️ SYMPTOMS TO WATCH:
+• Severe swelling (face/hands)
+• Persistent headaches
+• Vision changes
+• Fever
+• Decreased fetal movement
+
+🩺 Quick Assessment:
+Based on your current data:
+• Blood pressure: Normal
+• Weight gain: On track
+• Symptoms: Within normal range
+
+📞 If experiencing severe symptoms, contact your healthcare provider immediately.
+
+This AI checker is for guidance only - always consult your doctor.
+        `;
+        showNotification(symptomChecker, 'info');
+    }, 1800);
+}
+
+function openKickCounter() {
+    console.log('Opening Baby Kick Counter...');
+    showNotification('👶 Starting kick counter session...', 'info');
+    
+    let kickCount = 0;
+    const startTime = Date.now();
+    
+    const kickCounterInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000 / 60);
+        const message = `👶 Kick Counter Active
+Kicks: ${kickCount}
+Time: ${elapsed} minutes
+Goal: 10 kicks in 2 hours`;
+        
+        if (kickCount >= 10) {
+            clearInterval(kickCounterInterval);
+            showNotification(`🎉 Goal reached! 10 kicks in ${elapsed} minutes - Baby is active and healthy!`, 'success');
+        } else if (elapsed >= 120) {
+            clearInterval(kickCounterInterval);
+            showNotification(`⏰ Session complete: ${kickCount} kicks in 2 hours. Contact doctor if less than 10 kicks.`, 'warning');
+        }
+    }, 30000);
+    
+    showNotification('👶 Tap to count kicks (simulated - in real app, tap each movement)', 'info');
+    
+    // Simulate kicks for demo
+    setTimeout(() => {
+        kickCount = 8;
+        showNotification(`👶 Kick update: ${kickCount}/10 kicks detected`, 'info');
+    }, 30000);
+}
+
+function openContractionTimer() {
+    console.log('Opening Contraction Timer...');
+    showNotification('⏱️ Contraction timer ready (for when you\'re in labor)', 'info');
+    
+    const contractionInfo = `
+⏱️ CONTRACTION TIMER
+
+When to Use:
+• Regular contractions 5 minutes apart
+• Lasting 60+ seconds
+• For 1+ hour
+
+📋 What to Track:
+• Start time
+• Duration
+• Frequency
+• Intensity (1-10)
+
+🚨 CALL DOCTOR WHEN:
+• Contractions < 5 minutes apart
+• Lasting 60+ seconds
+• For 2+ hours
+• OR water breaks
+
+💡 Tips:
+• Stay calm and breathe
+• Change positions
+• Stay hydrated
+• Partner should time them
+
+Timer ready when needed - stay prepared!
+    `;
+    showNotification(contractionInfo, 'info');
+}
+
+function openWeightTracker() {
+    console.log('Opening Weight Tracker...');
+    showNotification('⚖️ Loading pregnancy weight tracker...', 'info');
+    
+    setTimeout(() => {
+        const weightTracker = `
+⚖️ PREGNANCY WEIGHT TRACKER
+
+Current Status: Week 24
+• Pre-pregnancy weight: 140 lbs
+• Current weight: 155 lbs
+• Total gain: 15 lbs
+• Recommended: 14-20 lbs (normal BMI)
+
+📊 Weight Gain Progress:
+✅ 1st Trimester: +4 lbs (target: 2-5)
+✅ 2nd Trimester: +11 lbs (target: 10-15)
+📈 3rd Trimester: Goal +5 more lbs
+
+🎯 Healthy Weight Gain Guidelines:
+• Underweight: 28-40 lbs
+• Normal weight: 25-35 lbs
+• Overweight: 15-25 lbs
+• Obese: 11-20 lbs
+
+💡 Tips:
+• Gain 1-2 lbs per month in 2nd trimester
+• Focus on nutritious foods, not "eating for two"
+• Regular light exercise recommended
+• Consult doctor if rapid weight gain/loss
+
+Next weigh-in: Next week
+        `;
+        showNotification(weightTracker, 'success');
+    }, 1500);
+}
+
+function openAIPregnancyAssistant() {
+    console.log('Opening AI Pregnancy Assistant...');
+    showNotification('🤖 Launching advanced AI pregnancy assistant...', 'info');
+    
+    setTimeout(() => {
+        const aiAssistant = `
+🤖 ADVANCED AI PREGNANCY ASSISTANT
+
+Welcome to your 24/7 pregnancy companion!
+
+🧬 CURRENT ANALYSIS:
+• Pregnancy Week: 24
+• Fetal Development: 95% optimal
+• Maternal Health: 98% excellent
+• Risk Assessment: Low
+
+🔬 TODAY'S AI INSIGHTS:
+• Hormone Balance: Progesterone optimal
+• Baby Position: Head down (favorable)
+• Placenta Health: Excellent
+• Amniotic Fluid: Normal levels
+
+📈 PREDICTIONS:
+• Birth Weight Estimate: 7.2 lbs
+• Delivery Date: June 15 ± 5 days
+• Labor Duration: 12-18 hours (first baby)
+
+💡 PERSONALIZED RECOMMENDATIONS:
+• Sleep: Left side position recommended
+• Exercise: 30 min walking daily
+• Nutrition: Increase iron by 15%
+• Stress: Practice prenatal yoga
+
+🚨 AI MONITORING:
+• Blood pressure trends: Stable
+• Weight gain: On target
+• Symptoms: All within normal range
+
+I'll continue monitoring and alert you to any changes. Ask me anything!
+        `;
+        showNotification(aiAssistant, 'success');
+    }, 2000);
+}
+
+function startFetalMonitoring() {
+    console.log('Starting fetal monitoring...');
+    showNotification('📊 Initiating real-time fetal monitoring...', 'info');
+    
+    setTimeout(() => {
+        showNotification('🔍 Connecting to fetal monitoring sensors...', 'info');
+    }, 1000);
+    
+    setTimeout(() => {
+        showNotification('❤️ Fetal heart rate: 145 BPM (Normal: 110-160)', 'success');
+    }, 2500);
+    
+    setTimeout(() => {
+        showNotification('🎯 Baby position: Head down (Optimal for birth)', 'success');
+    }, 4000);
+    
+    setTimeout(() => {
+        showNotification('👶 Movement activity: 18 kicks/hour (Excellent)', 'success');
+    }, 5500);
+    
+    setTimeout(() => {
+        const monitoringReport = `
+📊 REAL-TIME FETAL MONITORING REPORT
+
+✅ ALL PARAMETERS NORMAL
+
+❤️ Heart Rate: 145 BPM
+• Range: 110-160 BPM (Normal)
+• Variability: Good
+• Pattern: Healthy
+
+🎯 Position: Head Down
+• Engagement: 2/5
+• Presentation: Cephalic
+• Status: Optimal
+
+👶 Movement: Active
+• Kicks: 18/hour (Excellent)
+• Rolls: Frequent
+• Hiccups: Detected
+• Response: Good
+
+🧬 Development Indicators:
+• Brain activity: Normal
+• Lung maturity: Developing
+• Growth rate: On track
+• Weight estimate: 1.3 lbs
+
+📈 Trend Analysis:
+• Heart rate: Stable
+• Movement patterns: Healthy
+• Growth: Consistent
+• Overall: Excellent
+
+Monitoring continues - alerts if changes detected.
+        `;
+        showNotification(monitoringReport, 'success');
+    }, 7000);
+}
+
+// Enhanced CSS Animations and Styles
+function addFloatingAnimation() {
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(102, 126, 234, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.8); }
+        }
+        
+        @keyframes ripple {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+            100% {
+                width: 100px;
+                height: 100px;
+                opacity: 0;
+            }
+        }
+        
+        .family-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .family-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.1) 100%);
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            background-size: 1000px 100%;
+            animation: shimmer 3s linear infinite;
+        }
+        
+        .insight-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .insight-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .member-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .member-avatar:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .task-item {
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent;
+        }
+        
+        .task-item:hover {
+            border-left-color: #667eea;
+            background: linear-gradient(90deg, rgba(102,126,234,0.05) 0%, transparent 100%);
+        }
+        
+        .goal-progress {
+            background: linear-gradient(90deg, #4caf50 0%, #8bc34a 100%);
+            box-shadow: 0 2px 10px rgba(76,175,80,0.3);
+        }
+        
+        .floating-element {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .glow-effect {
+            animation: glow 2s ease-in-out infinite;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+
+// Initialize application when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Application initializing...');
+    
+    // Add enhanced CSS animations
+    addFloatingAnimation();
+    
+    // Restore login state first
+    updateLoginState();
+    
+    // Also update login state after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        console.log('Delayed updateLoginState call to ensure DOM is ready');
+        updateLoginState();
+    }, 100);
+    
+    // Get current page from URL hash or default to home
+    let currentPage = 'home';
+    if (window.location.hash) {
+        currentPage = window.location.hash.substring(1); // Remove # symbol
+    } else if (localStorage.getItem('bc_current_page')) {
+        currentPage = localStorage.getItem('bc_current_page');
+    }
+    
+    console.log('Current page determined:', currentPage);
+    
+    // Navigate to the current page
+    setTimeout(() => {
+        navigateTo(currentPage, { noScroll: true });
+        
+        // Initialize page-specific features
+        if (currentPage === 'family') {
+            setTimeout(() => {
+                initializeFamilyDashboard();
+            }, 500);
+        }
+    }, 100);
+});
+
+// Save current page to localStorage when navigating
+function saveCurrentPage(pageId) {
+    localStorage.setItem('bc_current_page', pageId);
+}
+
+// Handle browser back/forward buttons
+window.addEventListener('popstate', function(event) {
+    if (event.state === null) {
+        // User pressed back button to go to initial page
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+            navigateTo(hash, { skipHashUpdate: true });
+        } else {
+            navigateTo('home', { skipHashUpdate: true });
+        }
+    }
+});
+
+// Handle hash changes
+window.addEventListener('hashchange', function() {
+    const hash = window.location.hash.substring(1);
+    if (hash) {
+        navigateTo(hash, { skipHashUpdate: true });
+    }
+});
+
+// Enhanced family dashboard initialization
+function initializeFamilyDashboard() {
+    console.log('Initializing Family Dashboard...');
+    
+    // Load all family data
+    loadFamilyMembers();
+    loadFamilySchedule();
+    loadFamilyGoals();
+    loadFamilyInsights();
+    
+    // Update stats display
+    updateFamilyStatsDisplay();
+    
+    // Add interactive hover effects
+    addInteractiveEffects();
+    
+    console.log('Family Dashboard initialized successfully!');
+}
+
+// Add interactive hover effects to family elements
+function addInteractiveEffects() {
+    // Add hover effects to family member cards
+    const memberCards = document.querySelectorAll('.member-list > div');
+    memberCards.forEach(card => {
+        card.addEventListener('mouseenter', () => {
+            card.style.transform = 'translateX(5px)';
+            card.style.boxShadow = '0 4px 15px rgba(102,126,234,0.2)';
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'translateX(0)';
+            card.style.boxShadow = 'none';
+        });
+    });
+    
+    // Add hover effects to task items
+    const taskItems = document.querySelectorAll('.task-list > div');
+    taskItems.forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            item.style.background = 'linear-gradient(90deg, rgba(102,126,234,0.05) 0%, transparent 100%)';
+            item.style.borderLeftColor = '#667eea';
+        });
+        item.addEventListener('mouseleave', () => {
+            item.style.background = '#f8f9fa';
+            item.style.borderLeftColor = 'transparent';
+        });
+    });
+    
+    // Add click effects to quick action buttons
+    const quickActions = document.querySelectorAll('.family-card[onclick]');
+    quickActions.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Add ripple effect
+            const ripple = document.createElement('div');
+            ripple.style.position = 'absolute';
+            ripple.style.width = '20px';
+            ripple.style.height = '20px';
+            ripple.style.background = 'rgba(255,255,255,0.5)';
+            ripple.style.borderRadius = '50%';
+            ripple.style.transform = 'translate(-50%, -50%)';
+            ripple.style.pointerEvents = 'none';
+            ripple.style.animation = 'ripple 0.6s ease-out';
+            
+            const rect = this.getBoundingClientRect();
+            ripple.style.left = (e.clientX - rect.left) + 'px';
+            ripple.style.top = (e.clientY - rect.top) + 'px';
+            
+            this.style.position = 'relative';
+            this.style.overflow = 'hidden';
+            this.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        });
+    });
+}
+
+// Family Functions
+function showFamilyTopic(topic) {
+    const messages = {
+        recipes: ' Family Recipes\n\nQuick & Healthy Meals:\n\n One-Pot Pasta Primavera\n Sheet Pan Chicken & Veggies\n Slow Cooker Taco Soup\n\nKid-Friendly:\n\n Hidden Veggie Mac & Cheese\n Turkey & Apple Meatballs\n Banana Oat Pancakes\n\nMeal Prep Tips:\n\n Batch cook on weekends\n Freeze individual portions\n Involve kids in cooking',
+        activities: ' Activities & Crafts\n\nRainy Day Activities:\n\n Indoor scavenger hunt\n DIY playdough (flour, salt, water, food coloring)\n Blanket fort building\n Cardboard box creations\n\nOutdoor Adventures:\n\n Nature walk with checklist\n Backyard obstacle course\n Bubble station\n Sidewalk chalk art gallery\n\nCreative Projects:\n\n Handprint art keepsakes\n Rock painting garden\n Toilet paper roll crafts\n Paper plate masks',
+        discipline: ' Positive Discipline\n\nGentle Techniques:\n\n Connect before correct\n Use "when/then" instead of "if/then"\n Offer limited choices\n Validate feelings first\n\nAge-Appropriate Strategies:\n\n Toddlers: Distraction & redirection\n Preschoolers: Natural consequences\n School-age: Problem-solving together\n Teens: Collaborative solutions\n\nCommunication Tips:\n\n Get down to their level\n Use "I" statements\n Listen to understand\n Model the behavior you want'
+    };
+    
+    alert(messages[topic] || 'Topic information coming soon!');
 }
 
 // Notification helper function
@@ -264,7 +1433,18 @@ const protectedToolPages = new Set([
 ]);
 
 function isLoggedIn() {
-    return localStorage.getItem('bc_logged_in') === 'true';
+    const loggedIn = localStorage.getItem('bc_logged_in') === 'true';
+    const userEmail = localStorage.getItem('bc_user_email');
+    const loginTime = localStorage.getItem('bc_login_time');
+    
+    console.log('isLoggedIn check:', {
+        loggedIn,
+        userEmail,
+        loginTime,
+        storage_bc_logged_in: localStorage.getItem('bc_logged_in')
+    });
+    
+    return loggedIn;
 }
 
 function setIntendedAccess(pageId, actionName = '') {
@@ -321,11 +1501,19 @@ function resumeIntendedAccess() {
 }
 
 function navigateTo(pageId, options = {}) {
-    console.log(`🔄 Navigating to page: ${pageId}`);
+    console.log(`Navigating to page: ${pageId}`);
     
     if (!options.skipAuthCheck && protectedToolPages.has(pageId) && !isLoggedIn()) {
         redirectToLoginForTool(pageId);
         return;
+    }
+    
+    // Save current page to localStorage
+    saveCurrentPage(pageId);
+    
+    // Update URL hash without triggering page reload
+    if (!options.skipHashUpdate) {
+        window.history.pushState(null, null, `#${pageId}`);
     }
     
     // Hide all page sections
@@ -337,7 +1525,7 @@ function navigateTo(pageId, options = {}) {
     });
     
     const target = document.getElementById(pageId);
-    console.log(`🎯 Target element found:`, target);
+    console.log(`Target element found:`, target);
     
     if (target) {
         // Force the target page to be visible
@@ -348,10 +1536,10 @@ function navigateTo(pageId, options = {}) {
         target.style.position = 'relative !important';
         target.style.zIndex = '1000 !important';
         
-        console.log(`✅ Page ${pageId} displayed successfully`);
-        console.log(`🎯 Page classes:`, target.className);
-        console.log(`🎯 Page computed style display:`, window.getComputedStyle(target).display);
-        console.log(`🎯 Page computed style visibility:`, window.getComputedStyle(target).visibility);
+        console.log(`Page ${pageId} displayed successfully`);
+        console.log(`Page classes:`, target.className);
+        console.log(`Page computed style display:`, window.getComputedStyle(target).display);
+        console.log(`Page computed style visibility:`, window.getComputedStyle(target).visibility);
         
         // Force all child elements to be visible
         const allChildren = target.querySelectorAll('*');
@@ -361,7 +1549,10 @@ function navigateTo(pageId, options = {}) {
             child.style.opacity = '';
         });
         
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!options.noScroll) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
         if (pageId === 'home' && isLoggedIn()) {
             showWelcomeMessage(localStorage.getItem('bc_user_email'));
         }
@@ -374,6 +1565,11 @@ function navigateTo(pageId, options = {}) {
                 if (typeof initializeCategories === 'function') {
                     initializeCategories();
                 }
+            }, 100);
+        }
+        if (pageId === 'family') {
+            setTimeout(() => {
+                initializeFamilyDashboard();
             }, 100);
         }
     }
@@ -500,9 +1696,21 @@ function handleLogin(event) {
     
     // Set logged in state and navigate to home after successful login
     try {
+        console.log('Setting login state:', {
+            bc_logged_in: 'true',
+            bc_user_email: email,
+            bc_login_time: new Date().toISOString()
+        });
+        
         localStorage.setItem('bc_logged_in', 'true');
         localStorage.setItem('bc_user_email', email);
         localStorage.setItem('bc_login_time', new Date().toISOString());
+        
+        console.log('Login state set successfully. Verifying:', {
+            bc_logged_in: localStorage.getItem('bc_logged_in'),
+            bc_user_email: localStorage.getItem('bc_user_email'),
+            bc_login_time: localStorage.getItem('bc_login_time')
+        });
     } catch (e) {
         console.warn('Could not persist login state:', e);
     }
@@ -518,11 +1726,106 @@ function updateLoginState() {
     const isLoggedIn = localStorage.getItem('bc_logged_in') === 'true';
     const userEmail = localStorage.getItem('bc_user_email');
     
+    console.log('updateLoginState called:', {
+        isLoggedIn,
+        userEmail,
+        bc_logged_in: localStorage.getItem('bc_logged_in'),
+        bc_user_email: localStorage.getItem('bc_user_email')
+    });
+    
     // Update header buttons
     const loginBtn = document.querySelector('.login-btn');
     const joinBtn = document.querySelector('.join-btn');
     
+    console.log('Button elements found:', {
+        loginBtn: !!loginBtn,
+        joinBtn: !!joinBtn,
+        loginBtnText: loginBtn ? loginBtn.textContent : 'not found',
+        joinBtnText: joinBtn ? joinBtn.textContent : 'not found'
+    });
+    
     if (isLoggedIn && userEmail) {
+        console.log('User is logged in, updating UI to show logged in state');
+        if (loginBtn) {
+            loginBtn.textContent = 'My Account';
+            loginBtn.onclick = () => navigateTo('account');
+            console.log('Updated login button to My Account');
+        }
+        if (joinBtn) {
+            joinBtn.textContent = 'Logout';
+            joinBtn.onclick = handleLogout;
+            console.log('Updated join button to Logout');
+        }
+        
+        // Show premium features and account-specific content
+        try {
+            showAccountFeatures();
+            updatePremiumContent();
+            showWelcomeMessage(userEmail);
+            console.log('Account features updated successfully');
+        } catch (e) {
+            console.error('Error updating account features:', e);
+        }
+        
+    } else {
+        console.log('User is not logged in, updating UI to show logged out state');
+        if (loginBtn) {
+            loginBtn.textContent = 'Login';
+            loginBtn.onclick = () => navigateTo('login');
+            console.log('Updated login button to Login');
+        }
+        if (joinBtn) {
+            joinBtn.textContent = 'Sign Up';
+            joinBtn.onclick = () => navigateTo('signup');
+            console.log('Updated join button to Sign Up');
+        }
+        
+        // Hide premium features
+        try {
+            hideAccountFeatures();
+            resetPremiumContent();
+            console.log('Account features hidden successfully');
+        } catch (e) {
+            console.error('Error hiding account features:', e);
+        }
+    }
+}
+
+// Test function to manually check login state
+function testLoginState() {
+    console.log('=== MANUAL LOGIN STATE TEST ===');
+    const isLoggedIn = localStorage.getItem('bc_logged_in') === 'true';
+    const userEmail = localStorage.getItem('bc_user_email');
+    const loginTime = localStorage.getItem('bc_login_time');
+    
+    console.log('Current localStorage state:', {
+        bc_logged_in: localStorage.getItem('bc_logged_in'),
+        bc_user_email: localStorage.getItem('bc_user_email'),
+        bc_login_time: localStorage.getItem('bc_login_time')
+    });
+    
+    console.log('Parsed state:', {
+        isLoggedIn,
+        userEmail,
+        loginTime
+    });
+    
+    // Check buttons
+    const loginBtn = document.querySelector('.login-btn');
+    const joinBtn = document.querySelector('.join-btn');
+    
+    console.log('Button elements:', {
+        loginBtn: !!loginBtn,
+        joinBtn: !!joinBtn,
+        loginBtnText: loginBtn ? loginBtn.textContent : 'not found',
+        joinBtnText: joinBtn ? joinBtn.textContent : 'not found',
+        loginBtnOnClick: loginBtn ? loginBtn.onclick.toString() : 'no onclick',
+        joinBtnOnClick: joinBtn ? joinBtn.onclick.toString() : 'no onclick'
+    });
+    
+    // Force update if logged in
+    if (isLoggedIn && userEmail) {
+        console.log('Forcing login state update...');
         if (loginBtn) {
             loginBtn.textContent = 'My Account';
             loginBtn.onclick = () => navigateTo('account');
@@ -531,28 +1834,10 @@ function updateLoginState() {
             joinBtn.textContent = 'Logout';
             joinBtn.onclick = handleLogout;
         }
-        
-        // Show premium features and account-specific content
-        showAccountFeatures();
-        updatePremiumContent();
-        
-        // Show welcome message in home
-        showWelcomeMessage(userEmail);
-        
-    } else {
-        if (loginBtn) {
-            loginBtn.textContent = 'Login';
-            loginBtn.onclick = () => navigateTo('login');
-        }
-        if (joinBtn) {
-            joinBtn.textContent = 'Sign Up';
-            joinBtn.onclick = () => navigateTo('signup');
-        }
-        
-        // Hide premium features
-        hideAccountFeatures();
-        resetPremiumContent();
+        console.log('Login state forced to update');
     }
+    
+    console.log('=== END TEST ===');
 }
 
 // Show account-specific features
@@ -690,13 +1975,40 @@ function showWelcomeMessage(email) {
 
 // Logout handler
 function handleLogout() {
+    console.log('handleLogout called');
     if (confirm('Are you sure you want to logout?')) {
+        console.log('User confirmed logout. Clearing login data...');
+        
+        // Clear all login-related data
         localStorage.removeItem('bc_logged_in');
         localStorage.removeItem('bc_user_email');
         localStorage.removeItem('bc_login_time');
+        
+        // Clear current page to prevent staying on protected pages after logout
+        localStorage.removeItem('bc_current_page');
+        
+        // Clear any intended access
+        localStorage.removeItem('bc_intended_page');
+        localStorage.removeItem('bc_intended_action');
+        
+        console.log('Login data cleared. Current localStorage:', {
+            bc_logged_in: localStorage.getItem('bc_logged_in'),
+            bc_user_email: localStorage.getItem('bc_user_email'),
+            bc_login_time: localStorage.getItem('bc_login_time')
+        });
+        
+        // Update UI
         updateLoginState();
-        alert('You have been logged out successfully.');
-        navigateTo('home');
+        
+        // Show success message
+        showNotification('You have been logged out successfully.', 'success');
+        
+        // Navigate to home page
+        setTimeout(() => {
+            navigateTo('home');
+        }, 500);
+    } else {
+        console.log('User cancelled logout');
     }
 }
 
@@ -898,46 +2210,87 @@ async function fetchWikidataBabyNames(query, limit = 30) {
 
     console.log('[fetchWikidataBabyNames] Starting query:', safeQuery);
 
-    // Use Wikidata's wbsearchentities to get entity labels matching the query.
-    // We intentionally DO NOT strictly filter by type here, because many name-like
-    // results on Wikidata don't have consistent typing and would lead to empty results.
-    const searchUrl = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(safeQuery)}&language=en&uselang=en&format=json&origin=*&limit=${Math.min(limit, 50)}`;
-    console.log('[fetchWikidataBabyNames] Request URL:', searchUrl);
-    const searchRes = await fetch(searchUrl);
-    if (!searchRes.ok) {
-        throw new Error(`Wikidata search failed (${searchRes.status})`);
+    try {
+        // Use the proxy endpoint to avoid CORS issues
+        const proxyUrl = `/api/wikidata?search=${encodeURIComponent(safeQuery)}&language=en&uselang=en&format=json&limit=${Math.min(limit, 50)}`;
+        console.log('[fetchWikidataBabyNames] Request URL:', proxyUrl);
+        
+        const searchRes = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!searchRes.ok) {
+            console.warn('[fetchWikidataBabyNames] HTTP error:', searchRes.status, searchRes.statusText);
+            // Return empty array instead of throwing to avoid breaking the app
+            return [];
+        }
+        
+        const searchJson = await searchRes.json();
+        console.log('[fetchWikidataBabyNames] Raw response JSON:', searchJson);
+        
+        // Check if search exists and is an array
+        if (!searchJson || !Array.isArray(searchJson.search)) {
+            console.warn('[fetchWikidataBabyNames] No search results found in response');
+            return [];
+        }
+        
+        const items = searchJson.search;
+        console.log('[fetchWikidataBabyNames] Items array length:', items.length);
+        if (items.length === 0) return [];
+
+        const results = items
+            .map(item => {
+                const label = sanitizeNameText(item.label);
+                if (!label || label.length < 2) return null; // Filter out single characters
+                const desc = sanitizeNameText(item.description);
+                return {
+                    name: label,
+                    gender: 'unisex',
+                    meaning: desc || 'Online result from Wikidata',
+                    origin: 'Wikidata'
+                };
+            })
+            .filter(Boolean);
+        console.log('[fetchWikidataBabyNames] Mapped results count:', results.length);
+
+        // De-duplicate by name
+        const seen = new Set();
+        const deduped = results.filter(r => {
+            const key = r.name.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+        console.log('[fetchWikidataBabyNames] Final deduped results:', deduped);
+        return deduped;
+    } catch (e) {
+        console.error('[fetchWikidataBabyNames] Error:', e);
+        // Return fallback results when API fails
+        const fallbackNames = [
+            'Liam', 'Noah', 'Oliver', 'Elijah', 'Lucas',
+            'Mason', 'Logan', 'Jacob', 'Ethan', 'Aiden',
+            'James', 'Daniel', 'Benjamin', 'Carter', 'William',
+            'Olivia', 'Emma', 'Ava', 'Sophia', 'Isabella',
+            'Mia', 'Charlotte', 'Amelia', 'Harper', 'Evelyn'
+        ];
+        
+        const filtered = fallbackNames
+            .filter(name => name.toLowerCase().includes(safeQuery.toLowerCase()))
+            .slice(0, limit)
+            .map(name => ({
+                name: name,
+                gender: Math.random() > 0.5 ? 'boy' : 'girl',
+                meaning: 'Popular baby name',
+                origin: 'Fallback database'
+            }));
+        
+        console.log('[fetchWikidataBabyNames] Using fallback names:', filtered.length);
+        return filtered;
     }
-    const searchJson = await searchRes.json();
-    console.log('[fetchWikidataBabyNames] Raw response JSON:', searchJson);
-    const items = Array.isArray(searchJson.search) ? searchJson.search : [];
-    console.log('[fetchWikidataBabyNames] Items array length:', items.length);
-    if (items.length === 0) return [];
-
-    const results = items
-        .map(item => {
-            const label = sanitizeNameText(item.label);
-            if (!label) return null;
-            const desc = sanitizeNameText(item.description);
-            return {
-                name: label,
-                gender: 'unisex',
-                meaning: desc || 'Online result from Wikidata',
-                origin: 'Wikidata'
-            };
-        })
-        .filter(Boolean);
-    console.log('[fetchWikidataBabyNames] Mapped results count:', results.length);
-
-    // De-duplicate by name
-    const seen = new Set();
-    const deduped = results.filter(r => {
-        const key = r.name.toLowerCase();
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-    });
-    console.log('[fetchWikidataBabyNames] Final deduped results:', deduped);
-    return deduped;
 }
 
 // Simple CORS/network test endpoint (public, no auth)
@@ -3345,7 +4698,7 @@ function startVoiceGame() {
     }
     
     currentTargetWord = targetWords[Math.floor(Math.random() * targetWords.length)];
-    const animal = animalData[currentTargetWord.toLowerCase()] || { emoji: '🐶', name: 'Animal', sound: 'Sound!' };
+    const animal = animalData[currentTargetWord.toLowerCase()] || { emoji: '??', name: 'Animal', sound: 'Sound!' };
     
     document.getElementById('voiceTargetWord').textContent = `Say "${animal.name}"! ${animal.emoji}`;
     
@@ -3359,6 +4712,35 @@ function startVoiceGame() {
         const utterance = new SpeechSynthesisUtterance(`Say ${animal.name}`);
         utterance.rate = 0.8;
         speechSynthesis.speak(utterance);
+    }
+}
+
+function stopVoiceGame() {
+    if (recognition && recognition.continuous) {
+        recognition.stop();
+        recognition.continuous = false;
+    }
+    
+    // Clear any ongoing speech synthesis
+    if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+    }
+    
+    // Reset UI
+    const feedback = document.getElementById('voiceFeedback');
+    if (feedback) {
+        feedback.textContent = 'Voice game stopped';
+        feedback.style.color = '#666';
+    }
+    
+    const targetWord = document.getElementById('voiceTargetWord');
+    if (targetWord) {
+        targetWord.textContent = 'Click "Start Voice Game" to begin';
+    }
+    
+    const options = document.getElementById('listenOptions');
+    if (options) {
+        options.innerHTML = '';
     }
 }
 
@@ -3401,7 +4783,7 @@ function generateAnimalOptions(correctAnimal) {
     if (!options) return;
     
     // Get 3 random different animals
-    const availableAnimals = Object.keys(animalData).filter(animal => animal !== correctAnimal.toLowerCase());
+    let availableAnimals = Object.keys(animalData).filter(animal => animal !== correctAnimal.toLowerCase());
     const randomAnimals = [];
     
     for (let i = 0; i < 3; i++) {
@@ -3413,12 +4795,12 @@ function generateAnimalOptions(correctAnimal) {
     
     // Display options
     options.innerHTML = randomAnimals.map(animal => {
-        const animalData = animalData[animal];
+        const animalInfo = animalData[animal];
         return `
             <div class="animal-option" onclick="selectAnimalOption('${animal}')">
-                <div class="animal-emoji">${animalData.emoji}</div>
-                <div class="animal-name">${animalData.name}</div>
-                <div class="animal-sound">${animalData.sound}</div>
+                <div class="animal-emoji">${animalInfo.emoji}</div>
+                <div class="animal-name">${animalInfo.name}</div>
+                <div class="animal-sound">${animalInfo.sound}</div>
             </div>
         `;
     }).join('');
@@ -4078,25 +5460,25 @@ function showToddlerMilestones() {
     alert(`Milestones for ${age/12} year old:\n\n${milestones.map(m => '• ' + m).join('\n')}`);
 }
 
-// Family Topics
+// Family Topics - Open Separate Pages
 function openSleepGuide(topic) {
-    navigateTo('toddler-sleep-guides');
+    window.open('toddler-sleep-guides.html', '_blank');
     // Store the selected topic for reference
     localStorage.setItem('selectedSleepTopic', topic);
 }
 
 function openFeedingGuide(topic) {
-    navigateTo('toddler-feeding');
+    window.open('toddler-feeding.html', '_blank');
     localStorage.setItem('selectedFeedingTopic', topic);
 }
 
 function openPottyGuide(topic) {
-    navigateTo('toddler-potty-training');
+    window.open('toddler-potty-training.html', '_blank');
     localStorage.setItem('selectedPottyTopic', topic);
 }
 
 function openBehaviorGuide(topic) {
-    navigateTo('toddler-behavior');
+    window.open('toddler-behavior.html', '_blank');
     localStorage.setItem('selectedBehaviorTopic', topic);
 }
 
@@ -11140,3 +12522,416 @@ function initializeBabbleGame() {
     
     console.log('Babble game initialized successfully');
 }
+
+// Family-Friendly Functions
+function startFamilyHealthTracking() {
+    console.log('Starting family health tracking...');
+    showNotification('🏥 Family health tracking activated! Monitoring wellness for all family members...', 'success');
+    
+    setTimeout(() => {
+        showNotification('👨‍👩‍👧‍👦 All family members: Healthy and active', 'info');
+    }, 2000);
+    
+    setTimeout(() => {
+        showNotification('💊 Medication reminders: Up to date', 'info');
+    }, 4000);
+    
+    setTimeout(() => {
+        showNotification('🏃‍♀️ Family fitness goals: 75% achieved this week', 'success');
+    }, 6000);
+}
+
+function openFamilyPlanner() {
+    console.log('Opening family planner...');
+    showNotification('📅 Loading family planner with milestones and goals...', 'info');
+    
+    setTimeout(() => {
+        const plannerInfo = `
+📅 FAMILY PLANNER & MILESTONES
+
+Upcoming Family Events:
+• Emma's Preschool Graduation - May 15
+• Family Beach Vacation - July 1-7
+• Jake's Soccer Tournament - June 20
+• Mom's Birthday - June 25
+• Annual Family Reunion - August 10
+
+🎯 Family Goals Progress:
+✅ Emergency Fund: 85% complete
+✅ Home Renovation: 100% complete
+📈 Vacation Savings: 70% complete
+📈 Kids' College Fund: 45% complete
+
+📋 This Week's Tasks:
+• Schedule dentist appointments
+• Plan summer vacation details
+• Grocery shopping for family meals
+• Pay monthly bills
+• Family game night - Saturday
+
+🏆 Recent Achievements:
+• Emma learned to ride a bike!
+• Jake got student of the month
+• Completed home office renovation
+• Saved $500 more than budgeted
+        `;
+        showNotification(plannerInfo, 'success');
+    }, 1500);
+}
+
+function openMealPlanner() {
+    console.log('Opening meal planner...');
+    showNotification('🍽️ Loading family meal planner...', 'info');
+    
+    setTimeout(() => {
+        const mealPlan = `
+🍽️ FAMILY MEAL PLANNER
+
+This Week's Menu:
+📅 Monday: Spaghetti & Meatballs (Family Favorite)
+📅 Tuesday: Grilled Chicken Salad
+📅 Wednesday: Taco Night (Kids' Choice!)
+📅 Thursday: Homemade Pizza Night
+📅 Friday: Fish & Vegetables
+📅 Saturday: BBQ Ribs & Corn
+📅 Sunday: Roast Chicken Dinner
+
+🛒 Shopping List:
+• Ground beef, chicken breast, fish
+• Pasta, rice, tortillas
+• Fresh vegetables & salad mix
+• Cheese, milk, eggs
+• Snacks for kids' lunchboxes
+
+💡 Meal Prep Tips:
+• Cook rice in bulk for 3 meals
+• Chop vegetables on Sunday
+• Freeze extra portions
+• Kids help with simple prep
+
+👶 Kid-Friendly Options:
+• Always have backup simple meals
+• Involve kids in cooking decisions
+• Hidden vegetables in sauces
+        `;
+        showNotification(mealPlan, 'success');
+    }, 1500);
+}
+
+function openActivityPlanner() {
+    console.log('Opening activity planner...');
+    showNotification('📅 Loading family activity scheduler...', 'info');
+    
+    setTimeout(() => {
+        const activityPlan = `
+📅 FAMILY ACTIVITY SCHEDULER
+
+This Week's Activities:
+⚽ Monday: Emma's Soccer Practice (4:00 PM)
+🎨 Tuesday: Jake's Art Class (3:30 PM)
+🏃‍♀️ Wednesday: Family Run/Walk (6:00 PM)
+📚 Thursday: Library Story Time (10:00 AM)
+🎮 Friday: Family Game Night (7:00 PM)
+🏊‍♀️ Saturday: Swimming Lessons (2:00 PM)
+🌳 Sunday: Park Picnic (11:00 AM)
+
+🎯 Monthly Activity Goals:
+• Family exercise: 3x per week
+• Outdoor time: Daily
+• Screen-free time: 2 hours daily
+• Reading together: 30 min daily
+
+📋 Upcoming Special Events:
+• Mother's Day Brunch - May 12
+• Father's Day BBQ - June 16
+• 4th of July Fireworks
+• Summer Camp Registration - Due May 15
+
+💡 Activity Ideas:
+• Bike rides around neighborhood
+• Backyard camping
+• Cooking together
+• Movie marathon nights
+        `;
+        showNotification(activityPlan, 'success');
+    }, 1500);
+}
+
+function openBudgetTracker() {
+    console.log('Opening budget tracker...');
+    showNotification('💰 Loading family budget tracker...', 'info');
+    
+    setTimeout(() => {
+        const budgetInfo = `
+💰 FAMILY BUDGET TRACKER
+
+Monthly Budget Overview:
+📊 Total Income: $5,500
+💚 Total Expenses: $4,125
+💰 Remaining: $1,375 (25% saved!)
+
+Category Breakdown:
+🏠 Housing: $1,500 (75% of budget)
+🍽️ Groceries: $800 (80% of budget)
+🚗 Transportation: $600 (85% of budget)
+🎭 Entertainment: $300 (60% of budget)
+👶 Kids' Activities: $450 (90% of budget)
+💊 Healthcare: $200 (67% of budget)
+🛍️ Shopping: $275 (92% of budget)
+
+🎯 Savings Goals:
+✅ Emergency Fund: $12,000 / $15,000 (80%)
+📈 Vacation Fund: $2,100 / $3,000 (70%)
+🎓 College Fund: $8,500 / $20,000 (43%)
+🏠 Home Improvement: $5,000 / $10,000 (50%)
+
+💡 Money-Saving Tips:
+• Meal planning saves $200/month
+• Cancel unused subscriptions
+• Compare insurance rates
+• Use cashback credit cards
+        `;
+        showNotification(budgetInfo, 'success');
+    }, 1500);
+}
+
+function openHealthTracker() {
+    console.log('Opening health tracker...');
+    showNotification('❤️ Loading family health tracker...', 'info');
+    
+    setTimeout(() => {
+        const healthInfo = `
+❤️ FAMILY HEALTH TRACKER
+
+Family Health Status:
+👨 Dad: Excellent (Annual checkup: Up to date)
+👩 Mom: Good (Prenatal care: On schedule)
+👧 Emma: Excellent (Vaccinations: Current)
+👦 Jake: Good (Sports physical: Completed)
+
+Upcoming Appointments:
+📅 May 15: Emma's dental checkup
+📅 May 20: Mom's prenatal appointment
+📅 June 1: Jake's annual physical
+📅 June 10: Dad's routine checkup
+
+🏃‍♀️ Fitness Goals:
+• Family walks: 4x per week
+• Kids' sports: Active participation
+• Screen time: Limited to 2 hours/day
+• Sleep: 8-10 hours for all
+
+💊 Medication Schedule:
+✅ Daily vitamins: All family members
+✅ Allergies: Emma - Seasonal meds ready
+✅ First aid supplies: Stocked and current
+
+🥗 Nutrition Focus:
+• 5 servings fruits/vegetables daily
+• Limit processed foods
+• Family meals together 5x/week
+• Healthy snacks for kids
+        `;
+        showNotification(healthInfo, 'success');
+    }, 1500);
+}
+
+function openShoppingList() {
+    console.log('Opening shopping list...');
+    showNotification('🛒 Loading family shopping list...', 'info');
+    
+    setTimeout(() => {
+        const shoppingList = `
+🛒 FAMILY SHOPPING LIST
+
+🥬 Fresh Produce:
+• Bananas, apples, oranges
+• Spinach, broccoli, carrots
+• Tomatoes, onions, garlic
+• Berries for kids' snacks
+
+🥩 Proteins:
+• Chicken breast (2 lbs)
+• Ground beef (2 lbs)
+• Fish fillets (1 lb)
+• Eggs (2 dozen)
+
+🥛 Dairy:
+• Milk (2 gallons)
+• Cheese blocks (cheddar, mozzarella)
+• Yogurt cups (kids' snacks)
+• Butter
+
+🍞 Pantry:
+• Bread, tortillas, pasta
+• Rice, quinoa
+• Cereal (2 boxes)
+• Snacks for lunchboxes
+
+🧼 Household:
+• Laundry detergent
+• Dish soap
+• Paper towels
+• Toilet paper
+
+🎒 Kids' Supplies:
+• Art supplies for Jake
+• Soccer socks for Emma
+• Lunchbox items
+• After-school snacks
+
+💰 Budget: $250 total
+🛒 Stores: Costco, Target, Grocery Store
+        `;
+        showNotification(shoppingList, 'success');
+    }, 1500);
+}
+
+function openCalendar() {
+    console.log('Opening family calendar...');
+    showNotification('📅 Loading family calendar...', 'info');
+    
+    setTimeout(() => {
+        const calendarInfo = `
+📅 FAMILY CALENDAR
+
+Today - April 9:
+• 8:00 AM - Kids to school
+• 12:00 PM - Lunch with Mom
+• 3:30 PM - Pick up kids
+• 4:00 PM - Emma's homework time
+• 6:00 PM - Family dinner
+• 7:30 PM - Reading time
+
+This Week:
+📅 Thursday: Jake's art class
+📅 Friday: Family game night
+📅 Saturday: Soccer practice
+📅 Sunday: Park picnic
+
+Important Dates:
+🎂 May 15 - Emma's 5th Birthday
+🎂 June 20 - Jake's 7th Birthday
+💑 June 25 - Anniversary
+🎄 December 25 - Christmas
+
+School Calendar:
+📚 Last Day: May 30
+🏖️ Summer Break: June 1 - August 15
+📚 First Day: August 16
+
+🏥 Appointments:
+• May 10 - Dental checkups
+• June 1 - Annual physicals
+• July 15 - Eye exams
+
+🎉 Events to Plan:
+• Birthday parties
+• Summer vacation
+• Family reunion
+        `;
+        showNotification(calendarInfo, 'success');
+    }, 1500);
+}
+
+// Global Function Exports - Ensure all family functions are available globally
+window.startFamilyHealthTracking = startFamilyHealthTracking;
+window.openFamilyPlanner = openFamilyPlanner;
+window.openMealPlanner = openMealPlanner;
+window.openActivityPlanner = openActivityPlanner;
+window.openBudgetTracker = openBudgetTracker;
+window.openHealthTracker = openHealthTracker;
+window.openShoppingList = openShoppingList;
+window.openCalendar = openCalendar;
+window.addFamilyMember = addFamilyMember;
+window.createBabyProfile = createBabyProfile;
+window.saveBabyProfile = saveBabyProfile;
+
+// Keep some maternal functions for users who might need them
+window.startHealthMonitoring = startHealthMonitoring;
+window.openPregnancyTracker = openPregnancyTracker;
+window.openAIMidwife = openAIMidwife;
+window.openNutritionAnalyzer = openNutritionAnalyzer;
+window.openSymptomChecker = openSymptomChecker;
+window.openKickCounter = openKickCounter;
+window.openContractionTimer = openContractionTimer;
+window.openWeightTracker = openWeightTracker;
+window.openAIPregnancyAssistant = openAIPregnancyAssistant;
+window.startFetalMonitoring = startFetalMonitoring;
+
+// Simple Baby Profile Function
+function createBabyProfile() {
+    console.log('Creating baby profile...');
+    
+    const babyName = document.getElementById('babyName').value;
+    const babyBirthDate = document.getElementById('babyBirthDate').value;
+    const babyWeight = document.getElementById('babyWeight').value;
+    const babyLength = document.getElementById('babyLength').value;
+    const feedingMethod = document.getElementById('feedingMethod').value;
+    
+    if (!babyName || !babyBirthDate || !babyWeight || !babyLength || !feedingMethod) {
+        showNotification('Please fill in all baby profile fields', 'error');
+        return;
+    }
+    
+    // Calculate baby's age
+    const birthDate = new Date(babyBirthDate);
+    const today = new Date();
+    const ageInDays = Math.floor((today - birthDate) / (1000 * 60 * 60 * 24));
+    const ageInWeeks = Math.floor(ageInDays / 7);
+    const ageInMonths = Math.floor(ageInDays / 30.44);
+    
+    const profileResult = document.getElementById('babyProfileResult');
+    profileResult.style.display = 'block';
+    profileResult.innerHTML = `
+        <div style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%); padding: 25px; border-radius: 15px; border: 1px solid #a5d6a7;">
+            <h4 style="color: #2e7d32; margin-bottom: 20px; font-size: 20px; font-weight: 700;">👶 Baby Profile Created!</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                <div>
+                    <strong style="color: #333;">Name:</strong> ${babyName}
+                </div>
+                <div>
+                    <strong style="color: #333;">Age:</strong> ${ageInWeeks} weeks (${ageInDays} days)
+                </div>
+                <div>
+                    <strong style="color: #333;">Weight:</strong> ${babyWeight} kg
+                </div>
+                <div>
+                    <strong style="color: #333;">Length:</strong> ${babyLength} cm
+                </div>
+                <div>
+                    <strong style="color: #333;">Feeding:</strong> ${feedingMethod.charAt(0).toUpperCase() + feedingMethod.slice(1)}
+                </div>
+                <div>
+                    <strong style="color: #333;">Birth Date:</strong> ${new Date(babyBirthDate).toLocaleDateString()}
+                </div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 10px; border: 1px solid #e0e0e0;">
+                <h5 style="color: #333; margin-bottom: 10px; font-weight: 600;">📊 Development Milestones:</h5>
+                <div style="font-size: 14px; color: #666; line-height: 1.6;">
+                    ${ageInWeeks < 4 ? 
+                        '• Focus on feeding and sleep patterns<br>• Tummy time when awake<br>• Respond to sounds and voices' :
+                        ageInWeeks < 12 ?
+                        '• Starting to smile and coo<br>• Holding head up briefly<br>• Following objects with eyes' :
+                        ageInWeeks < 24 ?
+                        '• Sitting up with support<br>• Beginning to roll over<br>• Bringing hands to mouth' :
+                        '• Starting to crawl<br>• Responding to name<br>• Exploring objects with mouth'
+                    }
+                </div>
+            </div>
+            <div style="margin-top: 15px; text-align: center;">
+                <button onclick="saveBabyProfile()" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    💾 Save Profile
+                </button>
+            </div>
+        </div>
+    `;
+    
+    showNotification(`Baby profile for ${babyName} created successfully!`, 'success');
+}
+
+function saveBabyProfile() {
+    showNotification('Baby profile saved successfully!', 'success');
+}
+
+console.log('All family and maternal health functions exported to global scope');

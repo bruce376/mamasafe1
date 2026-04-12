@@ -1,5 +1,9 @@
 @echo off
-echo Starting MamaCare Project Server...
+title MamaCare Server
+echo Starting MamaCare Server...
+echo Server will run in this window
+echo Close this window to stop the server
+echo.
 cd /d "%~dp0"
-python -m http.server 8080
+npm start
 pause

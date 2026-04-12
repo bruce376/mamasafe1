@@ -1,0 +1,32 @@
+{
+  "name": "mamacare",
+  "version": "1.0.0",
+  "description": "",
+  "main": "babble.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bruce376/mamasafe1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bruce376/mamasafe1/issues"
+  },
+  "homepage": "https://github.com/bruce376/mamasafe1#readme",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "mongodb": "^6.3.0",
+    "mongoose": "^9.4.1",
+    "morgan": "^1.10.1"
+  }
+}

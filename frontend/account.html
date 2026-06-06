@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Mamasafe</title>
+    <link rel="icon" type="image/png" href="assets/mamasafe-logo.png">
+    <link rel="stylesheet" href="styles.css">
+    <base target="_blank">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <span>👶 The #1 pregnancy & parenting resource worldwide</span>
+                <div class="top-links">
+                    <a href="#">Get Our App</a>
+                    <a href="#">Help Center</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <a class="logo" onclick="navigateTo('home')">
+                    <div class="logo-icon" aria-hidden="true"><img src="assets/mamasafe-logo.png" alt=""></div>
+                    Mamasafe
+                </a>
+                
+                <nav class="main-nav">
+                    <a onclick="navigateTo('getting-pregnant')" data-page="getting-pregnant">Getting Pregnant <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('pregnancy')" data-page="pregnancy">Pregnancy <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('baby')" data-page="baby">Baby <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('toddler')" data-page="toddler">Toddler <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('family')" data-page="family">Family <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('courses')" data-page="courses">Courses <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('registry')" data-page="registry">Registry <span class="account-badge">PRO</span></a>
+                    <a onclick="navigateTo('names')" data-page="names">Baby Names <span class="account-badge">PRO</span></a>
+                </nav>
+
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search..." id="globalSearch">
+                        <button class="search-btn">🔍</button>
+                    </div>
+                    <button class="account-btn active" onclick="navigateTo('account')">My Account</button>
+                    <button class="logout-btn" onclick="handleLogout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ACCOUNT DASHBOARD PAGE -->
+    <section id="account" class="page-section active">
+        <div class="account-modern">
+            <div class="account-shell">
+                <div class="account-hero">
+                    <div class="account-hero-copy">
+                        <span class="account-kicker">Private care dashboard</span>
+                        <h1 id="accountGreeting">Welcome back</h1>
+                        <p id="accountSummary">Your saved pregnancy, baby care, learning, and family tools are ready.</p>
+                        <div class="account-hero-actions">
+                            <button type="button" onclick="navigateTo('home')">Open Home</button>
+                            <button type="button" onclick="navigateTo('pregnancy')">Continue Tracking</button>
+                        </div>
+                    </div>
+                    <div class="account-profile-panel">
+                        <div class="account-avatar" id="accountInitials">MS</div>
+                        <div>
+                            <span id="accountStageLabel">Pregnancy care</span>
+                            <strong id="accountEmail">user@example.com</strong>
+                            <small id="accountMemberSince">Member since today</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="account-metrics">
+                    <article>
+                        <span>Care week</span>
+                        <strong id="currentWeek">Week 24</strong>
+                        <small id="accountTrimester">Second trimester</small>
+                    </article>
+                    <article>
+                        <span>Due date</span>
+                        <strong id="dueDate">Add date</strong>
+                        <small id="accountDaysLeft">Set your timeline</small>
+                    </article>
+                    <article>
+                        <span>Saved focus</span>
+                        <strong id="accountPriority">Pregnancy tracking</strong>
+                        <small id="babySize">Size updates appear here</small>
+                    </article>
+                    <article>
+                        <span>Readiness</span>
+                        <strong id="accountReadiness">68%</strong>
+                        <small>Profile, tools, and settings</small>
+                    </article>
+                </div>
+
+                <div class="account-layout">
+                    <aside class="account-left-rail">
+                        <section class="account-panel account-profile-card">
+                            <div class="account-panel-head">
+                                <span>Profile</span>
+                                <button type="button" onclick="editProfile()">Edit</button>
+                            </div>
+                            <div class="account-info-stack">
+                                <div><span>Email</span><strong id="profileEmail">user@example.com</strong></div>
+                                <div><span>Account type</span><strong>Premium member</strong></div>
+                                <div><span>Visibility</span><strong id="accountVisibility">Private</strong></div>
+                            </div>
+                        </section>
+
+                        <section class="account-panel">
+                            <div class="account-panel-head">
+                                <span>Settings</span>
+                                <button type="button" onclick="saveSettings()">Save</button>
+                            </div>
+                            <div class="account-settings">
+                                <label><span>Email notifications</span><input type="checkbox" id="emailNotif" checked></label>
+                                <label><span>Weekly care updates</span><input type="checkbox" id="weeklyUpdates" checked></label>
+                                <label><span>Community digest</span><input type="checkbox" id="communityDigest"></label>
+                                <label><span>Profile visibility</span>
+                                    <select id="profileVisibility">
+                                        <option value="private">Private</option>
+                                        <option value="friends">Friends only</option>
+                                        <option value="public">Public</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </section>
+                    </aside>
+
+                    <main class="account-main-grid">
+                        <section class="account-panel account-timeline-panel">
+                            <div class="account-panel-head">
+                                <span>Pregnancy Timeline</span>
+                                <button type="button" onclick="navigateTo('due-date-calculator')">Update</button>
+                            </div>
+                            <div class="account-progress-track">
+                                <div class="account-progress-fill" id="accountProgressFill"></div>
+                            </div>
+                            <div class="account-timeline">
+                                <div class="active"><span>Now</span><strong id="timelineNow">Week 24 check-in</strong></div>
+                                <div><span>Next</span><strong id="timelineNext">Prenatal visit and symptom log</strong></div>
+                                <div><span>Prepare</span><strong>Hospital bag, birth plan, newborn course</strong></div>
+                            </div>
+                        </section>
+
+                        <section class="account-panel">
+                            <div class="account-panel-head">
+                                <span>Saved Tools</span>
+                                <button type="button" onclick="navigateTo('home')">All tools</button>
+                            </div>
+                            <div class="account-tool-grid">
+                                <button type="button" onclick="navigateTo('due-date-calculator')"><span>DD</span><strong>Due Date</strong><small>Timeline</small></button>
+                                <button type="button" onclick="navigateTo('names')"><span>BN</span><strong>Baby Names</strong><small>Shortlist</small></button>
+                                <button type="button" onclick="navigateTo('baby-kick-counter')"><span>KC</span><strong>Kick Counter</strong><small>Movement</small></button>
+                                <button type="button" onclick="navigateTo('contraction-timer')"><span>CT</span><strong>Contractions</strong><small>Labor</small></button>
+                            </div>
+                        </section>
+
+                        <section class="account-panel">
+                            <div class="account-panel-head">
+                                <span>Learning Path</span>
+                                <button type="button" onclick="navigateTo('courses')">Browse</button>
+                            </div>
+                            <div class="account-course-list" id="accountCourseList">
+                                <article><div><strong>Childbirth Education</strong><span>75% complete</span></div><button type="button" onclick="navigateTo('childbirth-class')">Continue</button></article>
+                                <article><div><strong>Breastfeeding Basics</strong><span>Ready to review</span></div><button type="button" onclick="navigateTo('courses')">Review</button></article>
+                                <article><div><strong>Newborn Care</strong><span>30% complete</span></div><button type="button" onclick="navigateTo('newborn-care')">Continue</button></article>
+                            </div>
+                        </section>
+
+                        <section class="account-panel account-health-panel">
+                            <div class="account-panel-head">
+                                <span>Care Signals</span>
+                                <button type="button" onclick="navigateTo('professional-help')">Help</button>
+                            </div>
+                            <div class="account-signal-grid">
+                                <div><span class="good"></span><strong>Hydration</strong><small>Keep daily water tracking active</small></div>
+                                <div><span class="warn"></span><strong>Appointments</strong><small id="accountAppointmentHint">Add your next visit</small></div>
+                                <div><span class="calm"></span><strong>Symptoms</strong><small>Log changes for better insights</small></div>
+                            </div>
+                        </section>
+
+                        <section class="account-panel account-actions-panel">
+                            <div class="account-panel-head">
+                                <span>Quick Actions</span>
+                            </div>
+                            <div class="account-action-row">
+                                <button type="button" onclick="navigateTo('milestone-tracker')">Milestones</button>
+                                <button type="button" onclick="navigateTo('symptom-checker')">Symptoms</button>
+                                <button type="button" onclick="navigateTo('budget-planner')">Budget</button>
+                                <button type="button" onclick="navigateTo('registry')">Registry</button>
+                            </div>
+                        </section>
+                    </main>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="account-header">
+                <h1>My Account Dashboard</h1>
+                <p class="account-email" id="accountEmail">user@example.com</p>
+            </div>
+
+            <div class="account-grid">
+                <!-- Profile Section -->
+                <div class="account-card">
+                    <div class="card-header">
+                        <h2>👤 Profile Information</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="profile-info">
+                            <div class="info-item">
+                                <label>Email:</label>
+                                <span id="profileEmail">user@example.com</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Member Since:</label>
+                                <span id="memberSince">January 2024</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Account Type:</label>
+                                <span class="premium-badge">Premium Member</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="editProfile()">Edit Profile</button>
+                    </div>
+                </div>
+
+                <!-- Pregnancy Tracking -->
+                <div class="account-card">
+                    <div class="card-header">
+                        <h2>🤰 Pregnancy Tracking</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="tracking-info">
+                            <div class="info-item">
+                                <label>Current Week:</label>
+                                <span id="currentWeek">Week 24</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Due Date:</label>
+                                <span id="dueDate">June 15, 2024</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Baby's Size:</label>
+                                <span id="babySize">Size of a cantaloupe</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 60%"></div>
+                        </div>
+                        <button class="btn-secondary" onclick="navigateTo('due-date-calculator')">Update Due Date</button>
+                    </div>
+                </div>
+
+                <!-- Saved Tools -->
+                <div class="account-card">
+                    <div class="card-header">
+                        <h2>🛠️ My Saved Tools</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="saved-tools">
+                            <div class="tool-item">
+                                <span class="tool-icon">📅</span>
+                                <span class="tool-name">Due Date Calculator</span>
+                                <button class="btn-small" onclick="navigateTo('due-date-calculator')">Open</button>
+                            </div>
+                            <div class="tool-item">
+                                <span class="tool-icon">👶</span>
+                                <span class="tool-name">Baby Name Finder</span>
+                                <button class="btn-small" onclick="navigateTo('baby-names')">Open</button>
+                            </div>
+                            <div class="tool-item">
+                                <span class="tool-icon">🦵</span>
+                                <span class="tool-name">Kick Counter</span>
+                                <button class="btn-small" onclick="navigateTo('kick-counter')">Open</button>
+                            </div>
+                            <div class="tool-item">
+                                <span class="tool-icon">⏱️</span>
+                                <span class="tool-name">Contraction Timer</span>
+                                <button class="btn-small" onclick="navigateTo('contraction-timer')">Open</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enrolled Courses -->
+                <div class="account-card">
+                    <div class="card-header">
+                        <h2>📚 My Courses</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="enrolled-courses">
+                            <div class="course-item">
+                                <div class="course-info">
+                                    <h4>Childbirth Education</h4>
+                                    <p>Progress: 75%</p>
+                                </div>
+                                <button class="btn-small" onclick="navigateTo('childbirth-class')">Continue</button>
+                            </div>
+                            <div class="course-item">
+                                <div class="course-info">
+                                    <h4>Breastfeeding Basics</h4>
+                                    <p>Progress: 100% ✓</p>
+                                </div>
+                                <button class="btn-small" onclick="navigateTo('courses')">Review</button>
+                            </div>
+                            <div class="course-item">
+                                <div class="course-info">
+                                    <h4>Newborn Care</h4>
+                                    <p>Progress: 30%</p>
+                                </div>
+                                <button class="btn-small" onclick="navigateTo('newborn-care')">Continue</button>
+                            </div>
+                        </div>
+                        <button class="btn-secondary" onclick="navigateTo('courses')">Browse All Courses</button>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="account-card">
+                    <div class="card-header">
+                        <h2>⚙️ Account Settings</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="settings-options">
+                            <div class="setting-item">
+                                <label>Email Notifications</label>
+                                <input type="checkbox" id="emailNotif" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label>Weekly Pregnancy Updates</label>
+                                <input type="checkbox" id="weeklyUpdates" checked>
+                            </div>
+                            <div class="setting-item">
+                                <label>Community Digest</label>
+                                <input type="checkbox" id="communityDigest">
+                            </div>
+                            <div class="setting-item">
+                                <label>Profile Visibility</label>
+                                <select id="profileVisibility">
+                                    <option value="private">Private</option>
+                                    <option value="friends">Friends Only</option>
+                                    <option value="public">Public</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="account-card">
+                    <div class="card-header">
+                        <h2>🚀 Quick Actions</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="quick-actions">
+                            <button class="action-btn" onclick="navigateTo('milestone-tracker')">
+                                <span class="action-icon">📊</span>
+                                <span class="action-text">Track Milestones</span>
+                            </button>
+                            <button class="action-btn" onclick="navigateTo('symptom-checker')">
+                                <span class="action-icon">🏥</span>
+                                <span class="action-text">Check Symptoms</span>
+                            </button>
+                            <button class="action-btn" onclick="navigateTo('budget-planner')">
+                                <span class="action-icon">💰</span>
+                                <span class="action-text">Budget Planner</span>
+                            </button>
+                            <button class="action-btn" onclick="navigateTo('registry')">
+                                <span class="action-icon">🎁</span>
+                                <span class="action-text">Baby Registry</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Mamasafe</h3>
+                    <p>Your trusted partner for pregnancy and parenting journey.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a onclick="navigateTo('getting-pregnant')">Getting Pregnant</a></li>
+                        <li><a onclick="navigateTo('pregnancy')">Pregnancy</a></li>
+                        <li><a onclick="navigateTo('baby')">Baby</a></li>
+                        <li><a onclick="navigateTo('toddler')">Toddler</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Tools</h4>
+                    <ul>
+                        <li><a onclick="navigateTo('due-date-calculator')">Due Date Calculator</a></li>
+                        <li><a onclick="navigateTo('baby-names')">Baby Names</a></li>
+                        <li><a onclick="navigateTo('milestone-tracker')">Milestone Tracker</a></li>
+                        <li><a onclick="navigateTo('symptom-checker')">Symptom Checker</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#">Facebook</a></li>
+                        <li><a href="#">Instagram</a></li>
+                        <li><a href="#">Twitter</a></li>
+                        <li><a href="#">YouTube</a></li>
+                    </ul>
+                </div>
+            </div>
+    <!-- Footer -->
+    <footer class="maternal-footer">
+        <div class="maternal-footer-container">
+            <div class="maternal-footer-top">
+                <div class="maternal-footer-brand">
+                    <div class="maternal-footer-logo">🤱</div>
+                    <h3>Mamasafe</h3>
+                    <p>Your trusted companion through motherhood</p>
+                    <div class="maternal-footer-social">
+                        <a href="#" class="maternal-social-link">📘</a>
+                        <a href="#" class="maternal-social-link">📸</a>
+                        <a href="#" class="maternal-social-link">🐦</a>
+                        <a href="#" class="maternal-social-link">▶️</a>
+                    </div>
+                </div>
+                <div class="maternal-footer-links">
+                    <div class="maternal-footer-column">
+                        <h4>Getting Pregnant</h4>
+                        <ul>
+                            <li><a href="ovulation-calculator.html">Ovulation Calculator</a></li>
+                            <li><a href="fertility-tracker.html">Fertility Tracker</a></li>
+                            <li><a href="pregnancy-test-calculator.html">Pregnancy Test Calculator</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Pregnancy</h4>
+                        <ul>
+                            <li><a href="index.html">Week by Week</a></li>
+                            <li><a href="index.html">Symptoms</a></li>
+                            <li><a href="index.html">Labor & Delivery</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Baby</h4>
+                        <ul>
+                            <li><a href="index.html">Newborn Care</a></li>
+                            <li><a href="index.html">Feeding</a></li>
+                            <li><a href="index.html">Sleep</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="index.html">Baby Names</a></li>
+                            <li><a href="index.html">Courses</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Community</h4>
+                        <ul>
+                            <li><a>Birth Clubs</a></li>
+                            <li><a>Forums</a></li>
+                            <li><a>App Download</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="maternal-footer-bottom">
+                <div class="maternal-footer-copyright">
+                    <p>© 2026 Mamasafe. All rights reserved. Made with 💕 for mothers everywhere.</p>
+                </div>
+                <div class="maternal-footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/utils/ui-helpers.js"></script>
+    <script src="js/auth/user-auth.js"></script>
+    <script src="js/navigation/router.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLoginState();
+            loadAccountData();
+        });
+
+        function readJSON(key, fallback) {
+            try {
+                return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+            } catch (error) {
+                return fallback;
+            }
+        }
+
+        function setText(id, value) {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value;
+        }
+
+        function getDisplayName(email, profile) {
+            const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
+            return fullName || String(email || 'mama').split('@')[0] || 'Mama';
+        }
+
+        function getStageLabel(stage) {
+            return {
+                pregnant: 'Pregnancy care',
+                pregnancy: 'Pregnancy care',
+                baby: 'Baby care',
+                toddler: 'Toddler care',
+                getting_pregnant: 'Getting pregnant',
+                'getting-pregnant': 'Getting pregnant',
+                family: 'Family planning'
+            }[stage] || 'Personal care';
+        }
+
+        function formatDate(value) {
+            if (!value) return 'Add date';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return value;
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function getPregnancyWeek(data) {
+            if (data.currentWeek) return Number(data.currentWeek);
+            if (data.week) return Number(data.week);
+            if (data.dueDate) {
+                const due = new Date(data.dueDate);
+                if (!Number.isNaN(due.getTime())) {
+                    const daysLeft = Math.ceil((due - new Date()) / 86400000);
+                    return Math.min(42, Math.max(1, Math.round((280 - daysLeft) / 7)));
+                }
+            }
+            return 24;
+        }
+
+        function loadAccountData() {
+            const profile = readJSON('bc_user_profile', {});
+            const pregnancyData = readJSON('bc_pregnancy_data', {});
+            const settings = readJSON('bc_settings', {});
+            const email = localStorage.getItem('bc_user_email') || profile.email || 'user@example.com';
+            const name = getDisplayName(email, profile);
+            const stage = profile.stage || profile.lastFocus || 'pregnancy';
+            const stageLabel = getStageLabel(stage);
+            const week = getPregnancyWeek(pregnancyData);
+            const dueDate = pregnancyData.dueDate || profile.dueDate || profile.careDate || '';
+            const due = dueDate ? new Date(dueDate) : null;
+            const daysLeft = due && !Number.isNaN(due.getTime()) ? Math.max(0, Math.ceil((due - new Date()) / 86400000)) : null;
+            const trimester = week <= 13 ? 'First trimester' : week <= 27 ? 'Second trimester' : 'Third trimester';
+            const progress = Math.min(100, Math.max(4, Math.round((week / 40) * 100)));
+            const readiness = Math.min(96, 48 + (email ? 12 : 0) + (dueDate ? 14 : 0) + (settings.weeklyUpdates !== false ? 10 : 0) + (settings.emailNotif !== false ? 12 : 0));
+            const visibility = settings.profileVisibility || 'private';
+
+            setText('accountGreeting', `Welcome back, ${name}`);
+            setText('accountSummary', `${stageLabel} dashboard with timeline, saved tools, learning, and care signals in one place.`);
+            setText('accountEmail', email);
+            setText('profileEmail', email);
+            setText('accountInitials', name.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase() || 'MS');
+            setText('accountStageLabel', stageLabel);
+            setText('accountMemberSince', `Member since ${formatDate(profile.createdAt || profile.savedAt || profile.lastLoginAt || new Date())}`);
+            setText('currentWeek', `Week ${week}`);
+            setText('accountTrimester', trimester);
+            setText('dueDate', formatDate(dueDate));
+            setText('accountDaysLeft', daysLeft === null ? 'Set your timeline' : `${daysLeft} days to due date`);
+            setText('accountPriority', getStageLabel(profile.carePriority || profile.lastFocus || stage));
+            setText('babySize', pregnancyData.babySize || (week < 14 ? 'Early growth phase' : week < 28 ? 'Rapid growth phase' : 'Final growth phase'));
+            setText('accountReadiness', `${readiness}%`);
+            setText('accountVisibility', visibility.replace('-', ' '));
+            setText('timelineNow', `Week ${week} check-in`);
+            setText('timelineNext', week >= 36 ? 'Weekly visit and birth readiness' : 'Prenatal visit and symptom log');
+
+            const fill = document.getElementById('accountProgressFill');
+            if (fill) fill.style.width = `${progress}%`;
+
+            const emailNotif = document.getElementById('emailNotif');
+            const weeklyUpdates = document.getElementById('weeklyUpdates');
+            const communityDigest = document.getElementById('communityDigest');
+            const profileVisibility = document.getElementById('profileVisibility');
+            if (emailNotif) emailNotif.checked = settings.emailNotif !== false;
+            if (weeklyUpdates) weeklyUpdates.checked = settings.weeklyUpdates !== false;
+            if (communityDigest) communityDigest.checked = !!settings.communityDigest;
+            if (profileVisibility) profileVisibility.value = visibility;
+        }
+
+        function editProfile() {
+            showNotification('Profile editor will use your saved motherhood profile next.', 'info');
+        }
+
+        function saveSettings() {
+            const settings = {
+                emailNotif: document.getElementById('emailNotif')?.checked ?? true,
+                weeklyUpdates: document.getElementById('weeklyUpdates')?.checked ?? true,
+                communityDigest: document.getElementById('communityDigest')?.checked ?? false,
+                profileVisibility: document.getElementById('profileVisibility')?.value || 'private'
+            };
+
+            localStorage.setItem('bc_settings', JSON.stringify(settings));
+            loadAccountData();
+            showNotification('Settings saved successfully.', 'success');
+        }
+    </script>
+</body>
+</html>

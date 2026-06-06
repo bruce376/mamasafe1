@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Games Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 8px; }
+        .result { background: #f0f8ff; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <h1>🤖 AI Games Test Page</h1>
+    
+    <div class="test-section">
+        <h2>📊 Development Tracker Test</h2>
+        <input type="number" id="testAge" placeholder="Baby age (months)" value="12">
+        <button onclick="testDevelopment()">Test Development Analysis</button>
+        <div id="devResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎵 Lullaby Generator Test</h2>
+        <input type="text" id="testName" placeholder="Baby name" value="Emma">
+        <button onclick="testLullaby()">Test Lullaby Generation</button>
+        <div id="lullabyResult" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>😊 Mood Analyzer Test</h2>
+        <select id="testMood">
+            <option value="fussy">Fussy</option>
+            <option value="happy">Happy</option>
+            <option value="sleepy">Sleepy</option>
+        </select>
+        <button onclick="testMood()">Test Mood Analysis</button>
+        <div id="moodResult" class="result"></div>
+    </div>
+
+    <script src="script-new.js"></script>
+    <script>
+        async function testDevelopment() {
+            const age = document.getElementById('testAge').value;
+            const messages = [
+                { role: 'system', content: 'You are a pediatric development expert.' },
+                { role: 'user', content: `Analyze development of a ${age}-month-old baby` }
+            ];
+            
+            try {
+                const result = await callGroqAPI(messages);
+                document.getElementById('devResult').innerHTML = `<strong>✅ Development Analysis:</strong><br><pre>${result}</pre>`;
+            } catch (error) {
+                document.getElementById('devResult').innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+        }
+        
+        async function testLullaby() {
+            const name = document.getElementById('testName').value;
+            const messages = [
+                { role: 'system', content: 'You are a children\'s songwriter.' },
+                { role: 'user', content: `Create a lullaby for ${name}` }
+            ];
+            
+            try {
+                const result = await callGroqAPI(messages);
+                document.getElementById('lullabyResult').innerHTML = `<strong>✅ Lullaby Generated:</strong><br><pre>${result}</pre>`;
+            } catch (error) {
+                document.getElementById('lullabyResult').innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+        }
+        
+        async function testMood() {
+            const mood = document.getElementById('testMood').value;
+            const messages = [
+                { role: 'system', content: 'You are a child psychology expert.' },
+                { role: 'user', content: `Analyze mood of a baby who is currently ${mood}` }
+            ];
+            
+            try {
+                const result = await callGroqAPI(messages);
+                document.getElementById('moodResult').innerHTML = `<strong>✅ Mood Analysis:</strong><br><pre>${result}</pre>`;
+            } catch (error) {
+                document.getElementById('moodResult').innerHTML = `<strong>❌ Error:</strong> ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

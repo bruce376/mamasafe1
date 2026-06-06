@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Assistant - Mamasafe</title>
+    <link rel="icon" type="image/png" href="assets/mamasafe-logo.png">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .health-chatbot-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #0a0a0a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .chatbot-header {
+            background: linear-gradient(135deg, #0f2a56 0%, #16213e 50%, #0f3460 100%);
+            color: #ffffff;
+            padding: 25px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+            border-bottom: 2px solid #00d4ff;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+        
+        .chatbot-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-shadow: 0 2px 4px rgba(0, 212, 255, 0.5);
+        }
+        
+        .chatbot-header .subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+            margin-top: 8px;
+            color: #b8d4f1;
+        }
+        
+        .chatbot-messages {
+            flex: 1;
+            background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%);
+            padding: 25px;
+            overflow-y: auto;
+            border: 1px solid #0f2a56;
+            border-top: none;
+            scrollbar-width: thin;
+            scrollbar-color: #444 #1a1a1a;
+        }
+        
+        .chatbot-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chatbot-messages::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+        
+        .chatbot-messages::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 3px;
+        }
+        
+        .message {
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            border-radius: 20px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: messageSlide 0.3s ease;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        @keyframes messageSlide {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .message.user {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #ffffff;
+            margin-left: auto;
+            text-align: left;
+            border: 1px solid #00d4ff;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .message.assistant {
+            background: linear-gradient(135deg, #2a2a3e 0%, #0f2a56 100%);
+            color: #e8e8e8;
+            border: 1px solid #444;
+            margin-right: auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .message.emergency {
+            background: linear-gradient(135deg, #ff4757 0%, #ff6b9d 100%);
+            color: #ffffff;
+            border: 2px solid #ff6b9d;
+            font-weight: 600;
+            animation: emergencyPulse 2s infinite;
+            box-shadow: 0 4px 20px rgba(255, 71, 87, 0.5);
+        }
+        
+        @keyframes emergencyPulse {
+            0% { transform: scale(1); box-shadow: 0 4px 20px rgba(255, 71, 87, 0.5); }
+            50% { transform: scale(1.02); box-shadow: 0 6px 25px rgba(255, 71, 87, 0.7); }
+            100% { transform: scale(1); box-shadow: 0 4px 20px rgba(255, 71, 87, 0.5); }
+        }
+        
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 8px;
+            font-weight: 400;
+        }
+        
+        .chatbot-input {
+            background: linear-gradient(135deg, #0f2a56 0%, #16213e 100%);
+            padding: 25px;
+            border: 1px solid #444;
+            border-top: none;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+        
+        .chatbot-input textarea {
+            flex: 1;
+            padding: 16px 20px;
+            border: 2px solid #444;
+            border-radius: 25px;
+            resize: none;
+            font-family: inherit;
+            font-size: 15px;
+            min-height: 20px;
+            max-height: 120px;
+            background: #0f0f0f;
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+        
+        .chatbot-input textarea:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+            background: #1a1a1a;
+        }
+        
+        .chatbot-input textarea::placeholder {
+            color: #888;
+        }
+        
+        .send-button {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .send-button:disabled {
+            background: #444;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .suggestions {
+            background: linear-gradient(135deg, #0f2a56 0%, #16213e 100%);
+            padding: 20px;
+            border: 1px solid #444;
+            border-top: none;
+        }
+        
+        .suggestions h3 {
+            margin: 0 0 15px 0;
+            color: #00d4ff;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .suggestion-chip {
+            background: linear-gradient(135deg, #2a2a3e 0%, #0f2a56 100%);
+            color: #b8d4f1;
+            border: 1px solid #444;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            font-weight: 400;
+        }
+        
+        .suggestion-chip:hover {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #2a2a3e 0%, #0f2a56 100%);
+            border: 1px solid #444;
+            border-radius: 20px;
+            margin-right: auto;
+            max-width: 100px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .typing-indicator .dots {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .typing-indicator .dot {
+            width: 10px;
+            height: 10px;
+            background: #00d4ff;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-indicator .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-indicator .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-12px); }
+        }
+        
+        .medical-disclaimer {
+            background: linear-gradient(135deg, #2a2a3e 0%, #0f2a56 100%);
+            border: 1px solid #ff9800;
+            color: #ff8fab;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.2);
+        }
+        
+        .chat-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #0f2a56 0%, #16213e 100%);
+            border-top: 1px solid #444;
+        }
+        
+        .clear-history-btn {
+            background: linear-gradient(135deg, #ff4757 0%, #ff6b9d 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+        }
+        
+        .clear-history-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.5);
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #b8d4f1;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #00d4ff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+        
+        .status-dot.offline {
+            background: #ff4757;
+            box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="health-chatbot-container">
+        <div class="chatbot-header">
+            <h1>
+                <span>🤖</span>
+                Mamasafe assistant AI
+            </h1>
+            <div class="subtitle">Professional AI health companion for pregnancy and family care</div>
+        </div>
+        
+        <div class="medical-disclaimer">
+            <strong>⚠️ Medical Disclaimer:</strong> I'm an AI assistant and not a substitute for professional medical advice. Always consult with your healthcare provider for medical concerns.
+        </div>
+        
+        <div class="chatbot-messages" id="chatMessages">
+            <div class="message assistant">
+                <div>Hello! I'm your Mamasafe assistant AI. How can I help you today?</div>
+                <div class="message-time">Just now</div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        
+        <div class="suggestions" id="suggestions">
+            <h3>Suggested Questions:</h3>
+            <div class="suggestion-chips" id="suggestionChips">
+                <!-- Suggestions will be loaded dynamically -->
+            </div>
+        </div>
+        
+        <div class="chatbot-input">
+            <div class="input-container">
+                <textarea 
+                    id="messageInput" 
+                    placeholder="Ask me about pregnancy, baby care, or maternal health..."
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">
+                    <span>➤</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-controls">
+            <button class="clear-history-btn" onclick="clearHistory()">Clear History</button>
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Connected</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let chatHistory = [];
+        let isLoading = false;
+        
+        // Initialize chatbot
+        async function initializeChatbot() {
+            try {
+                // Check authentication
+                const authResponse = await fetch('/api/auth/user');
+                const authData = await authResponse.json();
+                
+                if (!authData.user) {
+                    window.location.href = '/auth.html';
+                    return;
+                }
+                
+                // Load suggestions
+                await loadSuggestions();
+                
+                // Load chat history
+                await loadChatHistory();
+                
+                // Setup auto-resize textarea
+                setupTextarea();
+                
+                // Setup enter key handler
+                document.getElementById('messageInput').addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error initializing chatbot:', error);
+                updateStatus('offline');
+            }
+        }
+        
+        // Setup textarea auto-resize
+        function setupTextarea() {
+            const textarea = document.getElementById('messageInput');
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+        }
+        
+        // Load suggestions
+        async function loadSuggestions() {
+            try {
+                const response = await fetch('/api/health-chatbot/suggestions');
+                const data = await response.json();
+                
+                const chipsContainer = document.getElementById('suggestionChips');
+                chipsContainer.innerHTML = '';
+                
+                data.suggestions.forEach(suggestion => {
+                    const chip = document.createElement('div');
+                    chip.className = 'suggestion-chip';
+                    chip.textContent = suggestion;
+                    chip.onclick = () => useSuggestion(suggestion);
+                    chipsContainer.appendChild(chip);
+                });
+                
+            } catch (error) {
+                console.error('Error loading suggestions:', error);
+            }
+        }
+        
+        // Use suggestion
+        function useSuggestion(suggestion) {
+            document.getElementById('messageInput').value = suggestion;
+            sendMessage();
+        }
+        
+        // Load chat history
+        async function loadChatHistory() {
+            try {
+                const response = await fetch('/api/health-chatbot/history');
+                const data = await response.json();
+                
+                chatHistory = data.history || [];
+                
+                // Display history
+                const messagesContainer = document.getElementById('chatMessages');
+                chatHistory.forEach(chat => {
+                    addMessageToUI(chat.message, 'user', chat.timestamp);
+                    addMessageToUI(chat.response, 'assistant', chat.timestamp);
+                });
+                
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+            }
+        }
+        
+        // Send message
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message || isLoading) return;
+            
+            // Clear input
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // Add user message to UI
+            addMessageToUI(message, 'user');
+            
+            // Show typing indicator
+            showTypingIndicator();
+            isLoading = true;
+            updateStatus('typing');
+            
+            try {
+                const response = await fetch('/api/health-chatbot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        chatHistory: chatHistory
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide typing indicator
+                hideTypingIndicator();
+                
+                // Add assistant response
+                addMessageToUI(data.response, 'assistant', data.timestamp);
+                
+                // Handle emergency response
+                if (data.isEmergency) {
+                    highlightEmergencyMessage();
+                }
+                
+                // Update chat history
+                chatHistory.push(
+                    { role: 'user', content: message },
+                    { role: 'assistant', content: data.response }
+                );
+                
+                updateStatus('connected');
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                hideTypingIndicator();
+                addMessageToUI('Sorry, I\'m having trouble connecting right now. Please try again in a moment.', 'assistant');
+                updateStatus('offline');
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        // Add message to UI
+        function addMessageToUI(message, sender, timestamp = new Date()) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const time = new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.innerHTML = `
+                <div>${message}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Show/hide typing indicator
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'block';
+            const messagesContainer = document.getElementById('chatMessages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+        
+        // Highlight emergency message
+        function highlightEmergencyMessage() {
+            const messages = document.querySelectorAll('.message.assistant');
+            const lastMessage = messages[messages.length - 1];
+            if (lastMessage) {
+                lastMessage.classList.add('emergency');
+            }
+        }
+        
+        // Clear chat history
+        async function clearHistory() {
+            if (!confirm('Are you sure you want to clear all chat history?')) return;
+            
+            try {
+                await fetch('/api/health-chatbot/history', { method: 'DELETE' });
+                
+                // Clear UI
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.innerHTML = `
+                    <div class="message assistant">
+                        <div>Hello! I'm your Mamasafe assistant AI. How can I help you today?</div>
+                        <div class="message-time">Just now</div>
+                    </div>
+                `;
+                
+                // Clear history
+                chatHistory = [];
+                
+                showNotification('Chat history cleared', 'success');
+                
+            } catch (error) {
+                console.error('Error clearing history:', error);
+                showNotification('Failed to clear history', 'error');
+            }
+        }
+        
+        // Update status
+        function updateStatus(status) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            statusDot.className = 'status-dot';
+            
+            switch(status) {
+                case 'connected':
+                    statusText.textContent = 'Connected';
+                    break;
+                case 'typing':
+                    statusText.textContent = 'Typing...';
+                    break;
+                case 'offline':
+                    statusDot.classList.add('offline');
+                    statusText.textContent = 'Offline';
+                    break;
+            }
+        }
+        
+        // Show notification (reuse from main app if available)
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            // Set color based on type
+            const colors = {
+                success: '#00d4aa',
+                error: '#ff6b9d',
+                info: '#17a2b8',
+                warning: '#ff8fab'
+            };
+            
+            notification.style.background = colors[type] || colors.info;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Add animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeChatbot);
+    </script>
+
+    <!-- Footer -->
+    <footer class="maternal-footer">
+        <div class="maternal-footer-container">
+            <div class="maternal-footer-top">
+                <div class="maternal-footer-brand">
+                    <div class="maternal-footer-logo">🤱</div>
+                    <h3>Mamasafe</h3>
+                    <p>Your trusted companion through motherhood</p>
+                    <div class="maternal-footer-social">
+                        <a href="#" class="maternal-social-link">📘</a>
+                        <a href="#" class="maternal-social-link">📸</a>
+                        <a href="#" class="maternal-social-link">🐦</a>
+                        <a href="#" class="maternal-social-link">▶️</a>
+                    </div>
+                </div>
+                <div class="maternal-footer-links">
+                    <div class="maternal-footer-column">
+                        <h4>Getting Pregnant</h4>
+                        <ul>
+                            <li><a href="ovulation-calculator.html">Ovulation Calculator</a></li>
+                            <li><a href="fertility-tracker.html">Fertility Tracker</a></li>
+                            <li><a href="pregnancy-test-calculator.html">Pregnancy Test Calculator</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Pregnancy</h4>
+                        <ul>
+                            <li><a href="index.html">Week by Week</a></li>
+                            <li><a href="index.html">Symptoms</a></li>
+                            <li><a href="index.html">Labor & Delivery</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Baby</h4>
+                        <ul>
+                            <li><a href="index.html">Newborn Care</a></li>
+                            <li><a href="index.html">Feeding</a></li>
+                            <li><a href="index.html">Sleep</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="index.html">Baby Names</a></li>
+                            <li><a href="index.html">Courses</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Community</h4>
+                        <ul>
+                            <li><a>Birth Clubs</a></li>
+                            <li><a>Forums</a></li>
+                            <li><a>App Download</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="maternal-footer-bottom">
+                <div class="maternal-footer-copyright">
+                    <p>© 2026 Mamasafe. All rights reserved. Made with 💕 for mothers everywhere.</p>
+                </div>
+                <div class="maternal-footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

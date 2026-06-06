@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mamasafe - Project Presentation</title>
+    <link rel="icon" type="image/png" href="assets/mamasafe-logo.png">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff8fab 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .presentation-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 60px;
+            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .slide-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            max-width: 900px;
+        }
+
+        .slide-title {
+            font-size: 72px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1s ease;
+        }
+
+        .slide-subtitle {
+            font-size: 28px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 40px;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease 0.2s both;
+        }
+
+        .slide-description {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 40px;
+            line-height: 1.8;
+            animation: fadeInUp 1s ease 0.4s both;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .feature-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .feature-description {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        .demo-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin-top: 40px;
+            animation: fadeInUp 1s ease 0.8s both;
+        }
+
+        .demo-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .demo-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            color: #0f2a56;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+            animation: fadeInUp 1s ease 0.6s both;
+        }
+
+        .tech-badge {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .tech-badge:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .navigation {
+            position: fixed;
+            right: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot:hover,
+        .nav-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 20px;
+            font-weight: 700;
+            text-decoration: none;
+            margin-top: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: fadeInUp 1s ease 0.8s both;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .timeline {
+            position: relative;
+            margin-top: 40px;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            animation: fadeInUp 1s ease both;
+        }
+
+        .timeline-item:nth-child(1) { animation-delay: 0.2s; }
+        .timeline-item:nth-child(2) { animation-delay: 0.4s; }
+        .timeline-item:nth-child(3) { animation-delay: 0.6s; }
+        .timeline-item:nth-child(4) { animation-delay: 0.8s; }
+
+        .timeline-marker {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .timeline-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .timeline-description {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Hero -->
+        <div class="slide" id="slide-1">
+            <div class="slide-content">
+                <h1 class="slide-title">🤰 Mamasafe</h1>
+                <p class="slide-subtitle">Empowering Mothers Through Every Stage of Parenthood</p>
+                <p class="slide-description">A comprehensive maternal health platform providing personalized guidance, educational resources, and community support for expectant and new mothers.</p>
+                <a href="#slide-2" class="cta-button">Explore Features →</a>
+            </div>
+        </div>
+
+        <!-- Slide 2: Problem Statement -->
+        <div class="slide" id="slide-2">
+            <div class="slide-content">
+                <h2 class="slide-title">The Challenge</h2>
+                <p class="slide-subtitle">Navigating Parenthood Shouldn't Be Overwhelming</p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h3 class="feature-title">Information Overload</h3>
+                        <p class="feature-description">Too much conflicting advice from various sources makes it hard to make informed decisions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">😰</div>
+                        <h3 class="feature-title">Anxiety & Uncertainty</h3>
+                        <p class="feature-description">New mothers often feel anxious and unsure about their baby's health and development.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🏠</div>
+                        <h3 class="feature-title">Limited Access</h3>
+                        <p class="feature-description">Quality healthcare information and support isn't always accessible when needed most.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Solution -->
+        <div class="slide" id="slide-3">
+            <div class="slide-content">
+                <h2 class="slide-title">Our Solution</h2>
+                <p class="slide-subtitle">Mamasafe: Your All-in-One Maternal Health Companion</p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤖</div>
+                        <h3 class="feature-title">AI-Powered Chatbot</h3>
+                        <p class="feature-description">24/7 intelligent assistant providing instant answers to pregnancy and parenting questions.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📚</div>
+                        <h3 class="feature-title">Expert Courses</h3>
+                        <p class="feature-description">Comprehensive educational courses created by certified healthcare professionals.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h3 class="feature-title">Personalized Journey</h3>
+                        <p class="feature-description">Tailored content based on your pregnancy stage, baby's age, and personal preferences.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">👶</div>
+                        <h3 class="feature-title">Baby Development Tracker</h3>
+                        <p class="feature-description">Track your baby's milestones with week-by-week development updates.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🏆</div>
+                        <h3 class="feature-title">Gamified Learning</h3>
+                        <p class="feature-description">Earn achievements and maintain learning streaks to stay motivated.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">👥</div>
+                        <h3 class="feature-title">Community Support</h3>
+                        <p class="feature-description">Connect with other mothers and share experiences in a supportive environment.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Key Features -->
+        <div class="slide" id="slide-4">
+            <div class="slide-content">
+                <h2 class="slide-title">Key Features</h2>
+                <p class="slide-subtitle">Everything You Need in One Platform</p>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-marker">🤰</div>
+                        <div class="timeline-content">
+                            <h3 class="timeline-title">Getting Pregnant</h3>
+                            <p class="timeline-description">Fertility tracking, ovulation calculator, and preconception health guidance.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">🤱</div>
+                        <div class="timeline-content">
+                            <h3 class="timeline-title">Pregnancy Journey</h3>
+                            <p class="timeline-description">Week-by-week pregnancy updates, symptom tracking, and prenatal care reminders.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">👶</div>
+                        <div class="timeline-content">
+                            <h3 class="timeline-title">Baby Care</h3>
+                            <p class="timeline-description">Feeding guides, sleep schedules, and newborn care essentials.</p>
+                        </div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-marker">🧒</div>
+                        <div class="timeline-content">
+                            <h3 class="timeline-title">Toddler Development</h3>
+                            <p class="timeline-description">Milestone tracking, developmental activities, and parenting tips.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Technology Stack -->
+        <div class="slide" id="slide-5">
+            <div class="slide-content">
+                <h2 class="slide-title">Technology Stack</h2>
+                <p class="slide-subtitle">Built with Modern, Scalable Technologies</p>
+                <div class="tech-stack">
+                    <div class="tech-badge">Node.js</div>
+                    <div class="tech-badge">Express.js</div>
+                    <div class="tech-badge">MongoDB</div>
+                    <div class="tech-badge">Python</div>
+                    <div class="tech-badge">Google Generative AI</div>
+                    <div class="tech-badge">HTML5/CSS3</div>
+                    <div class="tech-badge">JavaScript</div>
+                    <div class="tech-badge">REST API</div>
+                    <div class="tech-badge">Glassmorphism UI</div>
+                    <div class="tech-badge">Responsive Design</div>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">28+</div>
+                        <div class="stat-label">Expert Courses</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">5</div>
+                        <div class="stat-label">Journey Stages</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">AI Support</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">∞</div>
+                        <div class="stat-label">Scalability</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Demo Preview -->
+        <div class="slide" id="slide-6">
+            <div class="slide-content">
+                <h2 class="slide-title">Live Demo Preview</h2>
+                <p class="slide-subtitle">Experience the Ultra-Modern Interface</p>
+                <div class="demo-section">
+                    <h3 class="demo-title">🎨 Glassmorphism Design</h3>
+                    <div class="demo-content">
+                        <p style="font-size: 18px; margin-bottom: 20px;">Our platform features a stunning glassmorphism design with:</p>
+                        <ul style="font-size: 16px; line-height: 2; margin-left: 20px;">
+                            <li>✨ Blur effects and transparency</li>
+                            <li>🎭 3D card interactions</li>
+                            <li>🌙 Dark mode support</li>
+                            <li>📱 Fully responsive layout</li>
+                            <li>🎬 Smooth animations</li>
+                            <li>🎯 Particle effects</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="demo-section">
+                    <h3 class="demo-title">🤖 AI-Powered Features</h3>
+                    <div class="demo-content">
+                        <p style="font-size: 18px; margin-bottom: 20px;">Intelligent assistance powered by Google Generative AI:</p>
+                        <ul style="font-size: 16px; line-height: 2; margin-left: 20px;">
+                            <li>💬 24/7 chatbot support</li>
+                            <li>🎯 Personalized recommendations</li>
+                            <li>📊 Progress tracking</li>
+                            <li>🏆 Achievement system</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Call to Action -->
+        <div class="slide" id="slide-7">
+            <div class="slide-content">
+                <h1 class="slide-title">Ready to Transform Your Parenting Journey?</h1>
+                <p class="slide-subtitle">Join thousands of mothers who trust Mamasafe</p>
+                <p class="slide-description">Experience the future of maternal health support with our comprehensive, AI-powered platform designed to guide you through every stage of parenthood.</p>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🚀</div>
+                        <h3 class="feature-title">Get Started</h3>
+                        <p class="feature-description">Create your free account and begin your personalized journey today.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📞</div>
+                        <h3 class="feature-title">Contact Us</h3>
+                        <p class="feature-description">Have questions? Our team is here to help you every step of the way.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🤝</div>
+                        <h3 class="feature-title">Partner With Us</h3>
+                        <p class="feature-description">Healthcare providers can partner to offer Mamasafe to their patients.</p>
+                    </div>
+                </div>
+                <a href="index.html" class="cta-button">Launch Mamasafe →</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <div class="nav-dot active" onclick="scrollToSlide(1)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(2)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(3)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(4)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(5)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(6)"></div>
+        <div class="nav-dot" onclick="scrollToSlide(7)"></div>
+    </div>
+
+    <script>
+        function scrollToSlide(slideNumber) {
+            const slide = document.getElementById(`slide-${slideNumber}`);
+            if (slide) {
+                slide.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Update navigation dots on scroll
+        window.addEventListener('scroll', () => {
+            const slides = document.querySelectorAll('.slide');
+            const navDots = document.querySelectorAll('.nav-dot');
+            
+            slides.forEach((slide, index) => {
+                const rect = slide.getBoundingClientRect();
+                if (rect.top >= 0 && rect.top <= window.innerHeight / 2) {
+                    navDots.forEach(dot => dot.classList.remove('active'));
+                    navDots[index].classList.add('active');
+                }
+            });
+        });
+
+        // Add parallax effect to slides
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => {
+                const rect = slide.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    const yPos = (rect.top / window.innerHeight) * 50;
+                    slide.style.backgroundPositionY = `${yPos}px`;
+                }
+            });
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer class="maternal-footer">
+        <div class="maternal-footer-container">
+            <div class="maternal-footer-top">
+                <div class="maternal-footer-brand">
+                    <div class="maternal-footer-logo">🤱</div>
+                    <h3>Mamasafe</h3>
+                    <p>Your trusted companion through motherhood</p>
+                    <div class="maternal-footer-social">
+                        <a href="#" class="maternal-social-link">📘</a>
+                        <a href="#" class="maternal-social-link">📸</a>
+                        <a href="#" class="maternal-social-link">🐦</a>
+                        <a href="#" class="maternal-social-link">▶️</a>
+                    </div>
+                </div>
+                <div class="maternal-footer-links">
+                    <div class="maternal-footer-column">
+                        <h4>Getting Pregnant</h4>
+                        <ul>
+                            <li><a href="ovulation-calculator.html">Ovulation Calculator</a></li>
+                            <li><a href="fertility-tracker.html">Fertility Tracker</a></li>
+                            <li><a href="pregnancy-test-calculator.html">Pregnancy Test Calculator</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Pregnancy</h4>
+                        <ul>
+                            <li><a href="index.html">Week by Week</a></li>
+                            <li><a href="index.html">Symptoms</a></li>
+                            <li><a href="index.html">Labor & Delivery</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Baby</h4>
+                        <ul>
+                            <li><a href="index.html">Newborn Care</a></li>
+                            <li><a href="index.html">Feeding</a></li>
+                            <li><a href="index.html">Sleep</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="index.html">Baby Names</a></li>
+                            <li><a href="index.html">Courses</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Community</h4>
+                        <ul>
+                            <li><a>Birth Clubs</a></li>
+                            <li><a>Forums</a></li>
+                            <li><a>App Download</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="maternal-footer-bottom">
+                <div class="maternal-footer-copyright">
+                    <p>© 2026 Mamasafe. All rights reserved. Made with 💕 for mothers everywhere.</p>
+                </div>
+                <div class="maternal-footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

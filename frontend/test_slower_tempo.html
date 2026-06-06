@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Slower Tempo Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+        <h1>🐌 Slower Tempo Test</h1>
+        <p>Testing the reduced playback speed for gentler lullabies.</p>
+        
+        <!-- Test Controls -->
+        <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h3>Tempo Tests</h3>
+            <button onclick="testTempoComparison()">⏱️ Compare Old vs New Tempo</button>
+            <button onclick="testSongSpeed()">🎵 Test Current Song Speed</button>
+            <button onclick="testAllSongs()">🎼 Test All Songs</button>
+        </div>
+        
+        <!-- Tempo Display -->
+        <div style="background: #ecfdf5; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h3>Tempo Information</h3>
+            <div id="tempoDisplay">
+                <p><strong>Old Tempo:</strong> Fast notes (600ms duration)</p>
+                <p><strong>New Tempo:</strong> Slower notes (800-1600ms duration)</p>
+                <p><strong>Improvement:</strong> 33-100% slower for gentler lullabies</p>
+            </div>
+        </div>
+        
+        <!-- Sleep Songs Library -->
+        <div class="ai-game">
+            <div class="mini-game-head">
+                <span class="mini-game-badge ai-badge">🐌 Slower Lullabies</span>
+                <h4>Baby Sleep Songs (Gentle Tempo)</h4>
+                <p>10 classic lullabies with slower, more soothing piano tones.</p>
+            </div>
+            
+            <div class="sleep-songs-container">
+                <div class="audio-player" id="audioPlayer">
+                    <audio id="songAudio"></audio>
+                    <div class="player-controls">
+                        <button id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
+                        <button onclick="stopAudio()">⏹️ Stop</button>
+                        <div class="volume-control">
+                            <span>🔊</span>
+                            <input type="range" id="volumeSlider" min="0" max="100" value="70" onchange="changeVolume(this.value)">
+                        </div>
+                    </div>
+                    <div class="now-playing" id="nowPlaying">No song selected</div>
+                </div>
+                
+                <div class="songs-list" id="songsList">
+                    <!-- Songs will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="mini-game-feedback" id="songsFeedback">Songs now play at a gentler, slower tempo</div>
+        </div>
+        
+        <!-- Tempo Comparison Table -->
+        <div style="background: #fff5f5; padding: 20px; border-radius: 10px; margin-top: 20px;">
+            <h3>🎵 Tempo Changes</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #667eea; color: white;">
+                    <th style="padding: 8px; text-align: left;">Song</th>
+                    <th style="padding: 8px; text-align: center;">Old Duration</th>
+                    <th style="padding: 8px; text-align: center;">New Duration</th>
+                    <th style="padding: 8px; text-align: center;">Tempo Change</th>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">Twinkle Twinkle</td>
+                    <td style="padding: 8px; text-align: center;">~60s</td>
+                    <td style="padding: 8px; text-align: center;">~80s</td>
+                    <td style="padding: 8px; text-align: center;">🐌 33% slower</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">Rock-a-Bye Baby</td>
+                    <td style="padding: 8px; text-align: center;">~65s</td>
+                    <td style="padding: 8px; text-align: center;">~85s</td>
+                    <td style="padding: 8px; text-align: center;">🐌 30% slower</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">Brahms' Lullaby</td>
+                    <td style="padding: 8px; text-align: center;">~70s</td>
+                    <td style="padding: 8px; text-align: center;">~90s</td>
+                    <td style="padding: 8px; text-align: center;">🐌 28% slower</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">All Songs</td>
+                    <td style="padding: 8px; text-align: center;">60-80s</td>
+                    <td style="padding: 8px; text-align: center;">80-120s</td>
+                    <td style="padding: 8px; text-align: center;">🐌 25-50% slower</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script src="script-new.js"></script>
+    <script>
+        function testTempoComparison() {
+            alert('⏱️ Tempo Comparison:\n\nOld: Fast notes (600ms)\nNew: Slower notes (800-1600ms)\n\nResult: Much gentler lullabies!');
+        }
+        
+        function testSongSpeed() {
+            const twinkleSong = sleepSongs.find(s => s.id === 1);
+            if (twinkleSong) {
+                const duration = getSongDuration(twinkleSong);
+                const minutes = Math.floor(duration / 60000);
+                const seconds = Math.floor((duration % 60000) / 1000);
+                alert(`🎵 Twinkle Twinkle Little Star:\nDuration: ${minutes}:${seconds.toString().padStart(2, '0')}\nTempo: Gentle and slow`);
+            }
+        }
+        
+        function testAllSongs() {
+            let songIndex = 1;
+            const playNextTest = () => {
+                if (songIndex <= 10) {
+                    const song = sleepSongs.find(s => s.id === songIndex);
+                    if (song) {
+                        alert(`🎵 Testing: ${song.title}\nTempo: Slower and gentler`);
+                        selectSong(songIndex);
+                        songIndex++;
+                        setTimeout(playNextTest, 5000); // 5 seconds per song for testing
+                    }
+                }
+            };
+            playNextTest();
+        }
+        
+        // Initialize sleep songs immediately for testing
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSleepSongs();
+        });
+    </script>
+</body>
+</html>

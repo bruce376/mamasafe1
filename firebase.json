@@ -1,0 +1,17 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": {
+    "public": "frontend",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/package*.json",
+      "**/screenshots/**",
+      "**/src/**",
+      "**/test*.html"
+    ]
+  }
+}

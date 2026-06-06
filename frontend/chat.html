@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Gemini AI Chat - Mamasafe</title>
+    <link rel="icon" type="image/png" href="assets/mamasafe-logo.png">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #fff5f7;
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.header {
+  background: #0f2a56;
+  color: white;
+  padding: 15px;
+  font-size: 18px;
+}
+
+.chat-box {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.message {
+  max-width: 70%;
+  padding: 10px;
+  margin: 8px;
+  border-radius: 10px;
+  line-height: 1.4;
+}
+
+.user {
+  background: #ecfdf5;
+  align-self: flex-end;
+}
+
+.bot {
+  background: white;
+  align-self: flex-start;
+}
+
+.input-area {
+  display: flex;
+  padding: 10px;
+  background: #f0f0f0;
+}
+
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+}
+
+button {
+  margin-left: 10px;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 50%;
+  background: #0f2a56;
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+  <div class="header">
+    🤰 Mamasafe assistant AI
+  </div>
+
+  <div id="chatBox" class="chat-box"></div>
+
+  <div class="input-area">
+    <input id="messageInput" placeholder="Type a message..." />
+    <button onclick="sendMessage()">➤</button>
+  </div>
+
+</div>
+
+<script>
+const chatBox = document.getElementById("chatBox");
+
+function addMessage(text, sender) {
+  const msg = document.createElement("div");
+  msg.classList.add("message", sender);
+  msg.innerText = text;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+async function sendMessage() {
+  const input = document.getElementById("messageInput");
+  const text = input.value.trim();
+  if (!text) return;
+
+  addMessage(text, "user");
+  input.value = "";
+
+  addMessage("Typing...", "bot");
+
+  const res = await fetch("http://localhost:5000/api/mamasafe-chat", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ message: text })
+  });
+
+  const data = await res.json();
+
+  chatBox.lastChild.remove(); // remove "Typing..."
+  addMessage(data.reply, "bot");
+}
+
+// Add Enter key support
+document.getElementById("messageInput")
+  .addEventListener("keypress", function(e) {
+    if (e.key === "Enter") sendMessage();
+  });
+
+// Add welcome message
+addMessage("Hello 👋 I am your Gemini AI pregnancy assistant. Please consult a doctor for medical issues.", "bot");
+</script>
+
+    <!-- Footer -->
+    <footer class="maternal-footer">
+        <div class="maternal-footer-container">
+            <div class="maternal-footer-top">
+                <div class="maternal-footer-brand">
+                    <div class="maternal-footer-logo">🤱</div>
+                    <h3>Mamasafe</h3>
+                    <p>Your trusted companion through motherhood</p>
+                    <div class="maternal-footer-social">
+                        <a href="#" class="maternal-social-link">📘</a>
+                        <a href="#" class="maternal-social-link">📸</a>
+                        <a href="#" class="maternal-social-link">🐦</a>
+                        <a href="#" class="maternal-social-link">▶️</a>
+                    </div>
+                </div>
+                <div class="maternal-footer-links">
+                    <div class="maternal-footer-column">
+                        <h4>Getting Pregnant</h4>
+                        <ul>
+                            <li><a href="ovulation-calculator.html">Ovulation Calculator</a></li>
+                            <li><a href="fertility-tracker.html">Fertility Tracker</a></li>
+                            <li><a href="pregnancy-test-calculator.html">Pregnancy Test Calculator</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Pregnancy</h4>
+                        <ul>
+                            <li><a href="index.html">Week by Week</a></li>
+                            <li><a href="index.html">Symptoms</a></li>
+                            <li><a href="index.html">Labor & Delivery</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Baby</h4>
+                        <ul>
+                            <li><a href="index.html">Newborn Care</a></li>
+                            <li><a href="index.html">Feeding</a></li>
+                            <li><a href="index.html">Sleep</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="index.html">Baby Names</a></li>
+                            <li><a href="index.html">Courses</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Community</h4>
+                        <ul>
+                            <li><a>Birth Clubs</a></li>
+                            <li><a>Forums</a></li>
+                            <li><a>App Download</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="maternal-footer-bottom">
+                <div class="maternal-footer-copyright">
+                    <p>© 2026 Mamasafe. All rights reserved. Made with 💕 for mothers everywhere.</p>
+                </div>
+                <div class="maternal-footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

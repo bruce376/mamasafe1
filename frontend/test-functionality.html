@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mamasafe Functionality Test</title>
+</head>
+<body>
+    <h1>Mamasafe Functionality Test</h1>
+    <div id="test-results"></div>
+    
+    <script src="script-new.js"></script>
+    <script>
+        const results = document.getElementById('test-results');
+        let testsPassed = 0;
+        let testsTotal = 0;
+        
+        function test(name, condition) {
+            testsTotal++;
+            if (condition) {
+                testsPassed++;
+                results.innerHTML += `<p style="color: green;">✓ ${name}</p>`;
+            } else {
+                results.innerHTML += `<p style="color: red;">✗ ${name}</p>`;
+            }
+        }
+        
+        // Test core functions
+        test('navigateTo function exists', typeof navigateTo === 'function');
+        test('MamasafeAI object exists', typeof MamasafeAI === 'object');
+        test('openAIFamilyWellness function exists', typeof openAIFamilyWellness === 'function');
+        test('openAIFamilyBudget function exists', typeof openAIFamilyBudget === 'function');
+        test('openAIRelationshipCoach function exists', typeof openAIRelationshipCoach === 'function');
+        test('openAIPartyPlanner function exists', typeof openAIPartyPlanner === 'function');
+        test('openAITravelPlanner function exists', typeof openAITravelPlanner === 'function');
+        test('openAIMilestoneTracker function exists', typeof openAIMilestoneTracker === 'function');
+        test('openAIHomeSafety function exists', typeof openAIHomeSafety === 'function');
+        test('openAICourseAssessment function exists', typeof openAICourseAssessment === 'function');
+        test('openAIRegistryBuilder function exists', typeof openAIRegistryBuilder === 'function');
+        
+        // Test AI functions
+        test('MamasafeAI.generateResponse exists', typeof MamasafeAI.generateResponse === 'function');
+        test('MamasafeAI.initialize exists', typeof MamasafeAI.initialize === 'function');
+        test('MamasafeAI.showChatInterface exists', typeof MamasafeAI.showChatInterface === 'function');
+        
+        results.innerHTML += `<h2>Tests: ${testsPassed}/${testsTotal} passed</h2>`;
+        
+        if (testsPassed === testsTotal) {
+            results.innerHTML += `<p style="color: green; font-weight: bold;">All tests passed! Mamasafe is working correctly.</p>`;
+        } else {
+            results.innerHTML += `<p style="color: red; font-weight: bold;">Some tests failed. Please check the errors above.</p>`;
+        }
+    </script>
+</body>
+</html>

@@ -43,6 +43,9 @@ let db;
 let client;
 let useInMemoryDB = false;
 let activeMongoUriLabel = 'not-connected';
+let mongoConnectPromise = null;
+let lastMongoError = null;
+let lastMongoDiagnostic = null;
 
 // In-memory database fallback
 const inMemoryDB = {
@@ -75,6 +78,15 @@ function createInMemoryDatabase() {
                     toArray: () => results
                 };
             },
+            countDocuments: (query = {}) => {
+                if (!inMemoryDB[name]) return 0;
+                return inMemoryDB[name].filter(item => {
+                    if (query.userId) return item.userId === query.userId;
+                    if (query.type?.$in) return query.type.$in.includes(item.type);
+                    return true;
+                }).length;
+            },
+            createIndex: async () => null,
             findOne: (query = {}) => {
                 if (!inMemoryDB[name]) return null;
                 return inMemoryDB[name].find(item => {
@@ -117,6 +129,81 @@ function createInMemoryDatabase() {
         }),
         admin: () => ({ ping: async () => true })
     };
+}
+
+function getMongoUriMetadata(uri = mongoConfig.uri) {
+    if (!uri) {
+        return { configured: false };
+    }
+
+    try {
+        const parsed = new URL(uri);
+        return {
+            configured: true,
+            protocol: parsed.protocol.replace(':', ''),
+            host: parsed.host,
+            database: parsed.pathname.replace(/^\//, '') || null,
+            tlsRequested: parsed.searchParams.get('tls') || parsed.searchParams.get('ssl') || null
+        };
+    } catch {
+        return { configured: true, invalid: true };
+    }
+}
+
+function normalizeMongoUri(uri) {
+    if (!uri) return uri;
+    const trimmed = uri.trim();
+    if (!trimmed.includes('mongodb.net')) return trimmed;
+
+    try {
+        const parsed = new URL(trimmed);
+        if (!parsed.searchParams.has('tls') && !parsed.searchParams.has('ssl')) {
+            parsed.searchParams.set('tls', 'true');
+        }
+        return parsed.toString();
+    } catch {
+        return trimmed;
+    }
+}
+
+function buildMongoConnectionOptions(uri) {
+    const isAtlas = uri.includes('mongodb.net') || uri.includes('mongodb+srv');
+    const isLocal = uri.includes('localhost') || uri.includes('127.0.0.1');
+
+    if (isLocal) {
+        return {
+            maxPoolSize: 10,
+            minPoolSize: 0,
+            maxIdleTimeMS: 30000,
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+            connectTimeoutMS: 10000,
+            heartbeatFrequencyMS: 10000,
+            retryWrites: true,
+            retryReads: true,
+            w: 'majority',
+            tls: false
+        };
+    }
+
+    if (isAtlas) {
+        return {
+            maxPoolSize: 10,
+            minPoolSize: 0,
+            maxIdleTimeMS: 60000,
+            serverSelectionTimeoutMS: 30000,
+            socketTimeoutMS: 60000,
+            connectTimeoutMS: 30000,
+            heartbeatFrequencyMS: 30000,
+            retryWrites: true,
+            retryReads: true,
+            w: 'majority',
+            tls: true,
+            family: 4
+        };
+    }
+
+    return {};
 }
 
 // Middleware
@@ -199,6 +286,17 @@ app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // MongoDB Connection with persistent connection and auto-reconnect
 async function connectToMongoDB(maxRetries = 5) {
+    if (mongoConnectPromise) {
+        return mongoConnectPromise;
+    }
+
+    mongoConnectPromise = connectToMongoDBInternal(maxRetries).finally(() => {
+        mongoConnectPromise = null;
+    });
+    return mongoConnectPromise;
+}
+
+async function connectToMongoDBInternal(maxRetries = 5) {
     // If in-memory database is already active, don't retry
     if (useInMemoryDB) {
         console.log('In-memory database already active, skipping MongoDB connection attempts');
@@ -259,12 +357,14 @@ async function connectToMongoDB(maxRetries = 5) {
     }
     
     const urisToTry = [
-        mongoConfig.uri,
+        normalizeMongoUri(mongoConfig.uri),
         ...(mongoConfig.allowLocalFallback ? [mongoConfig.localUri] : [])
     ].filter(Boolean);
 
     if (!urisToTry.length) {
-        console.error('MONGODB_URI is not configured. Add your MongoDB Atlas URI to backend/.env.');
+        lastMongoError = 'MONGODB_URI is not configured';
+        lastMongoDiagnostic = getMongoUriMetadata('');
+        console.error('MONGODB_URI is not configured. Add your MongoDB Atlas URI to Render environment variables.');
         useInMemoryDB = true;
         activeMongoUriLabel = 'in-memory';
         db = createInMemoryDatabase();
@@ -274,52 +374,20 @@ async function connectToMongoDB(maxRetries = 5) {
     for (let uriIndex = 0; uriIndex < urisToTry.length; uriIndex++) {
         const currentUri = urisToTry[uriIndex];
         const uriLabel = currentUri.includes('mongodb+srv') || currentUri.includes('mongodb.net') ? 'MongoDB Atlas' : 'local MongoDB';
+        lastMongoDiagnostic = getMongoUriMetadata(currentUri);
         console.log(`Trying ${uriLabel} URI ${uriIndex + 1}/${urisToTry.length}...`);
         
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 console.log(`MongoDB connection attempt ${attempt}/${maxRetries} for URI ${uriIndex + 1}...`);
-                
-                // Use default connection options for MongoDB Atlas
-                let connectionOptions = {};
-                
-                // Add custom options for MongoDB Atlas to handle timeouts
-                if (currentUri.includes('mongodb.net') || currentUri.includes('mongodb+srv')) {
-                    connectionOptions = {
-                        maxPoolSize: 10,
-                        minPoolSize: 2,
-                        maxIdleTimeMS: 60000,
-                        serverSelectionTimeoutMS: 30000,
-                        socketTimeoutMS: 60000,
-                        connectTimeoutMS: 30000,
-                        heartbeatFrequencyMS: 30000,
-                        retryWrites: true,
-                        retryReads: true,
-                        w: 'majority'
-                    };
-                }
-                
-                // Only add custom options for local MongoDB
-                if (currentUri.includes('localhost')) {
-                    connectionOptions = {
-                        maxPoolSize: 20,
-                        minPoolSize: 5,
-                        maxIdleTimeMS: 30000,
-                        serverSelectionTimeoutMS: 10000,
-                        socketTimeoutMS: 45000,
-                        connectTimeoutMS: 10000,
-                        heartbeatFrequencyMS: 10000,
-                        retryWrites: true,
-                        retryReads: true,
-                        w: 'majority',
-                        tls: false
-                    };
-                }
+                const connectionOptions = buildMongoConnectionOptions(currentUri);
                 
                 client = new MongoClient(currentUri, connectionOptions);
                 
                 await client.connect();
                 db = client.db(mongoConfig.dbName);
+                useInMemoryDB = false;
+                lastMongoError = null;
                 
                 // Set up connection monitoring
                 client.on('connectionPoolCreated', (event) => {
@@ -371,6 +439,7 @@ async function connectToMongoDB(maxRetries = 5) {
                 return true;
                 
             } catch (error) {
+                lastMongoError = error.message;
                 console.error(`MongoDB connection attempt ${attempt} failed for URI ${uriIndex + 1}:`, error.message);
                 if (attempt === maxRetries) {
                     console.error(`All attempts failed for URI ${uriIndex + 1}`);
@@ -385,53 +454,10 @@ async function connectToMongoDB(maxRetries = 5) {
     }
     
     console.error('All MongoDB connection attempts failed');
-    console.log('Falling back to in-memory database for development...');
+    console.log('Falling back to in-memory database so the API can keep serving non-persistent responses.');
     useInMemoryDB = true;
     activeMongoUriLabel = 'in-memory';
-    
-    // Create mock database interface
-    db = {
-        collection: (name) => ({
-            insertOne: (doc) => {
-                if (!inMemoryDB[name]) inMemoryDB[name] = [];
-                const id = Date.now().toString();
-                doc._id = id;
-                inMemoryDB[name].push(doc);
-                return { insertedId: id };
-            },
-            find: (query) => {
-                if (!inMemoryDB[name]) return { toArray: () => [] };
-                const results = inMemoryDB[name].filter(item => {
-                    if (query._id) return item._id === query._id;
-                    return true;
-                });
-                return { toArray: () => results };
-            },
-            updateOne: (query, update) => {
-                if (!inMemoryDB[name]) return { modifiedCount: 0 };
-                const index = inMemoryDB[name].findIndex(item => 
-                    query._id ? item._id === query._id : true
-                );
-                if (index !== -1) {
-                    inMemoryDB[name][index] = { ...inMemoryDB[name][index], ...update.$set };
-                    return { modifiedCount: 1 };
-                }
-                return { modifiedCount: 0 };
-            },
-            deleteOne: (query) => {
-                if (!inMemoryDB[name]) return { deletedCount: 0 };
-                const index = inMemoryDB[name].findIndex(item => 
-                    query._id ? item._id === query._id : true
-                );
-                if (index !== -1) {
-                    inMemoryDB[name].splice(index, 1);
-                    return { deletedCount: 1 };
-                }
-                return { deletedCount: 0 };
-            }
-        })
-    };
-    
+    db = createInMemoryDatabase();
     console.log('In-memory database initialized successfully');
     return true;
 }
@@ -531,7 +557,14 @@ app.get('/api/health', (req, res) => {
         database: {
             connected: !!db,
             mode: useInMemoryDB ? 'in-memory' : activeMongoUriLabel,
-            name: mongoConfig.dbName
+            name: mongoConfig.dbName,
+            persistent: !!db && !useInMemoryDB,
+            uri: lastMongoDiagnostic || getMongoUriMetadata(),
+            lastError: lastMongoError
+        },
+        ai: {
+            groqConfigured: Boolean(process.env.GROQ_API_KEY),
+            googleOAuthConfigured: Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
         },
         timestamp: new Date().toISOString()
     });

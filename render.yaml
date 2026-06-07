@@ -17,7 +17,7 @@ services:
       - key: MONGODB_DB_NAME
         value: mamacare
       - key: CORS_ORIGINS
-        value: https://mamasafe-95d58.web.app,https://mamasafe-95d58.firebaseapp.com
+        value: https://mamasafe1.onrender.com,https://mamasafe-95d58.web.app,https://mamasafe-95d58.firebaseapp.com
       - key: PUBLIC_BACKEND_URL
         sync: false
       - key: MONGODB_URI

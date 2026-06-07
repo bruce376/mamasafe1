@@ -863,7 +863,7 @@
   };
 
   const aiCoach = async ({ age, goal, notes, profile }) => {
-    const url = "http://localhost:5000/api/ai-universal-processor";
+    const url = window.mamasafeApiUrl('/api/ai-universal-processor');
     const payload = {
       functionName: "babyx-ai-coach",
       description: "Create a concise, actionable baby care plan tailored to the provided baby profile and age/stage. Include: today plan, do/don't, red flags, and a quick checklist.",

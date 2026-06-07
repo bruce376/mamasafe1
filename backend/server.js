@@ -19,6 +19,7 @@ const defaultCorsOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:5000',
+    'https://mamasafe1.onrender.com',
     'https://mamasafe-95d58.web.app',
     'https://mamasafe-95d58.firebaseapp.com'
 ];
@@ -128,7 +129,7 @@ app.use(helmet({
             scriptSrcAttr: ["'unsafe-inline'"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000", "https://mamasafe-95d58.web.app", "https://mamasafe-95d58.firebaseapp.com", "https://www.wikidata.org", "https://wikidata.org"],
+            connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000", "https://mamasafe1.onrender.com", "https://mamasafe-95d58.web.app", "https://mamasafe-95d58.firebaseapp.com", "https://www.wikidata.org", "https://wikidata.org"],
             mediaSrc: ["'self'"],
             objectSrc: ["'none'"],
             frameSrc: ["'none'"],

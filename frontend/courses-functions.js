@@ -23,7 +23,7 @@ class CourseManager {
 
     getBackendOrigin() {
         if (window.MAMASAFE_API_BASE) {
-            return window.MAMASAFE_API_BASE.replace(/\/$/, '');
+            return window.MAMASAFE_API_BASE.replace(/\/api\/?$/, '').replace(/\/$/, '');
         }
 
         const { protocol, hostname, port, origin } = window.location;

@@ -15,7 +15,7 @@ async function generateSleepSchedule() {
     showNotification('🤖 AI generating personalized sleep schedule...', 'info');
     
     try {
-        const response = await fetch('http://localhost:5000/api/ai-sleep-guidance', {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-sleep-guidance'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -119,7 +119,7 @@ async function generateMealPlan() {
     showNotification('🤖 AI generating personalized meal plan...', 'info');
     
     try {
-        const response = await fetch('http://localhost:5000/api/ai-nutrition-planning', {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-nutrition-planning'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -441,7 +441,7 @@ async function showMilestones() {
     showNotification('🤖 AI generating milestone information...', 'info');
     
     try {
-        const response = await fetch('http://localhost:5000/api/ai-milestone-tracking', {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-milestone-tracking'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -531,7 +531,7 @@ async function findActivities() {
     showNotification('🤖 AI finding personalized activities...', 'info');
     
     try {
-        const response = await fetch('http://localhost:5000/api/ai-activity-recommendations', {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-activity-recommendations'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

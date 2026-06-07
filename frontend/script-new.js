@@ -60,7 +60,7 @@ window.MamasafeAuth = {
         }
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/user');
+            const response = await fetch(window.mamasafeApiUrl('/api/auth/user'));
             const data = await response.json();
             this.currentUser = data.user;
             this.updateUI();
@@ -152,7 +152,7 @@ window.MamasafeAuth = {
     
     async loadUserProfileFromBackend() {
         try {
-            const response = await fetch('http://localhost:5000/api/user/profile');
+            const response = await fetch(window.mamasafeApiUrl('/api/user/profile'));
             const data = await response.json();
             if (data.profile) {
                 // Update MamasafeAI with user's saved preferences
@@ -171,7 +171,7 @@ window.MamasafeAuth = {
     
     async saveUserProfileToBackend(preferences, healthData) {
         try {
-            const response = await fetch('http://localhost:5000/api/user/profile', {
+            const response = await fetch(window.mamasafeApiUrl('/api/user/profile'), {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -5103,7 +5103,7 @@ function enrichName(name) {
 
 function getMamasafeBackendOrigin() {
     if (window.MAMASAFE_API_BASE) {
-        return window.MAMASAFE_API_BASE.replace(/\/$/, '');
+        return window.MAMASAFE_API_BASE.replace(/\/api\/?$/, '').replace(/\/$/, '');
     }
 
     const { protocol, hostname, port, origin } = window.location;
@@ -13686,7 +13686,7 @@ async function generateNutritionPlan() {
 
 async function calculateNutritionPlanAI(age, weight, allergies, dietaryPreferences) {
     try {
-        const response = await fetch('http://localhost:5000/api/ai-nutrition-analysis', {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-nutrition-analysis'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -15157,7 +15157,7 @@ async function buildAdvancedFertilityDietPlan() {
 
 async function generateAIFertilityAnalysis(ageRange, goal, healthConcerns, cycleLength, regularity) {
     try {
-        const response = await fetch('http://localhost:5000/api/ai-fertility-analysis', {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-fertility-analysis'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -18845,7 +18845,7 @@ async function runSleepQualityAnalysis() {
 // Generate advanced sleep analysis using AI
 async function generateAdvancedSleepAnalysisAI(age, duration, quality, environment, associations, concerns) {
     try {
-        const response = await fetch('http://localhost:5000/api/ai-sleep-analysis', {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-sleep-analysis'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -19813,7 +19813,7 @@ async function startActivityTracking() {
 async function generateActivityAnalysis(age, activityLevel, activities) {
     // AI-powered activity analysis using Gemini API
     try {
-        const response = await fetch('http://localhost:5000/api/ai-activity-analysis', {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-activity-analysis'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

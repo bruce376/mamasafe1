@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const { MongoClient, ObjectId } = require('mongodb');
+const dns = require('dns').promises;
 require('dotenv').config();
 
 // Import auth middleware
@@ -163,6 +164,45 @@ function normalizeMongoUri(uri) {
         return parsed.toString();
     } catch {
         return trimmed;
+    }
+}
+
+async function buildStandardAtlasUriFromSrv(uri) {
+    try {
+        const parsed = new URL(uri);
+        if (parsed.protocol !== 'mongodb+srv:') return null;
+
+        const records = await dns.resolveSrv(`_mongodb._tcp.${parsed.hostname}`);
+        if (!records.length) return null;
+
+        const params = new URLSearchParams(parsed.search);
+        const txtRecords = await dns.resolveTxt(parsed.hostname).catch(() => []);
+        txtRecords
+            .flat()
+            .join('&')
+            .split('&')
+            .map(part => part.trim())
+            .filter(Boolean)
+            .forEach(part => {
+                const [key, ...rest] = part.split('=');
+                if (key && rest.length && !params.has(key)) {
+                    params.set(key, rest.join('='));
+                }
+            });
+        params.set('tls', 'true');
+
+        const hosts = records
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map(record => `${record.name}:${record.port}`)
+            .join(',');
+        const auth = parsed.username
+            ? `${parsed.username}${parsed.password ? `:${parsed.password}` : ''}@`
+            : '';
+        const databasePath = parsed.pathname && parsed.pathname !== '/' ? parsed.pathname : '';
+        return `mongodb://${auth}${hosts}${databasePath}?${params.toString()}`;
+    } catch (error) {
+        console.warn('Could not build standard MongoDB URI from SRV record:', error.message);
+        return null;
     }
 }
 
@@ -356,8 +396,11 @@ async function connectToMongoDBInternal(maxRetries = 5) {
         return true;
     }
     
+    const primaryMongoUri = normalizeMongoUri(mongoConfig.uri);
+    const standardAtlasUri = primaryMongoUri ? await buildStandardAtlasUriFromSrv(primaryMongoUri) : null;
     const urisToTry = [
-        normalizeMongoUri(mongoConfig.uri),
+        primaryMongoUri,
+        standardAtlasUri,
         ...(mongoConfig.allowLocalFallback ? [mongoConfig.localUri] : [])
     ].filter(Boolean);
 

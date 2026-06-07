@@ -3,6 +3,7 @@ import {
     browserLocalPersistence,
     browserSessionPersistence,
     createUserWithEmailAndPassword,
+    fetchSignInMethodsForEmail,
     getAuth,
     GoogleAuthProvider,
     onAuthStateChanged,
@@ -32,6 +33,41 @@ const googleProvider = new GoogleAuthProvider();
 let phoneConfirmationResult = null;
 let recaptchaVerifier = null;
 
+function normalizeEmail(email = '') {
+    return String(email).trim().toLowerCase();
+}
+
+function providerStorageKey(email = '') {
+    return `mamasafe_auth_provider:${normalizeEmail(email)}`;
+}
+
+function rememberAuthProvider(user) {
+    const email = normalizeEmail(user?.email);
+    if (!email) return;
+
+    const providers = (user.providerData || [])
+        .map(provider => provider.providerId)
+        .filter(Boolean);
+
+    if (providers.length) {
+        localStorage.setItem(providerStorageKey(email), providers.join(','));
+    }
+}
+
+function knownAuthProviders(email = '') {
+    return (localStorage.getItem(providerStorageKey(email)) || '')
+        .split(',')
+        .map(provider => provider.trim())
+        .filter(Boolean);
+}
+
+function focusGoogleButton() {
+    const googleButton = document.getElementById('firebaseGoogleLogin') || document.getElementById('googleLogin');
+    if (googleButton) {
+        googleButton.focus();
+    }
+}
+
 function isStandaloneAuthPage() {
     return window.location.pathname.endsWith('/auth.html') || window.location.pathname.endsWith('auth.html');
 }
@@ -53,6 +89,7 @@ function closeAuthPanels() {
 function syncLocalAuthState(user) {
     if (user) {
         const email = user.email || user.phoneNumber || `${user.uid}@phone.mamasafe`;
+        rememberAuthProvider(user);
         localStorage.setItem('bc_logged_in', 'true');
         localStorage.setItem('bc_user_email', email);
         localStorage.setItem('mamasafe_user_id', user.uid);
@@ -89,7 +126,7 @@ function authErrorMessage(error) {
     const code = error?.code || '';
     const messages = {
         'auth/email-already-in-use': 'That email already has a Mamasafe account. Please use Login with the correct password.',
-        'auth/invalid-credential': 'The email or password is not correct. If you usually use Google, continue with Google. If this is an email account, use Need help? to reset your password.',
+        'auth/invalid-credential': 'Firebase rejected this email/password login. Use Continue with Google for a Google account, or click Need help? to set/reset a password for this email.',
         'auth/invalid-email': 'Please enter a valid email address.',
         'auth/invalid-phone-number': 'Please enter a valid phone number with country code.',
         'auth/invalid-verification-code': 'That SMS code is not correct.',
@@ -139,6 +176,33 @@ function isExistingFirebaseAccountError(error) {
     return ['auth/email-already-in-use', 'auth/credential-already-in-use'].includes(error?.code || '');
 }
 
+async function getSignInMethods(email) {
+    try {
+        return await fetchSignInMethodsForEmail(auth, email);
+    } catch (error) {
+        console.info('Could not check Firebase sign-in methods before login:', error?.code || error?.message || error);
+        return null;
+    }
+}
+
+function hasGoogleOnlyMethods(methods) {
+    return Array.isArray(methods)
+        && methods.includes('google.com')
+        && !methods.includes('password');
+}
+
+function shouldPromptGoogleFirst(email, methods) {
+    if (hasGoogleOnlyMethods(methods)) return true;
+
+    const knownProviders = knownAuthProviders(email);
+    return knownProviders.includes('google.com') && !knownProviders.includes('password');
+}
+
+function notifyGoogleOnlyAccount() {
+    notify('This email is connected with Google sign-in. Click Continue with Google, or use Need help? if you want to set an email password.', 'info');
+    focusGoogleButton();
+}
+
 function getPhoneVerifier() {
     if (recaptchaVerifier) return recaptchaVerifier;
 
@@ -175,9 +239,21 @@ window.handleLogin = async function handleLogin(event) {
 
     try {
         await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+        const methods = await getSignInMethods(email);
+
+        if (shouldPromptGoogleFirst(email, methods)) {
+            notifyGoogleOnlyAccount();
+            return;
+        }
+
         const credential = await signInWithEmailAndPassword(auth, email, password);
         await finishAuth(credential.user, 'Login successful!');
     } catch (error) {
+        if ((error?.code || '') === 'auth/invalid-credential' && knownAuthProviders(email).includes('google.com')) {
+            notifyGoogleOnlyAccount();
+            return;
+        }
+
         const canMigrateLegacyAccount = shouldTryEmailUpgrade(error) && hasLegacyLocalAccount(email);
 
         if (canMigrateLegacyAccount) {

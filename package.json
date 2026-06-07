@@ -2,10 +2,13 @@
   "name": "mamacare",
   "version": "1.0.0",
   "description": "",
-  "main": "babble.js",
+  "main": "backend/server.js",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -24,9 +27,14 @@
     "cors": "^2.8.6",
     "dotenv": "^16.3.1",
     "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "firebase-functions": "^6.4.0",
+    "groq-sdk": "^1.2.0",
     "helmet": "^8.1.0",
     "mongodb": "^6.3.0",
     "mongoose": "^9.4.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0"
   }
 }

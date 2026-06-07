@@ -190,7 +190,7 @@ app.use(express.json({ limit: '15mb' })); // Parse JSON bodies, including chatbo
 
 // Configure session and authentication
 configureLocalSession(app);
-configureGoogleStrategy();
+const googleOAuthEnabled = configureGoogleStrategy();
 setupLocalAuthRoutes(app);
 
 // Serve static files from frontend folder
@@ -1393,11 +1393,21 @@ app.get('/api/activities/:userId', checkDBConnection, async (req, res) => {
 });
 
 // Google OAuth Routes
+function requireGoogleOAuth(req, res, next) {
+    if (googleOAuthEnabled) return next();
+    return res.status(503).json({
+        error: 'Google OAuth is not configured on this server',
+        requiredEnvVars: ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'PUBLIC_BACKEND_URL']
+    });
+}
+
 app.get('/auth/google',
+  requireGoogleOAuth,
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-app.get('/auth/google/callback', 
+app.get('/auth/google/callback',
+  requireGoogleOAuth,
   passport.authenticate('google', { failureRedirect: 'http://localhost:3000/auth.html' }),
   (req, res) => {
     // Successful authentication, redirect to frontend main page
@@ -1680,3 +1690,4 @@ if (require.main === module) {
 
 module.exports = app;
 module.exports.connectToMongoDB = connectToMongoDB;
+module.exports.startServer = startServer;

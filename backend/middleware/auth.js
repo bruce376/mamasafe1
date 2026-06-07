@@ -20,6 +20,11 @@ function configureSession(app) {
 
 // Configure Google OAuth strategy
 function configureGoogleStrategy() {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    console.warn('Google OAuth is disabled because GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET is not set.');
+    return false;
+  }
+
   const publicBackendUrl = (process.env.PUBLIC_BACKEND_URL || 'http://localhost:5000').replace(/\/$/, '');
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
@@ -36,6 +41,7 @@ function configureGoogleStrategy() {
       return done(error, null);
     }
   }));
+  return true;
 }
 
 // Find or create user in database

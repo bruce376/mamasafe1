@@ -1,15 +1,25 @@
 require('dotenv').config();
 const Groq = require('groq-sdk');
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const MODEL = 'llama-3.3-70b-versatile';
+let groq;
+
+function getGroqClient() {
+    if (!process.env.GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not configured');
+    }
+    if (!groq) {
+        groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    }
+    return groq;
+}
 
 async function chat(systemPrompt, userPrompt, maxTokens = 1200) {
     console.log('Groq API call initiated');
     console.log('Model:', MODEL);
     console.log('API Key exists:', !!process.env.GROQ_API_KEY);
     
-    const response = await groq.chat.completions.create({
+    const response = await getGroqClient().chat.completions.create({
         model: MODEL,
         messages: [
             { role: 'system', content: systemPrompt },

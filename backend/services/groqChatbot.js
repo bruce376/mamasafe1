@@ -7,10 +7,17 @@ const Groq = require('groq-sdk');
  * Perfect alternative to blocked Gemini API
  */
 
-// Initialize Groq client
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY
-});
+let groq;
+
+function getGroqClient() {
+    if (!process.env.GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not configured');
+    }
+    if (!groq) {
+        groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    }
+    return groq;
+}
 
 /**
  * Process health query using Groq AI
@@ -35,7 +42,7 @@ Please provide a helpful and comprehensive answer to the user's question above.`
         const model = 'llama-3.3-70b-versatile';
         
         // Generate content
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient().chat.completions.create({
             model: model,
             messages: [
                 {
@@ -100,7 +107,7 @@ Please look at the image and answer in a clear ChatGPT-like style. If the image 
     let lastError;
     for (const model of visionModels) {
         try {
-            const response = await groq.chat.completions.create({
+            const response = await getGroqClient().chat.completions.create({
                 model,
                 messages: [
                     {

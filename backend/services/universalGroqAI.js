@@ -6,10 +6,17 @@ const Groq = require('groq-sdk');
  * Provides AI-powered responses for any function in the application
  */
 
-// Initialize Groq client
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY
-});
+let groq;
+
+function getGroqClient() {
+    if (!process.env.GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not configured');
+    }
+    if (!groq) {
+        groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    }
+    return groq;
+}
 
 /**
  * Universal AI processor for any function request
@@ -30,7 +37,7 @@ async function processWithUniversalAI(functionName, context, inputData = {}, use
         const model = 'llama-3.3-70b-versatile';
         
         // Generate content
-        const response = await groq.chat.completions.create({
+        const response = await getGroqClient().chat.completions.create({
             model: model,
             messages: [
                 {

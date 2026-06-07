@@ -87,7 +87,7 @@ async function finishAuth(user, message) {
 function authErrorMessage(error) {
     const code = error?.code || '';
     const messages = {
-        'auth/email-already-in-use': 'That email already has a Mamasafe account.',
+        'auth/email-already-in-use': 'That email already has a Mamasafe account. Please use Login with the correct password.',
         'auth/invalid-credential': 'The email or password is not correct.',
         'auth/invalid-email': 'Please enter a valid email address.',
         'auth/invalid-phone-number': 'Please enter a valid phone number with country code.',
@@ -99,6 +99,44 @@ function authErrorMessage(error) {
         'auth/wrong-password': 'The password is not correct.'
     };
     return messages[code] || error?.message || 'Authentication failed. Please try again.';
+}
+
+function legacyProfiles() {
+    const profile = JSON.parse(localStorage.getItem('mamasafe_profile') || 'null');
+    return [profile].filter(Boolean);
+}
+
+function hasLegacyLocalAccount(email) {
+    const normalized = String(email || '').trim().toLowerCase();
+    if (!normalized) return false;
+
+    const currentEmail = localStorage.getItem('bc_user_email');
+    if (currentEmail && currentEmail.toLowerCase() === normalized) return true;
+
+    return legacyProfiles().some(profile => String(profile.email || '').toLowerCase() === normalized);
+}
+
+async function migrateLegacyEmailAccount(email, password) {
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    const profile = legacyProfiles().find(item => String(item.email || '').toLowerCase() === email.toLowerCase());
+    const displayName = profile
+        ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
+        : localStorage.getItem('bc_user_name') || '';
+
+    if (displayName) {
+        await updateProfile(credential.user, { displayName });
+    }
+
+    return credential;
+}
+
+function shouldTryEmailUpgrade(error, password) {
+    const code = error?.code || '';
+    return ['auth/user-not-found', 'auth/invalid-credential'].includes(code) && String(password || '').length >= 6;
+}
+
+function isExistingFirebaseAccountError(error) {
+    return ['auth/email-already-in-use', 'auth/credential-already-in-use'].includes(error?.code || '');
 }
 
 function getPhoneVerifier() {
@@ -140,6 +178,25 @@ window.handleLogin = async function handleLogin(event) {
         const credential = await signInWithEmailAndPassword(auth, email, password);
         await finishAuth(credential.user, 'Login successful!');
     } catch (error) {
+        const canMigrateLegacyAccount = shouldTryEmailUpgrade(error, password);
+
+        if (canMigrateLegacyAccount) {
+            try {
+                const credential = hasLegacyLocalAccount(email)
+                    ? await migrateLegacyEmailAccount(email, password)
+                    : await createUserWithEmailAndPassword(auth, email, password);
+                await finishAuth(credential.user, 'Account connected and login successful!');
+                return;
+            } catch (migrationError) {
+                if (isExistingFirebaseAccountError(migrationError)) {
+                    notify(authErrorMessage(error), 'error');
+                    return;
+                }
+                notify(authErrorMessage(migrationError), 'error');
+                return;
+            }
+        }
+
         notify(authErrorMessage(error), 'error');
     }
 };
@@ -163,8 +220,8 @@ window.handleSignup = async function handleSignup(event) {
         return;
     }
 
-    if (password.length < 8) {
-        notify('Password must be at least 8 characters', 'error');
+    if (password.length < 6) {
+        notify('Password must be at least 6 characters', 'error');
         return;
     }
 

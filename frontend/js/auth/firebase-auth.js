@@ -32,6 +32,9 @@ const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 let phoneConfirmationResult = null;
 let recaptchaVerifier = null;
+const googleFirstEmails = new Set([
+    'ug2424887@ines.ac.rw'
+]);
 
 function normalizeEmail(email = '') {
     return String(email).trim().toLowerCase();
@@ -59,6 +62,10 @@ function knownAuthProviders(email = '') {
         .split(',')
         .map(provider => provider.trim())
         .filter(Boolean);
+}
+
+function isGoogleFirstEmail(email = '') {
+    return googleFirstEmails.has(normalizeEmail(email));
 }
 
 function focusGoogleButton() {
@@ -203,6 +210,15 @@ function notifyGoogleOnlyAccount() {
     focusGoogleButton();
 }
 
+async function continueWithGoogleForEmail() {
+    notify('This account uses Google sign-in. Opening Google login now...', 'info');
+    if (typeof window.handleGoogleAuth === 'function') {
+        await window.handleGoogleAuth();
+    } else {
+        focusGoogleButton();
+    }
+}
+
 function getPhoneVerifier() {
     if (recaptchaVerifier) return recaptchaVerifier;
 
@@ -234,6 +250,11 @@ window.handleLogin = async function handleLogin(event) {
 
     if (!email || !password) {
         notify('Please enter email and password', 'error');
+        return;
+    }
+
+    if (isGoogleFirstEmail(email)) {
+        await continueWithGoogleForEmail();
         return;
     }
 

@@ -614,6 +614,44 @@ async function insertRecordWithEvent(collectionName, data, eventType = 'record-c
     return savedRecord;
 }
 
+async function saveAIChatHistory({
+    user = {},
+    message,
+    response,
+    context = {},
+    chatHistory = [],
+    source = 'mamasafe-chat',
+    isEmergency = false
+}) {
+    if (!db || !message || !response) return null;
+
+    const now = new Date();
+    const userId = user.id || user.userId || user.email || context.userId || 'guest-user';
+    const userEmail = user.email || context.userEmail || '';
+    const userName = user.displayName || user.name || context.userName || 'Guest User';
+
+    try {
+        return await db.collection('chatHistory').insertOne({
+            userId,
+            userEmail,
+            userName,
+            message,
+            question: message,
+            response,
+            answer: response,
+            source,
+            context,
+            chatHistoryLength: Array.isArray(chatHistory) ? chatHistory.length : 0,
+            isEmergency,
+            timestamp: now,
+            createdAt: now
+        });
+    } catch (error) {
+        console.warn('Could not save AI chat history:', error.message);
+        return null;
+    }
+}
+
 // API Routes
 app.get('/api/health', (req, res) => {
     res.json({
@@ -1123,6 +1161,14 @@ app.post('/api/mamasafe-chat', async (req, res) => {
 
         // Use the new health chatbot service (OpenAI + local fallback)
         const response = await processHealthQuery(message, userContext || {}, chatHistory);
+        await saveAIChatHistory({
+            user,
+            message,
+            response,
+            context: userContext,
+            chatHistory,
+            source: 'mamasafe-chat'
+        });
         res.json({ reply: response });
     } catch (error) {
         console.error('Health Chatbot Error:', error);
@@ -1156,6 +1202,14 @@ app.post('/api/mamasafe-analyze-image', async (req, res) => {
             mimeType,
             prompt: prompt || 'Please analyze this image.'
         }, userContext);
+
+        await saveAIChatHistory({
+            user,
+            message: prompt || 'Image analysis request',
+            response: analysis,
+            context: { ...userContext, mimeType },
+            source: 'mamasafe-image-analysis'
+        });
 
         res.json({ analysis });
     } catch (error) {
@@ -1859,6 +1913,15 @@ app.post('/api/health-chatbot', authenticateAny, async (req, res) => {
     // Check for emergency keywords
     const emergencyCheck = checkEmergencyKeywords(message);
     if (emergencyCheck.isEmergency) {
+      await saveAIChatHistory({
+        user,
+        message,
+        response: emergencyCheck.message,
+        context: { source: 'health-chatbot-emergency' },
+        chatHistory: chatHistory || [],
+        source: 'health-chatbot',
+        isEmergency: true
+      });
       return res.json({
         response: emergencyCheck.message,
         isEmergency: true,
@@ -1878,16 +1941,15 @@ app.post('/api/health-chatbot', authenticateAny, async (req, res) => {
     // Process health query
     const response = await processHealthQuery(message, userContext, chatHistory || []);
 
-    // Store chat history in database (optional)
-    if (db && !useInMemoryDB) {
-      await db.collection('chatHistory').insertOne({
-        userId: user.id,
-        message: message,
-        response: response,
-        timestamp: new Date(),
-        isEmergency: emergencyCheck.isEmergency
-      });
-    }
+    await saveAIChatHistory({
+      user,
+      message,
+      response,
+      context: userContext,
+      chatHistory: chatHistory || [],
+      source: 'health-chatbot',
+      isEmergency: emergencyCheck.isEmergency
+    });
 
     res.json({
       response: response,

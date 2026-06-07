@@ -16,6 +16,7 @@ const { configureLocalSession, authenticateLocal, authenticateAny, setupLocalAut
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.set('trust proxy', 1);
 const defaultCorsOrigins = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
@@ -57,6 +58,12 @@ const inMemoryDB = {
 };
 
 function createInMemoryDatabase() {
+    const createCursor = (results = []) => ({
+        sort: () => createCursor(results),
+        limit: (count) => createCursor(results.slice(0, Number(count) || results.length)),
+        toArray: () => results
+    });
+
     return {
         collection: (name) => ({
             insertOne: (doc) => {
@@ -67,17 +74,13 @@ function createInMemoryDatabase() {
                 return { insertedId: id };
             },
             find: (query = {}) => {
-                if (!inMemoryDB[name]) return { toArray: () => [] };
+                if (!inMemoryDB[name]) return createCursor([]);
                 const results = inMemoryDB[name].filter(item => {
                     if (query._id) return item._id === query._id;
                     if (query.userId) return item.userId === query.userId;
                     return true;
                 });
-                return {
-                    sort: () => ({ limit: () => ({ toArray: () => results }) }),
-                    limit: () => ({ toArray: () => results }),
-                    toArray: () => results
-                };
+                return createCursor(results);
             },
             countDocuments: (query = {}) => {
                 if (!inMemoryDB[name]) return 0;
@@ -252,11 +255,28 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'unsafe-hashes'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "'unsafe-hashes'", "https://www.gstatic.com"],
+            scriptSrcElem: ["'self'", "'unsafe-inline'", "https://www.gstatic.com"],
             scriptSrcAttr: ["'unsafe-inline'"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             imgSrc: ["'self'", "data:", "https:"],
-            connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000", "https://mamasafe1.onrender.com", "https://mamasafe-95d58.web.app", "https://mamasafe-95d58.firebaseapp.com", "https://www.wikidata.org", "https://wikidata.org"],
+            connectSrc: [
+                "'self'",
+                "http://localhost:5000",
+                "http://127.0.0.1:5000",
+                "https://mamasafe1.onrender.com",
+                "https://mamasafe-95d58.web.app",
+                "https://mamasafe-95d58.firebaseapp.com",
+                "https://www.googleapis.com",
+                "https://identitytoolkit.googleapis.com",
+                "https://securetoken.googleapis.com",
+                "https://firestore.googleapis.com",
+                "https://firebase.googleapis.com",
+                "https://*.googleapis.com",
+                "https://*.firebaseio.com",
+                "https://www.wikidata.org",
+                "https://wikidata.org"
+            ],
             mediaSrc: ["'self'"],
             objectSrc: ["'none'"],
             frameSrc: ["'none'"],
@@ -342,13 +362,13 @@ async function connectToMongoDBInternal(maxRetries = 5) {
         console.log('In-memory database already active, skipping MongoDB connection attempts');
         return true;
     }
-    
+
     // In development mode, use in-memory database immediately
     if (mongoConfig.developmentMode) {
         console.log('Development mode detected, using in-memory database...');
         useInMemoryDB = true;
         activeMongoUriLabel = 'in-memory';
-        
+
         // Create mock database interface
         db = {
             collection: (name) => ({
@@ -369,7 +389,7 @@ async function connectToMongoDBInternal(maxRetries = 5) {
                 },
                 updateOne: (query, update) => {
                     if (!inMemoryDB[name]) return { modifiedCount: 0 };
-                    const index = inMemoryDB[name].findIndex(item => 
+                    const index = inMemoryDB[name].findIndex(item =>
                         query._id ? item._id === query._id : true
                     );
                     if (index !== -1) {
@@ -380,7 +400,7 @@ async function connectToMongoDBInternal(maxRetries = 5) {
                 },
                 deleteOne: (query) => {
                     if (!inMemoryDB[name]) return { deletedCount: 0 };
-                    const index = inMemoryDB[name].findIndex(item => 
+                    const index = inMemoryDB[name].findIndex(item =>
                         query._id ? item._id === query._id : true
                     );
                     if (index !== -1) {
@@ -391,11 +411,12 @@ async function connectToMongoDBInternal(maxRetries = 5) {
                 }
             })
         };
-        
+
+        db = createInMemoryDatabase();
         console.log('In-memory database initialized successfully for development');
         return true;
     }
-    
+
     const primaryMongoUri = normalizeMongoUri(mongoConfig.uri);
     const standardAtlasUri = primaryMongoUri ? await buildStandardAtlasUriFromSrv(primaryMongoUri) : null;
     const urisToTry = [
@@ -413,42 +434,42 @@ async function connectToMongoDBInternal(maxRetries = 5) {
         db = createInMemoryDatabase();
         return true;
     }
-    
+
     for (let uriIndex = 0; uriIndex < urisToTry.length; uriIndex++) {
         const currentUri = urisToTry[uriIndex];
         const uriLabel = currentUri.includes('mongodb+srv') || currentUri.includes('mongodb.net') ? 'MongoDB Atlas' : 'local MongoDB';
         lastMongoDiagnostic = getMongoUriMetadata(currentUri);
         console.log(`Trying ${uriLabel} URI ${uriIndex + 1}/${urisToTry.length}...`);
-        
+
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 console.log(`MongoDB connection attempt ${attempt}/${maxRetries} for URI ${uriIndex + 1}...`);
                 const connectionOptions = buildMongoConnectionOptions(currentUri);
-                
+
                 client = new MongoClient(currentUri, connectionOptions);
-                
+
                 await client.connect();
                 db = client.db(mongoConfig.dbName);
                 useInMemoryDB = false;
                 lastMongoError = null;
-                
+
                 // Set up connection monitoring
                 client.on('connectionPoolCreated', (event) => {
                     console.log('MongoDB connection pool created');
                 });
-                
+
                 client.on('connectionCreated', (event) => {
                     console.log('New MongoDB connection established');
                 });
-                
+
                 client.on('connectionReady', (event) => {
                     console.log('MongoDB connection ready');
                 });
-                
+
                 client.on('connectionClosed', (event) => {
                     console.log('MongoDB connection closed:', event.reason);
                 });
-                
+
                 client.on('connectionPoolCleared', (event) => {
                     console.log('MongoDB connection pool cleared, attempting reconnect...');
                     setTimeout(() => {
@@ -457,11 +478,11 @@ async function connectToMongoDBInternal(maxRetries = 5) {
                         }
                     }, 10000); // Increased delay to 10 seconds
                 });
-                
+
                 client.on('serverOpening', (event) => {
                     console.log('MongoDB server connection opened');
                 });
-                
+
                 client.on('serverClosed', (event) => {
                     console.log('MongoDB server connection closed, attempting reconnect...');
                     setTimeout(() => {
@@ -470,17 +491,17 @@ async function connectToMongoDBInternal(maxRetries = 5) {
                         }
                     }, 10000); // Increased delay to 10 seconds
                 });
-                
+
                 client.on('serverHeartbeatFailed', (event) => {
                     // Reduce logging noise for heartbeat failures
                     console.warn('MongoDB server heartbeat failed (will retry automatically)');
                 });
-                
+
                 activeMongoUriLabel = uriLabel;
                 await ensureDatabaseIndexes();
                 console.log(`Connected to ${uriLabel} database "${mongoConfig.dbName}"`);
                 return true;
-                
+
             } catch (error) {
                 lastMongoError = error.message;
                 console.error(`MongoDB connection attempt ${attempt} failed for URI ${uriIndex + 1}:`, error.message);
@@ -495,7 +516,7 @@ async function connectToMongoDBInternal(maxRetries = 5) {
             }
         }
     }
-    
+
     console.error('All MongoDB connection attempts failed');
     console.log('Falling back to in-memory database so the API can keep serving non-persistent responses.');
     useInMemoryDB = true;
@@ -512,12 +533,12 @@ async function checkDBHealth() {
             console.warn('Database not connected, attempting reconnect...');
             return await connectToMongoDB();
         }
-        
+
         // If using in-memory database, it's always healthy
         if (useInMemoryDB) {
             return true;
         }
-        
+
         // Ping the database to check connection
         await db.admin().ping();
         return true;
@@ -638,8 +659,94 @@ function getAdminConfig() {
     };
 }
 
+function getAdminTokenSecret() {
+    return process.env.JWT_SECRET || process.env.ADMIN_TOKEN_SECRET || 'admin-secret-key-change-in-production';
+}
+
+function base64UrlEncode(value) {
+    return Buffer.from(JSON.stringify(value))
+        .toString('base64')
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+}
+
+function base64UrlDecode(value) {
+    const normalized = String(value || '').replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(Buffer.from(normalized, 'base64').toString('utf8'));
+}
+
+function signAdminToken(admin) {
+    const header = { alg: 'HS256', typ: 'JWT' };
+    const payload = {
+        username: admin.username,
+        email: admin.email,
+        name: admin.name,
+        role: 'Super Admin',
+        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60)
+    };
+    const unsigned = `${base64UrlEncode(header)}.${base64UrlEncode(payload)}`;
+    const signature = crypto
+        .createHmac('sha256', getAdminTokenSecret())
+        .update(unsigned)
+        .digest('base64')
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+    return `${unsigned}.${signature}`;
+}
+
+function verifyAdminToken(token) {
+    const parts = String(token || '').split('.');
+    if (parts.length !== 3) return null;
+
+    const [encodedHeader, encodedPayload, signature] = parts;
+    const expectedSignature = crypto
+        .createHmac('sha256', getAdminTokenSecret())
+        .update(`${encodedHeader}.${encodedPayload}`)
+        .digest('base64')
+        .replace(/=/g, '')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_');
+
+    const actual = Buffer.from(signature);
+    const expected = Buffer.from(expectedSignature);
+    if (actual.length !== expected.length || !crypto.timingSafeEqual(actual, expected)) {
+        return null;
+    }
+
+    const payload = base64UrlDecode(encodedPayload);
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+        return null;
+    }
+    return payload;
+}
+
+function getRequestAdmin(req) {
+    return req.session?.admin || req.admin || null;
+}
+
 function requireAdmin(req, res, next) {
-    if (req.session && req.session.admin) return next();
+    // Check session first (for same-domain requests)
+    if (req.session && req.session.admin) {
+        return next();
+    }
+
+    // Check JWT token (for cross-domain requests)
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '');
+
+    if (token && token !== 'undefined') {
+        try {
+            const decoded = verifyAdminToken(token);
+            if (!decoded) throw new Error('Invalid admin token');
+            req.admin = decoded;
+            return next();
+        } catch (err) {
+            // Token verification failed, fall through to error
+        }
+    }
+
     return res.status(401).json({ error: 'Admin authentication required' });
 }
 
@@ -657,6 +764,68 @@ async function recentCollection(name, filter = {}, limit = 20) {
         .toArray();
 }
 
+function getCreatedUsersFilter(search = '') {
+    const identityFilter = {
+        $or: [
+            { recordType: 'created-user' },
+            { source: 'auth-signup' },
+            { source: 'firebase-auth' },
+            { source: 'local-auth' },
+            { email: { $exists: true, $ne: '' } },
+            { userEmail: { $exists: true, $ne: '' } },
+            { userId: { $exists: true, $ne: '' } }
+        ]
+    };
+
+    const query = String(search || '').trim();
+    if (!query) return identityFilter;
+
+    const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    return {
+        $and: [
+            identityFilter,
+            {
+                $or: [
+                    { email: regex },
+                    { userEmail: regex },
+                    { userId: regex },
+                    { name: regex },
+                    { username: regex },
+                    { stage: regex },
+                    { journey: regex },
+                    { status: regex }
+                ]
+            }
+        ]
+    };
+}
+
+function getUserIdentity(user = {}) {
+    return {
+        id: user._id?.toString?.() || user.id || user.userId || user.email || '',
+        name: user.name || user.displayName || user.username || user.profile?.name || user.profile?.firstName || 'Mother',
+        email: user.email || user.userEmail || user.profile?.email || user.userId || '',
+        stage: user.stage || user.journey || user.careStage || user.profile?.stage || '',
+        status: user.status || 'active',
+        pregnancyWeek: user.pregnancy_week || user.pregnancyWeek || user.currentWeek || '',
+        createdAt: user.createdAt || user.savedAt || user.joinedAt || user.lastLoginAt || null,
+        lastLoginAt: user.lastLoginAt || user.updatedAt || null,
+        source: user.source || user.recordType || 'database'
+    };
+}
+
+function getUserFilterById(id) {
+    if (ObjectId.isValid(id)) return { _id: new ObjectId(id) };
+    return {
+        $or: [
+            { id },
+            { userId: id },
+            { email: id },
+            { userEmail: id }
+        ]
+    };
+}
+
 app.post('/api/admin-panel/login', checkDBConnection, async (req, res) => {
     try {
         const { email, username, password } = req.body || {};
@@ -670,23 +839,64 @@ app.post('/api/admin-panel/login', checkDBConnection, async (req, res) => {
             createdAt: new Date()
         });
         if (!ok) return res.status(401).json({ error: 'Invalid admin credentials' });
+
+        // Set session for same-domain use
         req.session.admin = { username: admin.username, email: admin.email, name: admin.name, role: 'Super Admin', loginAt: new Date().toISOString() };
-        res.json({ admin: req.session.admin });
+
+        // Also generate a signed token for cross-domain use.
+        const token = signAdminToken(admin);
+
+        res.json({
+            admin: req.session.admin,
+            token: token
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
 app.post('/api/admin-panel/logout', requireAdmin, (req, res) => {
-    req.session.admin = null;
-    res.json({ ok: true });
+    try {
+        // Clear session if it exists (for same-domain requests)
+        if (req.session && req.session.admin) {
+            req.session.admin = null;
+        }
+        // JWT tokens are stateless, so no server-side cleanup needed
+        // The client just removes the token from localStorage
+        res.json({ ok: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.get('/api/admin-panel/me', (req, res) => {
-    if (!req.session?.admin) {
-        return res.status(401).json({ error: 'Admin login required' });
+    // Check session first (for same-domain requests)
+    if (req.session?.admin) {
+        return res.json({ admin: req.session.admin });
     }
-    res.json({ admin: req.session.admin });
+
+    // Check JWT token (for cross-domain requests)
+    const authHeader = req.headers.authorization || '';
+    const token = authHeader.replace('Bearer ', '');
+
+    if (token && token !== 'undefined') {
+        try {
+            const decoded = verifyAdminToken(token);
+            if (!decoded) throw new Error('Invalid admin token');
+            return res.json({
+                admin: {
+                    username: decoded.username,
+                    email: decoded.email,
+                    role: decoded.role,
+                    name: decoded.name || 'Admin'
+                }
+            });
+        } catch (err) {
+            // Token verification failed, fall through to error
+        }
+    }
+
+    res.status(401).json({ error: 'Admin login required' });
 });
 
 app.get('/api/admin-panel/dashboard', requireAdmin, checkDBConnection, async (req, res) => {
@@ -709,14 +919,14 @@ app.get('/api/admin-panel/dashboard', requireAdmin, checkDBConnection, async (re
             recentUsers,
             recentHelp
         ] = await Promise.all([
-            countCollection('users'),
+            countCollection('users', getCreatedUsersFilter()),
             countCollection('activities'),
             countCollection('chatHistory'),
             countCollection('activities', { type: { $in: ['help-request', 'support-message'] } }),
             countCollection('activities', emergencyFilter),
             countCollection('activities', { type: { $in: ['admin-notification', 'announcement', 'settings'] } }),
             recentCollection('app_events', {}, 15),
-            recentCollection('users', {}, 8),
+            recentCollection('users', getCreatedUsersFilter(), 8),
             recentCollection('activities', { type: { $in: ['help-request', 'support-message'] } }, 8)
         ]);
 
@@ -746,12 +956,10 @@ app.get('/api/admin-panel/dashboard', requireAdmin, checkDBConnection, async (re
 
 app.get('/api/admin-panel/users', requireAdmin, checkDBConnection, async (req, res) => {
     try {
-        const search = String(req.query.search || '').trim();
-        const filter = search
-            ? { $or: [{ email: new RegExp(search, 'i') }, { name: new RegExp(search, 'i') }, { 'profile.firstName': new RegExp(search, 'i') }] }
-            : {};
-        const users = await recentCollection('users', filter, 100);
-        res.json({ users });
+        const filter = getCreatedUsersFilter(req.query.search || '');
+        const records = await recentCollection('users', filter, 100);
+        const users = records.map((user) => ({ ...user, adminIdentity: getUserIdentity(user) }));
+        res.json({ users, count: users.length });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -761,10 +969,58 @@ app.patch('/api/admin-panel/users/:id/status', requireAdmin, checkDBConnection, 
     try {
         const { status = 'active' } = req.body || {};
         const id = req.params.id;
-        const filter = ObjectId.isValid(id) ? { _id: new ObjectId(id) } : { $or: [{ id }, { email: id }] };
+        const filter = getUserFilterById(id);
         const result = await db.collection('users').updateOne(filter, { $set: { status, updatedAt: new Date() } });
-        await db.collection('admin_audit').insertOne({ type: 'user-status-updated', target: id, status, admin: req.session.admin.email, createdAt: new Date() });
+        await db.collection('admin_audit').insertOne({ type: 'user-status-updated', target: id, status, admin: getRequestAdmin(req)?.email || 'admin', createdAt: new Date() });
         res.json({ modifiedCount: result.modifiedCount });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Edit user information
+app.patch('/api/admin-panel/users/:id', requireAdmin, checkDBConnection, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const updateData = req.body || {};
+        const filter = getUserFilterById(id);
+
+        // Only allow updating specific fields
+        const allowedFields = ['name', 'email', 'userEmail', 'status', 'pregnancy_week', 'pregnancyWeek', 'stage', 'journey'];
+        const updateObj = { updatedAt: new Date() };
+
+        for (const field of allowedFields) {
+            if (field in updateData) {
+                updateObj[field] = updateData[field];
+            }
+        }
+
+        const result = await db.collection('users').updateOne(filter, { $set: updateObj });
+        await db.collection('admin_audit').insertOne({ type: 'user-edited', target: id, changes: updateData, admin: getRequestAdmin(req)?.email || 'admin', createdAt: new Date() });
+        res.json({ modifiedCount: result.modifiedCount });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete user
+app.delete('/api/admin-panel/users/:id', requireAdmin, checkDBConnection, async (req, res) => {
+    try {
+        const id = req.params.id;
+        const filter = getUserFilterById(id);
+
+        // Get user info before deleting for audit log
+        const user = await db.collection('users').findOne(filter);
+
+        // Delete user and related data
+        const userResult = await db.collection('users').deleteOne(filter);
+        if (user?._id) {
+            await db.collection('chatHistory').deleteMany({ userId: user._id.toString() });
+            await db.collection('activities').deleteMany({ userId: user._id.toString() });
+        }
+
+        await db.collection('admin_audit').insertOne({ type: 'user-deleted', target: id, userName: user?.name || 'Unknown', admin: getRequestAdmin(req)?.email || 'admin', createdAt: new Date() });
+        res.json({ deletedCount: userResult.deletedCount });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -808,7 +1064,7 @@ app.post('/api/admin-panel/notifications', requireAdmin, checkDBConnection, asyn
             message,
             audience,
             priority,
-            admin: req.session.admin.email,
+            admin: getRequestAdmin(req)?.email || 'admin',
             savedAt: new Date().toISOString(),
             createdAt: new Date()
         }, 'admin-notification-sent');
@@ -839,10 +1095,10 @@ const {
 app.post('/api/mamasafe-chat', async (req, res) => {
     try {
         const { message, context, chatHistory = [] } = req.body;
-        
+
         // Get user from either passport or session, or create default user
         let user = req.user || req.session.user;
-        
+
         // If no user is authenticated, create a default user for testing
         if (!user) {
             user = {
@@ -852,7 +1108,7 @@ app.post('/api/mamasafe-chat', async (req, res) => {
                 name: 'Guest User'
             };
         }
-        
+
         // Add user context to the message
         const userContext = {
             ...context,
@@ -860,7 +1116,7 @@ app.post('/api/mamasafe-chat', async (req, res) => {
             userEmail: user.email,
             userName: user.displayName || user.name
         };
-        
+
         if (!message) {
             return res.status(400).json({ error: 'Message is required' });
         }
@@ -915,7 +1171,7 @@ app.post('/api/mamasafe-analyze-image', async (req, res) => {
 app.post('/api/ai-baby-names', async (req, res) => {
     try {
         const { query, gender, origin, style } = req.body;
-        
+
         if (!query) {
             return res.status(400).json({ error: 'Query is required' });
         }
@@ -941,7 +1197,7 @@ app.post('/api/ai-baby-names', async (req, res) => {
 app.post('/api/ai-pregnancy-tracking', async (req, res) => {
     try {
         const { week, symptoms, concerns } = req.body;
-        
+
         if (!week) {
             return res.status(400).json({ error: 'Pregnancy week is required' });
         }
@@ -967,7 +1223,7 @@ app.post('/api/ai-pregnancy-tracking', async (req, res) => {
 app.post('/api/ai-nutrition-planning', async (req, res) => {
     try {
         const { mealPlan, dietaryRestrictions, goals } = req.body;
-        
+
         // Get user context
         let user = req.user || req.session.user;
         const userContext = {
@@ -989,7 +1245,7 @@ app.post('/api/ai-nutrition-planning', async (req, res) => {
 app.post('/api/ai-sleep-guidance', async (req, res) => {
     try {
         const { age, sleepIssues, schedule } = req.body;
-        
+
         if (!age) {
             return res.status(400).json({ error: 'Age is required' });
         }
@@ -1015,7 +1271,7 @@ app.post('/api/ai-sleep-guidance', async (req, res) => {
 app.post('/api/ai-activity-recommendations', async (req, res) => {
     try {
         const { age, activityLevel, interests } = req.body;
-        
+
         if (!age) {
             return res.status(400).json({ error: 'Age is required' });
         }
@@ -1041,7 +1297,7 @@ app.post('/api/ai-activity-recommendations', async (req, res) => {
 app.post('/api/ai-appointment-scheduling', async (req, res) => {
     try {
         const { type, timing, concerns } = req.body;
-        
+
         // Get user context
         let user = req.user || req.session.user;
         const userContext = {
@@ -1063,7 +1319,7 @@ app.post('/api/ai-appointment-scheduling', async (req, res) => {
 app.post('/api/ai-milestone-tracking', async (req, res) => {
     try {
         const { age, developmentArea, concerns } = req.body;
-        
+
         if (!age) {
             return res.status(400).json({ error: 'Age is required' });
         }
@@ -1089,7 +1345,7 @@ app.post('/api/ai-milestone-tracking', async (req, res) => {
 app.post('/api/ai-fertility-tracking', async (req, res) => {
     try {
         const { cycleLength, goals, concerns } = req.body;
-        
+
         // Get user context
         let user = req.user || req.session.user;
         const userContext = {
@@ -1111,7 +1367,7 @@ app.post('/api/ai-fertility-tracking', async (req, res) => {
 app.post('/api/ai-mental-health-support', async (req, res) => {
     try {
         const { concerns, symptoms, supportNeeds } = req.body;
-        
+
         // Get user context
         let user = req.user || req.session.user;
         const userContext = {
@@ -1133,7 +1389,7 @@ app.post('/api/ai-mental-health-support', async (req, res) => {
 app.post('/api/ai-universal-processor', async (req, res) => {
     try {
         const { functionName, description, inputData } = req.body;
-        
+
         if (!functionName || !description) {
             return res.status(400).json({ error: 'Function name and description are required' });
         }
@@ -1227,7 +1483,7 @@ app.post('/api/courses/community-insight', async (req, res) => {
 app.get('/api/wikidata', async (req, res) => {
     try {
         const { search, language = 'en', uselang = 'en', format = 'json', limit = '40' } = req.query;
-        
+
         if (!search) {
             return res.status(400).json({ error: 'Search parameter is required' });
         }
@@ -1236,21 +1492,21 @@ app.get('/api/wikidata', async (req, res) => {
         const safeLimit = Math.min(parseInt(limit) || 40, 100);
         // Only allow safe language codes
         const safeLang = /^[a-z]{2,5}$/.test(language) ? language : 'en';
-        
+
         const wikidataUrl = `https://www.wikidata.org/w/api.php?action=wbsearchentities&search=${encodeURIComponent(search)}&language=${safeLang}&uselang=${safeLang}&format=json&limit=${safeLimit}`;
         console.log('Proxy fetching wikidata search');
-        
+
         const response = await fetch(wikidataUrl, {
             headers: {
                 'User-Agent': 'Mamasafe-App/1.0',
                 'Accept': 'application/json'
             }
         });
-        
+
         if (!response.ok) {
             return res.status(response.status).json({ error: 'Wikidata API error', status: response.status });
         }
-        
+
         const data = await response.json();
         res.json(data);
     } catch (error) {
@@ -1262,7 +1518,7 @@ app.get('/api/wikidata', async (req, res) => {
 // Users API
 app.post('/api/users', checkDBConnection, async (req, res) => {
     try {
-        const userData = { ...req.body, createdAt: new Date() };
+        const userData = { ...req.body, recordType: 'created-user', createdAt: new Date() };
         const saved = await insertRecordWithEvent('users', userData, 'user-created');
         res.json(saved);
     } catch (error) {
@@ -1551,7 +1807,7 @@ app.get('/api/user/profile', authenticateAny, async (req, res) => {
   try {
     // Get user from either passport or session
     const user = req.user || req.session.user;
-    
+
     if (db && !useInMemoryDB) {
       const userProfile = await db.collection('users').findOne({ id: user.id });
       res.json({ profile: userProfile });
@@ -1566,15 +1822,15 @@ app.get('/api/user/profile', authenticateAny, async (req, res) => {
 app.put('/api/user/profile', authenticateAny, async (req, res) => {
   try {
     const { preferences, healthData } = req.body;
-    
+
     // Get user from either passport or session
     const user = req.user || req.session.user;
-    
+
     if (db && !useInMemoryDB) {
       await db.collection('users').updateOne(
         { id: user.id },
-        { 
-          $set: { 
+        {
+          $set: {
             'preferences': preferences,
             'healthData': healthData,
             'updatedAt': new Date()
@@ -1582,7 +1838,7 @@ app.put('/api/user/profile', authenticateAny, async (req, res) => {
         }
       );
     }
-    
+
     res.json({ message: 'Profile updated successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -1595,7 +1851,7 @@ app.post('/api/health-chatbot', authenticateAny, async (req, res) => {
   const user = req.user || req.session.user;
   try {
     const { message, chatHistory } = req.body;
-    
+
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
@@ -1621,7 +1877,7 @@ app.post('/api/health-chatbot', authenticateAny, async (req, res) => {
 
     // Process health query
     const response = await processHealthQuery(message, userContext, chatHistory || []);
-    
+
     // Store chat history in database (optional)
     if (db && !useInMemoryDB) {
       await db.collection('chatHistory').insertOne({
@@ -1642,9 +1898,9 @@ app.post('/api/health-chatbot', authenticateAny, async (req, res) => {
 
   } catch (error) {
     console.error('Health Chatbot Error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Failed to process health query',
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -1653,7 +1909,7 @@ app.post('/api/health-chatbot', authenticateAny, async (req, res) => {
 app.get('/api/health-chatbot/suggestions', authenticateAny, async (req, res) => {
   // Get user from either passport or session
   const user = req.user || req.session.user;
-  
+
   try {
     // Get user context from profile
     let userContext = {};
@@ -1677,17 +1933,17 @@ app.get('/api/health-chatbot/suggestions', authenticateAny, async (req, res) => 
 app.get('/api/health-chatbot/history', authenticateAny, async (req, res) => {
   // Get user from either passport or session
   const user = req.user || req.session.user;
-  
+
   try {
     const { limit = 20 } = req.query;
-    
+
     if (db && !useInMemoryDB) {
       const history = await db.collection('chatHistory')
         .find({ userId: user.id })
         .sort({ timestamp: -1 })
         .limit(parseInt(limit))
         .toArray();
-      
+
       res.json({ history: history.reverse() });
     } else {
       res.json({ history: [] });
@@ -1703,12 +1959,12 @@ app.get('/api/health-chatbot/history', authenticateAny, async (req, res) => {
 app.delete('/api/health-chatbot/history', authenticateAny, async (req, res) => {
   // Get user from either passport or session
   const user = req.user || req.session.user;
-  
+
   try {
     if (db && !useInMemoryDB) {
       await db.collection('chatHistory').deleteMany({ userId: user.id });
     }
-    
+
     res.json({ message: 'Chat history cleared successfully' });
 
   } catch (error) {
@@ -1741,9 +1997,10 @@ async function startServer() {
         console.log(`===================================`);
         console.log(`    Mamasafe Server Running`);
         console.log(`===================================`);
-        console.log(`Local:   http://localhost:${PORT}`);
-        console.log(`Network: http://localhost:${PORT}`);
-        console.log(`MongoDB: ${db ? 'Connected to Atlas' : 'Connecting in background...'}`);
+        console.log(`Backend API: http://localhost:${PORT}`);
+        console.log(`Frontend:    http://localhost:3000`);
+        console.log(`Hosted:      https://mamasafe-95d58.web.app`);
+        console.log(`MongoDB:     ${db ? 'Connected to Atlas' : 'Connecting in background...'}`);
         console.log(`===================================`);
         console.log(`Press Ctrl+C to stop server`);
         console.log(`\n`);

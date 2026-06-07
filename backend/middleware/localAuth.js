@@ -9,11 +9,11 @@ function configureLocalSession(app) {
   app.use(session({
     secret: process.env.SESSION_SECRET || require('crypto').randomBytes(32).toString('hex'),
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: { 
       secure: process.env.NODE_ENV === 'production',
       httpOnly: true,
-      sameSite: 'strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       path: '/',
       maxAge: 24 * 60 * 60 * 1000
     }

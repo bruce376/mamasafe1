@@ -7,6 +7,7 @@ import {
     GoogleAuthProvider,
     onAuthStateChanged,
     RecaptchaVerifier,
+    sendPasswordResetEmail,
     setPersistence,
     signInWithEmailAndPassword,
     signInWithPhoneNumber,
@@ -88,7 +89,7 @@ function authErrorMessage(error) {
     const code = error?.code || '';
     const messages = {
         'auth/email-already-in-use': 'That email already has a Mamasafe account. Please use Login with the correct password.',
-        'auth/invalid-credential': 'The email or password is not correct.',
+        'auth/invalid-credential': 'The email or password is not correct. If you usually use Google, continue with Google. If this is an email account, use Need help? to reset your password.',
         'auth/invalid-email': 'Please enter a valid email address.',
         'auth/invalid-phone-number': 'Please enter a valid phone number with country code.',
         'auth/invalid-verification-code': 'That SMS code is not correct.',
@@ -130,9 +131,8 @@ async function migrateLegacyEmailAccount(email, password) {
     return credential;
 }
 
-function shouldTryEmailUpgrade(error, password) {
-    const code = error?.code || '';
-    return ['auth/user-not-found', 'auth/invalid-credential'].includes(code) && String(password || '').length >= 6;
+function shouldTryEmailUpgrade(error) {
+    return (error?.code || '') === 'auth/user-not-found';
 }
 
 function isExistingFirebaseAccountError(error) {
@@ -178,13 +178,11 @@ window.handleLogin = async function handleLogin(event) {
         const credential = await signInWithEmailAndPassword(auth, email, password);
         await finishAuth(credential.user, 'Login successful!');
     } catch (error) {
-        const canMigrateLegacyAccount = shouldTryEmailUpgrade(error, password);
+        const canMigrateLegacyAccount = shouldTryEmailUpgrade(error) && hasLegacyLocalAccount(email);
 
         if (canMigrateLegacyAccount) {
             try {
-                const credential = hasLegacyLocalAccount(email)
-                    ? await migrateLegacyEmailAccount(email, password)
-                    : await createUserWithEmailAndPassword(auth, email, password);
+                const credential = await migrateLegacyEmailAccount(email, password);
                 await finishAuth(credential.user, 'Account connected and login successful!');
                 return;
             } catch (migrationError) {
@@ -197,6 +195,26 @@ window.handleLogin = async function handleLogin(event) {
             }
         }
 
+        notify(authErrorMessage(error), 'error');
+    }
+};
+
+window.showAuthHelp = async function showAuthHelp(type = 'password') {
+    if (type === 'social') {
+        notify('Use Google sign-in for Google-created accounts. Email/password only works after a password is set for that email.', 'info');
+        return;
+    }
+
+    const email = document.getElementById('loginEmail')?.value?.trim();
+    if (!email) {
+        notify('Enter your email address first, then click Need help? to receive a password reset email.', 'info');
+        return;
+    }
+
+    try {
+        await sendPasswordResetEmail(auth, email);
+        notify('Password reset email sent. Check your inbox, then return here to log in.', 'success');
+    } catch (error) {
         notify(authErrorMessage(error), 'error');
     }
 };

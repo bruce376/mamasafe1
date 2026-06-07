@@ -77,7 +77,7 @@ async function finishAuth(user, message) {
     notify(message, 'success');
 
     if (typeof window.resumeIntendedAccess === 'function') {
-        window.resumeIntendedAccess();
+        window.resumeIntendedAccess('home');
     } else if (typeof window.navigateTo === 'function') {
         window.navigateTo('home', { skipAuthCheck: true });
     } else if (isStandaloneAuthPage()) {

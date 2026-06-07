@@ -2212,11 +2212,12 @@ function showAuthHelp(type = 'password') {
 function resumeIntendedAccess(fallbackPage = 'home') {
     const intendedPage = localStorage.getItem('bc_intended_page');
     const intendedAction = localStorage.getItem('bc_intended_action');
+    const authPages = new Set(['login', 'signup', 'auth']);
     
     localStorage.removeItem('bc_intended_page');
     localStorage.removeItem('bc_intended_action');
     
-    if (intendedPage) {
+    if (intendedPage && !authPages.has(intendedPage)) {
         setTimeout(() => {
             navigateTo(intendedPage, { skipAuthCheck: true });
             if (intendedAction && typeof window[intendedAction] === 'function') {
@@ -2227,7 +2228,7 @@ function resumeIntendedAccess(fallbackPage = 'home') {
         }, 500);
     } else {
         const pageFromUrl = typeof getCurrentPageFromURL === 'function' ? getCurrentPageFromURL() : '';
-        if (!pageFromUrl || pageFromUrl === 'home') {
+        if (!pageFromUrl || pageFromUrl === 'home' || authPages.has(pageFromUrl)) {
             setTimeout(() => navigateTo(fallbackPage || 'home', { skipAuthCheck: true }), 700);
         }
     }

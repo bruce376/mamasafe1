@@ -163,10 +163,6 @@ Your Mamasafe app has **two types of AI/data**:
 | `symptoms` | Symptom tracking | Llama uses this to give symptom‑specific guidance |
 | `nutrition` | Nutrition tracking | Llama gives dietary advice based on this |
 | `sleep` | Sleep tracking | Llama gives sleep tips |
-| `health_pregnancy_indicators` | Health indicators data | Used for health assessments |
-| `who_anc_data_elements` | WHO ANC guidelines | Llama references WHO guidelines for evidence‑based advice |
-| `mn_survey_records` | MNCH survey data | Reference data |
-| `maternal_mortality_indicators` | Mortality indicators (reference) | Reference data |
 
 #### 📚 Educational & Reference Content
 | Collection | What it stores | How Llama uses it |
@@ -190,8 +186,6 @@ Your Mamasafe app has **two types of AI/data**:
 |------------|----------------|
 | `app_events` | App event logs (tracks actions in the app) |
 | `admin_audit` | Admin audit logs (tracks admin panel actions) |
-| `pregnancy_source_datasets` | Source datasets for import scripts |
-| `pregnancy_knowledge` | Knowledge base data |
 
 ---
 

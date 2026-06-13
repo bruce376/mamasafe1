@@ -2324,9 +2324,6 @@ async function handleSignup(event) {
     const email = document.getElementById('signupEmail')?.value?.trim();
     const password = document.getElementById('signupPassword')?.value || '';
     const confirmPassword = document.getElementById('confirmPassword')?.value || '';
-    const stage = document.getElementById('motherhoodStage')?.value || 'pregnant';
-    const dueDate = document.getElementById('signupCareDate')?.value || '';
-    const carePriority = document.getElementById('carePriority')?.value || 'pregnancy-tracking';
     const weeklyTips = !!document.getElementById('weeklyTipsOptIn')?.checked;
     
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
@@ -2353,9 +2350,9 @@ async function handleSignup(event) {
         firstName,
         lastName,
         email,
-        stage,
-        dueDate,
-        carePriority,
+        stage: 'pregnant',
+        dueDate: '',
+        carePriority: 'pregnancy-tracking',
         weeklyTips,
         source: 'auth-signup',
         authAction: 'signup',

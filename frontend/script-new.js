@@ -8428,16 +8428,13 @@ function playWord(word, emoji) {
     }
 }
 
-// Advanced AI Games with Groq API Integration
+// Advanced AI Games with shared backend project AI
 let recognition = null;
 let isListening = false;
 let voiceGameScore = 0;
 let voiceGameStreak = 0;
 
-// Groq AI API Configuration
-const GROQ_API_KEY = 'gsk_your_api_key_here'; // Replace with actual API key
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const USE_MOCK_RESPONSES = GROQ_API_KEY === 'gsk_your_api_key_here'; // Use mock responses when API key is not set
+const PROJECT_AI_ENDPOINT = () => window.mamasafeApiUrl('/api/project-ai');
 
 // AI Game State Management
 const aiGameState = {
@@ -8448,39 +8445,31 @@ const aiGameState = {
     sleep: { isAnalyzing: false, lastAnalysis: null }
 };
 
-// Generic Groq API Call Function
+// Generic project AI call that keeps model access on the backend
 async function callGroqAPI(messages, temperature = 0.7, maxTokens = 500) {
-    // Use mock responses if API key is not configured
-    if (USE_MOCK_RESPONSES) {
-        return getMockResponse(messages);
-    }
-
     try {
-        const response = await fetch(GROQ_API_URL, {
+        const response = await fetch(PROJECT_AI_ENDPOINT(), {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: 'llama3-70b-8192',
-                messages: messages,
+                feature: 'interactive-ai-tools',
+                messages,
                 temperature: temperature,
-                max_tokens: maxTokens,
-                top_p: 1,
-                stream: false
+                maxTokens: maxTokens
             })
         });
 
         if (!response.ok) {
-            throw new Error(`Groq API error: ${response.status} - ${response.statusText}`);
+            throw new Error(`Project AI error: ${response.status} - ${response.statusText}`);
         }
 
         const data = await response.json();
-        return data.choices[0].message.content;
+        return data.reply || getMockResponse(messages);
     } catch (error) {
-        console.error('Groq API call failed:', error);
-        throw error;
+        console.error('Project AI call failed:', error);
+        return getMockResponse(messages);
     }
 }
 
@@ -13687,16 +13676,15 @@ async function generateNutritionPlan() {
 
 async function calculateNutritionPlanAI(age, weight, allergies, dietaryPreferences) {
     try {
-        const response = await fetch(window.mamasafeApiUrl('/api/ai-nutrition-analysis'), {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-nutrition-planning'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                age,
-                weight,
-                allergies: allergies || '',
-                dietaryPreferences: dietaryPreferences || ''
+                mealPlan: `Create a nutrition plan for age ${age} and weight ${weight}.`,
+                dietaryRestrictions: [allergies || '', dietaryPreferences || ''].filter(Boolean).join(', '),
+                goals: 'Provide personalized feeding guidance, nutrient priorities, and safe food suggestions.'
             })
         });
 
@@ -13704,7 +13692,23 @@ async function calculateNutritionPlanAI(age, weight, allergies, dietaryPreferenc
             throw new Error('Failed to get AI analysis');
         }
 
-        return await response.json();
+        const aiData = await response.json();
+        const nutritionPlan = calculateNutritionPlan(age, weight, allergies);
+        const aiSummary = aiData.response || aiData.reply || '';
+
+        if (aiSummary) {
+            nutritionPlan.recommendations = nutritionPlan.recommendations || [];
+            nutritionPlan.recommendations.unshift({
+                title: 'MamaSafe AI Guidance',
+                items: [{
+                    name: 'Llama nutrition summary',
+                    description: aiSummary,
+                    amount: 'AI'
+                }]
+            });
+        }
+
+        return nutritionPlan;
     } catch (error) {
         console.error('AI Nutrition Analysis Error:', error);
         throw error;
@@ -15136,15 +15140,8 @@ async function buildAdvancedFertilityDietPlan() {
     
     try {
         // Generate AI-powered fertility analysis
-        const fertilityAnalysis = await generateAIFertilityAnalysis(ageRange, goal, healthConcerns, cycleLength, regularity);
-        
-        // Display results
-        displayFertilityDietResults({
-            personalInfo: { ageRange, goal },
-            successMetrics: fertilityAnalysis.successMetrics,
-            timeline: fertilityAnalysis.timeline,
-            personalizedPlan: fertilityAnalysis.personalizedPlan
-        });
+        const fertilityAnalysis = await generateAIFertilityAnalysis(ageRange, goal, healthConcerns, cycleLength, regularity, dietStyle, caffeine, hydration, activityLevel);
+        displayFertilityDietResults(fertilityAnalysis);
         
         showNotification('AI Fertility Analysis Generated Successfully!', 'success');
     } catch (error) {
@@ -15156,19 +15153,17 @@ async function buildAdvancedFertilityDietPlan() {
     }
 }
 
-async function generateAIFertilityAnalysis(ageRange, goal, healthConcerns, cycleLength, regularity) {
+async function generateAIFertilityAnalysis(ageRange, goal, healthConcerns, cycleLength, regularity, dietStyle, caffeine, hydration, activityLevel) {
     try {
-        const response = await fetch(window.mamasafeApiUrl('/api/ai-fertility-analysis'), {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-fertility-tracking'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                ageRange,
-                goal,
-                healthConcerns: healthConcerns || [],
                 cycleLength: cycleLength || 28,
-                regularity: regularity || 'regular'
+                goals: `${goal || 'general fertility support'}; age range ${ageRange}; regularity ${regularity || 'regular'}`,
+                concerns: (healthConcerns || []).join(', ')
             })
         });
 
@@ -15176,7 +15171,16 @@ async function generateAIFertilityAnalysis(ageRange, goal, healthConcerns, cycle
             throw new Error('Failed to get AI analysis');
         }
 
-        return await response.json();
+        const aiData = await response.json();
+        const plan = generateAINutritionPlan(ageRange, dietStyle, goal, healthConcerns, caffeine, hydration, activityLevel);
+        const aiSummary = aiData.response || aiData.reply || '';
+
+        plan.supplementPlan.lifestyle = plan.supplementPlan.lifestyle || [];
+        if (aiSummary) {
+            plan.supplementPlan.lifestyle.unshift(aiSummary);
+        }
+
+        return plan;
     } catch (error) {
         console.error('AI Fertility Analysis Error:', error);
         throw error;
@@ -15334,6 +15338,7 @@ function generateSupplementPlan(goal, healthConcerns, ageRange) {
         goal: goalSpecific[goal] || [],
         health: healthConcerns.flatMap(concern => healthSpecific[concern] || []),
         age: ageSpecific[ageRange] || [],
+        lifestyle: [],
         timing: 'Take supplements with meals for better absorption'
     };
 }
@@ -18846,17 +18851,20 @@ async function runSleepQualityAnalysis() {
 // Generate advanced sleep analysis using AI
 async function generateAdvancedSleepAnalysisAI(age, duration, quality, environment, associations, concerns) {
     try {
-        const response = await fetch(window.mamasafeApiUrl('/api/ai-sleep-analysis'), {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-sleep-guidance'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 age: parseInt(age),
-                sleepDuration: duration,
-                sleepQuality: quality,
-                sleepEnvironment: environment,
-                concerns: concerns || ''
+                sleepIssues: JSON.stringify({
+                    duration,
+                    quality,
+                    associations,
+                    concerns
+                }),
+                schedule: JSON.stringify(environment)
             })
         });
 
@@ -18864,11 +18872,44 @@ async function generateAdvancedSleepAnalysisAI(age, duration, quality, environme
             throw new Error('Failed to get AI analysis');
         }
 
-        return await response.json();
+        const aiData = await response.json();
+        const fallback = generateAdvancedSleepAnalysisFallback(age, duration, quality, environment, associations, concerns);
+        const aiSummary = aiData.response || aiData.reply || '';
+
+        return {
+            sleepScore: Math.round((fallback.qualityScore || 0) * 10),
+            schedule: {
+                bedtime: parseInt(age, 10) < 12 ? '7:00 PM' : '7:30 PM',
+                totalSleep: `${duration} hours`
+            },
+            recommendations: (fallback.recommendations || []).map(rec => ({
+                title: rec.title,
+                description: rec.description,
+                priority: rec.priority === 'high' ? 'High' : rec.priority === 'medium' ? 'Medium' : 'Low',
+                category: rec.ageRange || 'General'
+            })),
+            environmentTips: [
+                ...(aiSummary ? [aiSummary] : []),
+                ...(fallback.sleepPatterns || []).map(pattern => pattern.recommendation)
+            ]
+        };
     } catch (error) {
         console.error('AI Sleep Analysis Error:', error);
-        // Fallback to original logic
-        return generateAdvancedSleepAnalysisFallback(age, duration, quality, environment, associations, concerns);
+        const fallback = generateAdvancedSleepAnalysisFallback(age, duration, quality, environment, associations, concerns);
+        return {
+            sleepScore: Math.round((fallback.qualityScore || 0) * 10),
+            schedule: {
+                bedtime: parseInt(age, 10) < 12 ? '7:00 PM' : '7:30 PM',
+                totalSleep: `${duration} hours`
+            },
+            recommendations: (fallback.recommendations || []).map(rec => ({
+                title: rec.title,
+                description: rec.description,
+                priority: rec.priority === 'high' ? 'High' : rec.priority === 'medium' ? 'Medium' : 'Low',
+                category: rec.ageRange || 'General'
+            })),
+            environmentTips: (fallback.sleepPatterns || []).map(pattern => pattern.recommendation)
+        };
     }
 }
 
@@ -19812,9 +19853,9 @@ async function startActivityTracking() {
 }
 
 async function generateActivityAnalysis(age, activityLevel, activities) {
-    // AI-powered activity analysis using Gemini API
+    // AI-powered activity analysis using the shared project AI backend
     try {
-        const response = await fetch(window.mamasafeApiUrl('/api/ai-activity-analysis'), {
+        const response = await fetch(window.mamasafeApiUrl('/api/ai-activity-recommendations'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -19831,20 +19872,21 @@ async function generateActivityAnalysis(age, activityLevel, activities) {
         }
 
         const aiAnalysis = await response.json();
-        
-        // Generate activity schedule based on AI recommendations
-        const schedule = generateActivitySchedule(activityLevel, activities);
-        
-        return {
-            age: age,
-            activityLevel: activityLevel,
-            currentActivities: activities,
-            developmentalMilestone: aiAnalysis.developmentalMilestone,
-            recommendations: aiAnalysis.recommendations,
-            schedule: aiAnalysis.schedule || schedule,
-            analysisDate: new Date().toLocaleDateString(),
-            aiPowered: true
-        };
+        const analysis = generateActivityAnalysisFallback(age, activityLevel, activities);
+        const aiSummary = aiAnalysis.response || aiAnalysis.reply || '';
+
+        if (aiSummary) {
+            analysis.recommendations.unshift({
+                title: 'MamaSafe AI Insight',
+                description: aiSummary,
+                priority: 'Medium',
+                category: 'AI Guidance'
+            });
+        }
+
+        analysis.aiPowered = true;
+        analysis.analysisDate = new Date().toLocaleDateString();
+        return analysis;
     } catch (error) {
         console.error('AI Activity Analysis Error:', error);
         // Fallback to original logic if AI fails

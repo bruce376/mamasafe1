@@ -1,5 +1,6 @@
 require('dotenv').config();
 const Groq = require('groq-sdk');
+const { getProjectAIModel } = require('./aiModelConfig');
 
 /**
  * Universal Groq AI Service for All Mamasafe Functions
@@ -34,7 +35,7 @@ async function processWithUniversalAI(functionName, context, inputData = {}, use
         const prompt = buildUniversalPrompt(functionName, context, inputData, userContext);
         
         // Get Groq model
-        const model = 'llama-3.3-70b-versatile';
+        const model = getProjectAIModel();
         
         // Generate content
         const response = await getGroqClient().chat.completions.create({

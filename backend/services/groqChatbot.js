@@ -1,5 +1,6 @@
 require('dotenv').config();
 const Groq = require('groq-sdk');
+const { getProjectAIModel, getProjectVisionModels } = require('./aiModelConfig');
 
 /**
  * Groq AI Chatbot Service
@@ -39,7 +40,7 @@ User: ${userMessage}
 Please provide a helpful and comprehensive answer to the user's question above.`;
         
         // Get Groq model - using current supported model
-        const model = 'llama-3.3-70b-versatile';
+        const model = getProjectAIModel();
         
         // Generate content
         const response = await getGroqClient().chat.completions.create({
@@ -99,10 +100,7 @@ User image request: ${prompt}
 
 Please look at the image and answer in a clear ChatGPT-like style. If the image appears related to pregnancy, baby care, food, medicine, skin, symptoms, documents, or safety, be practical and careful. If something may be urgent or medical, tell the user to contact a qualified professional.`;
 
-    const visionModels = [
-        'meta-llama/llama-4-scout-17b-16e-instruct',
-        'llama-3.2-11b-vision-preview'
-    ];
+    const visionModels = getProjectVisionModels();
 
     let lastError;
     for (const model of visionModels) {
@@ -136,6 +134,34 @@ Please look at the image and answer in a clear ChatGPT-like style. If the image 
     }
 
     throw lastError || new Error('No vision model could process the image');
+}
+
+async function processProjectAIRequest(messages = [], options = {}) {
+    if (!Array.isArray(messages) || messages.length === 0) {
+        throw new Error('At least one message is required');
+    }
+
+    const normalizedMessages = messages
+        .filter(message => message && typeof message.content === 'string' && message.content.trim())
+        .map(message => ({
+            role: message.role === 'system' ? 'system' : 'user',
+            content: message.content
+        }));
+
+    if (normalizedMessages.length === 0) {
+        throw new Error('No valid messages were provided');
+    }
+
+    const response = await getGroqClient().chat.completions.create({
+        model: getProjectAIModel(),
+        messages: normalizedMessages,
+        temperature: typeof options.temperature === 'number' ? options.temperature : 0.7,
+        max_tokens: Number.isInteger(options.maxTokens) ? options.maxTokens : 800,
+        top_p: 0.9,
+        stream: false
+    });
+
+    return response.choices?.[0]?.message?.content || '';
 }
 
 /**
@@ -183,8 +209,8 @@ async function testGroqAI() {
     try {
         console.log('🧪 Testing Groq AI connection...');
         
-        const response = await groq.chat.completions.create({
-            model: 'llama-3.3-70b-versatile',
+        const response = await getGroqClient().chat.completions.create({
+            model: getProjectAIModel(),
             messages: [
                 {
                     role: 'user',
@@ -220,7 +246,7 @@ async function getAvailableModels() {
         
         // Return known working models
         const models = [
-            'llama-3.3-70b-versatile',
+            getProjectAIModel(),
             'llama-3.1-8b-instant',
             'qwen/qwen3-32b'
         ];
@@ -237,6 +263,7 @@ async function getAvailableModels() {
 module.exports = {
     processWithGroq,
     processImageWithGroq,
+    processProjectAIRequest,
     testGroqAI,
     getAvailableModels
 };

@@ -279,7 +279,7 @@
     const payload = {
       functionName: "getting-pregnant-coach",
       description: "Create a concise, actionable fertility plan. Include fertile-window strategy, daily tracking, lifestyle checklist, partner considerations, and clinician red flags.",
-      input: {
+      inputData: {
         lmp: state.lmp,
         cycleLength: state.cycle,
         tryingFor: state.tryingFor,
@@ -291,7 +291,7 @@
     };
 
     try {
-      const res = await fetch("/api/ai-universal-processor", {
+      const res = await fetch(window.mamasafeApiUrl("/api/ai-universal-processor"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)

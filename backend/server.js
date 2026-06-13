@@ -1114,7 +1114,7 @@ app.post('/api/admin-panel/notifications', requireAdmin, checkDBConnection, asyn
 
 // Health Chatbot Service - Now using Groq AI (fast & free)
 const { processHealthQuery, checkEmergencyKeywords, generateHealthSuggestions } = require('./services/healthChatbot');
-const { processImageWithGroq } = require('./services/groqChatbot');
+const { processImageWithGroq, processProjectAIRequest } = require('./services/groqChatbot');
 
 // Universal Groq AI Service for all functions
 const {
@@ -1173,6 +1173,30 @@ app.post('/api/mamasafe-chat', async (req, res) => {
     } catch (error) {
         console.error('Health Chatbot Error:', error);
         res.status(500).json({ error: 'Failed to process chat message', details: error.message });
+    }
+});
+
+app.post('/api/project-ai', async (req, res) => {
+    try {
+        const { messages = [], temperature, maxTokens, feature = 'general-assistant' } = req.body || {};
+
+        if (!Array.isArray(messages) || messages.length === 0) {
+            return res.status(400).json({ error: 'Messages are required' });
+        }
+
+        const reply = await processProjectAIRequest(messages, { temperature, maxTokens });
+        res.json({
+            success: true,
+            feature,
+            reply,
+            modelSource: 'project-llama'
+        });
+    } catch (error) {
+        console.error('Project AI Error:', error);
+        res.status(500).json({
+            error: 'Failed to process project AI request',
+            details: error.message
+        });
     }
 });
 

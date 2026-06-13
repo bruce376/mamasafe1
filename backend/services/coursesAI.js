@@ -1,7 +1,8 @@
 require('dotenv').config();
 const Groq = require('groq-sdk');
+const { getProjectAIModel } = require('./aiModelConfig');
 
-const MODEL = 'llama-3.3-70b-versatile';
+const MODEL = getProjectAIModel();
 let groq;
 
 function getGroqClient() {

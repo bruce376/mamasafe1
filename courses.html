@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BabyCenter Premium Courses - Learn from Experts</title>
+    <link rel="stylesheet" href="styles.css?v=20260517-advanced-courses">
+    <style>
+        /* ==================== COURSES PAGE STYLES ==================== */
+        
+        :root {
+            --gradient-pink: linear-gradient(135deg, #ff6b9d 0%, #c239b3 100%);
+            --gradient-blue: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-peach: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --gradient-green: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.08);
+            --shadow-medium: 0 8px 25px rgba(0, 0, 0, 0.12);
+            --shadow-heavy: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Hero Section */
+        .courses-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 20px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .courses-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .courses-hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .courses-hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            animation: slideInDown 0.8s ease-out;
+        }
+
+        .courses-hero p {
+            font-size: 20px;
+            opacity: 0.95;
+            margin-bottom: 30px;
+            animation: slideInUp 0.8s ease-out 0.2s both;
+        }
+
+        /* Dashboard Section */
+        .courses-dashboard {
+            background: #f8f9fa;
+            padding: 60px 20px;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .dashboard-card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .dashboard-card h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-pink);
+            margin: 10px 0;
+        }
+
+        .dashboard-card p {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        /* Advanced Filter Section */
+        .courses-filters-section {
+            background: white;
+            padding: 40px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .filter-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .filter-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-gray);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
+        .filter-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .filter-tag {
+            background: var(--primary-pink);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-tag:hover {
+            background: var(--secondary-pink);
+            transform: scale(1.05);
+        }
+
+        .filter-tag-remove {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        /* Search Bar */
+        .course-search-advanced {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+        }
+
+        .course-search-advanced input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .course-search-advanced input:focus {
+            outline: none;
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
+        .search-btn-advanced {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary-pink);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn-advanced:hover {
+            background: var(--secondary-pink);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        /* Course Grid */
+        .courses-container {
+            padding: 40px 20px;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* Modern Course Card */
+        .course-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.320, 1);
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .course-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .course-card:hover .course-image {
+            transform: scale(1.08);
+        }
+
+        .course-image {
+            width: 100%;
+            height: 200px;
+            background: var(--gradient-pink);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            transition: transform 0.4s ease;
+        }
+
+        .course-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-pink);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+
+        .badge-new {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+        }
+
+        .badge-trending {
+            background: linear-gradient(135deg, #ffa502, #ffb700);
+            color: white;
+        }
+
+        .badge-bestseller {
+            background: linear-gradient(135deg, #ffd89b, #19547b);
+            color: white;
+        }
+
+        .course-content {
+            padding: 25px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .course-category {
+            display: inline-block;
+            background: rgba(255, 107, 157, 0.1);
+            color: var(--primary-pink);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            width: fit-content;
+        }
+
+        .course-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-dark);
+            line-height: 1.4;
+        }
+
+        .course-description {
+            font-size: 14px;
+            color: var(--text-gray);
+            margin-bottom: 15px;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .course-instructor {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .instructor-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .instructor-info {
+            flex: 1;
+        }
+
+        .instructor-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .instructor-title {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        .course-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-pink);
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .course-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .course-rating {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            flex: 1;
+        }
+
+        .stars {
+            color: #ffc107;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+
+        .rating-count {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        .course-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-pink);
+        }
+
+        .course-price-label {
+            font-size: 11px;
+            color: var(--text-gray);
+            display: block;
+        }
+
+        .course-button {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-pink);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        .course-button:hover {
+            background: var(--secondary-pink);
+            transform: translateY(-2px);
+        }
+
+        .course-button:active {
+            transform: translateY(0);
+        }
+
+        /* Featured Course Banner */
+        .featured-course-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+            box-shadow: var(--shadow-heavy);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .featured-course-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .featured-course-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .featured-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .featured-course-content h2 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .featured-course-content p {
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+
+        .featured-course-content ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 25px;
+        }
+
+        .featured-course-content li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .featured-course-content li::before {
+            content: '✓';
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .featured-course-cta {
+            display: inline-block;
+            background: white;
+            color: #667eea;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .featured-course-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .featured-course-image {
+            font-size: 120px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Pagination */
+        .pagination-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 40px 20px;
+        }
+
+        .pagination-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--border-color);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .pagination-btn:hover {
+            border-color: var(--primary-pink);
+            color: var(--primary-pink);
+        }
+
+        .pagination-btn.active {
+            background: var(--primary-pink);
+            color: white;
+            border-color: var(--primary-pink);
+        }
+
+        /* Modal Styles */
+        .course-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .course-modal.active {
+            display: flex;
+        }
+
+        .course-modal-content {
+            background: white;
+            border-radius: 15px;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideUp 0.4s ease;
+        }
+
+        .course-modal-header {
+            padding: 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .course-modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-gray);
+            transition: all 0.3s ease;
+        }
+
+        .course-modal-close:hover {
+            color: var(--text-dark);
+            transform: rotate(90deg);
+        }
+
+        .course-modal-body {
+            padding: 25px;
+        }
+
+        .course-details-section {
+            margin-bottom: 25px;
+        }
+
+        .course-details-section h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-dark);
+        }
+
+        .course-details-section p {
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        .course-details-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .course-details-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-gray);
+        }
+
+        .course-details-list li::before {
+            content: '→';
+            color: var(--primary-pink);
+            font-weight: 700;
+        }
+
+        /* Animations */
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .courses-hero h1 {
+                font-size: 32px;
+            }
+
+            .courses-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .featured-course-banner {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .courses-hero {
+                padding: 40px 15px;
+            }
+
+            .courses-hero h1 {
+                font-size: 24px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .course-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <span>👶 Premium Courses - Learn from Expert Professionals</span>
+                <div class="top-links">
+                    <a href="#">My Learning</a>
+                    <a href="#">Certificates</a>
+                    <a href="#">Support</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <a class="logo" onclick="window.location.href='index.html'">
+                    <div class="logo-icon">B</div>
+                    BabyCenter
+                </a>
+                
+                <nav class="main-nav">
+                    <a href="index.html" data-page="home">Home</a>
+                    <a href="#" onclick="alert('Coming soon!')">Pregnancy</a>
+                    <a href="#" onclick="alert('Coming soon!')">Baby</a>
+                    <a href="#" onclick="alert('Coming soon!')">Toddler</a>
+                    <a class="active" href="#">Courses</a>
+                </nav>
+
+                <div class="header-actions">
+                    <button class="login-btn" onclick="alert('Sign in to access your courses')">Login</button>
+                    <button class="join-btn" onclick="alert('Create your free account')">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- COURSES PAGE -->
+
+    <!-- Hero Section -->
+    <section class="courses-hero">
+        <div class="courses-hero-content">
+            <h1>Master Motherhood & Parenthood</h1>
+            <p>Expert-led courses to support you through every stage of pregnancy, baby care, and parenting</p>
+        </div>
+    </section>
+
+    <!-- Dashboard Cards -->
+    <section class="courses-dashboard">
+        <div class="container">
+            <div class="dashboard-grid">
+                <div class="dashboard-card" onclick="scrollToSection('all-courses')">
+                    <div class="dashboard-card-icon">📚</div>
+                    <h3 id="totalCourses">24</h3>
+                    <p>Total Courses</p>
+                </div>
+                <div class="dashboard-card" onclick="alert('Sign in to view your progress')">
+                    <div class="dashboard-card-icon">⏳</div>
+                    <h3>0</h3>
+                    <p>In Progress</p>
+                </div>
+                <div class="dashboard-card" onclick="alert('Sign in to view your certificates')">
+                    <div class="dashboard-card-icon">🏆</div>
+                    <h3>0</h3>
+                    <p>Completed</p>
+                </div>
+                <div class="dashboard-card" onclick="alert('Sign in to view your favorites')">
+                    <div class="dashboard-card-icon">❤️</div>
+                    <h3>0</h3>
+                    <p>Wishlist</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filters & Search -->
+    <section class="courses-filters-section">
+        <div class="container">
+            <div class="course-search-advanced">
+                <div class="search-input-wrapper">
+                    <input type="text" id="courseSearch" placeholder="Search courses by name, topic, or instructor..." onkeyup="filterCourses()">
+                    <button class="search-btn-advanced" onclick="filterCourses()">🔍</button>
+                </div>
+            </div>
+
+            <div class="filter-header">
+                <h2>Filters</h2>
+                <button class="btn-secondary" onclick="resetFilters()">Reset Filters</button>
+            </div>
+
+            <div class="filter-controls">
+                <div class="filter-group">
+                    <label for="categoryFilter">Category</label>
+                    <select id="categoryFilter" onchange="filterCourses()">
+                        <option value="">All Categories</option>
+                        <option value="pregnancy">Pregnancy</option>
+                        <option value="baby-care">Baby Care</option>
+                        <option value="newborn">Newborn</option>
+                        <option value="toddler">Toddler</option>
+                        <option value="wellness">Wellness</option>
+                        <option value="nutrition">Nutrition</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="levelFilter">Level</label>
+                    <select id="levelFilter" onchange="filterCourses()">
+                        <option value="">All Levels</option>
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="durationFilter">Duration</label>
+                    <select id="durationFilter" onchange="filterCourses()">
+                        <option value="">Any Duration</option>
+                        <option value="short">Short (< 2 hours)</option>
+                        <option value="medium">Medium (2-5 hours)</option>
+                        <option value="long">Long (> 5 hours)</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="priceFilter">Price Range</label>
+                    <select id="priceFilter" onchange="filterCourses()">
+                        <option value="">Any Price</option>
+                        <option value="free">Free</option>
+                        <option value="under50">Under $50</option>
+                        <option value="50-100">$50 - $100</option>
+                        <option value="over100">Over $100</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="ratingFilter">Rating</label>
+                    <select id="ratingFilter" onchange="filterCourses()">
+                        <option value="">Any Rating</option>
+                        <option value="4.5">4.5+ Stars</option>
+                        <option value="4">4+ Stars</option>
+                        <option value="3.5">3.5+ Stars</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="instructorFilter">Instructor Type</label>
+                    <select id="instructorFilter" onchange="filterCourses()">
+                        <option value="">All Instructors</option>
+                        <option value="certified">Certified Experts</option>
+                        <option value="physician">Physicians</option>
+                        <option value="specialist">Specialists</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="filter-tags" id="filterTags"></div>
+        </div>
+    </section>
+
+    <!-- Featured Course Banner -->
+    <section class="courses-container">
+        <div class="container">
+            <div class="featured-course-banner">
+                <div class="featured-course-content">
+                    <span class="featured-badge">⭐ FEATURED THIS MONTH</span>
+                    <h2>The Complete Pregnancy Guide</h2>
+                    <p>From conception to postpartum recovery, master everything you need to know about pregnancy with our most comprehensive course.</p>
+                    <ul>
+                        <li>8 modules | 12 hours of content</li>
+                        <li>Live Q&A sessions with OB/GYN doctors</li>
+                        <li>Downloadable resources & checklists</li>
+                        <li>Certificate upon completion</li>
+                    </ul>
+                    <button class="featured-course-cta" onclick="openCourseModal('complete-pregnancy')">Explore Now →</button>
+                </div>
+                <div class="featured-course-image">🤰</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- All Courses -->
+    <section class="courses-container" id="all-courses">
+        <div class="container">
+            <h2 style="font-size: 28px; margin-bottom: 30px; font-weight: 700;">Browse All Courses</h2>
+            <div class="courses-grid" id="coursesGrid">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination-section" id="paginationSection">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Course Detail Modal -->
+    <div class="course-modal" id="courseModal">
+        <div class="course-modal-content">
+            <div class="course-modal-header">
+                <h2 id="modalCourseName">Course Name</h2>
+                <button class="course-modal-close" onclick="closeCourseModal()">×</button>
+            </div>
+            <div class="course-modal-body" id="modalCourseBody">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Courses functionality -->
+    <script src="courses.js"></script>
+    <script>
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    </script>
+</body>
+</html>

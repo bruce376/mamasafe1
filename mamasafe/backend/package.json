@@ -1,0 +1,55 @@
+{
+  "name": "@mamasafe/backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": ">=20 <27"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node --check server.js",
+    "train:custom-ai": "node scripts/train-ai.js",
+    "train:unified-health-ai": "node scripts/train-unified-health-ai.js",
+    "train:all": "node scripts/train-ai.js && node scripts/train-unified-health-ai.js",
+    "import:maternal-risk-datasets": "node scripts/import-maternal-risk-datasets.js",
+    "import:health-pregnancy-datasets": "node scripts/import-health-pregnancy-datasets.js",
+    "embed:pregnancy-knowledge": "node scripts/generateEmbeddings.js",
+    "prepare:pregnancy-rag": "npm run embed:pregnancy-knowledge"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bruce376/mamasafe1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bruce376/mamasafe1/issues"
+  },
+  "homepage": "https://github.com/bruce376/mamasafe1#readme",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@huggingface/hub": "^2.13.1",
+    "@huggingface/transformers": "^4.2.0",
+    "@tensorflow/tfjs": "^4.22.0",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^16.3.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "firebase-functions": "^7.2.5",
+    "groq-sdk": "^1.2.0",
+    "helmet": "^8.1.0",
+    "mongodb": "^6.3.0",
+    "mongoose": "^9.4.1",
+    "morgan": "^1.10.1",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pdf-parse": "^2.4.5"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}

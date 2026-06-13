@@ -1,0 +1,22 @@
+{
+  "name": "mamasafe-frontend",
+  "version": "1.0.0",
+  "description": "Mamasafe Frontend Application",
+  "main": "index.html",
+  "scripts": {
+    "start": "node scripts/start-server.js",
+    "serve": "node scripts/start-server.js"
+  },
+  "keywords": [
+    "mamasafe",
+    "frontend",
+    "maternal",
+    "health"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "http-server": "^14.1.1"
+  }
+}

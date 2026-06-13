@@ -1,0 +1,89 @@
+{
+  "model": "llama-3.3-70b-versatile",
+  "displayName": "Llama 3.3 70B via Groq",
+  "version": "2026-06-11-rag-llama-groq",
+  "type": "rag-transformer-chat-model",
+  "runtime": "Groq API",
+  "provider": "Groq",
+  "purpose": "MamaSafe pregnancy education, symptom guidance, maternal risk explanation, weekly planning, and safety-aware support.",
+  "backendEndpoint": {
+    "primary": "POST /api/ai/ask",
+    "compatibility": [
+      "POST /api/chat",
+      "POST /api/chat/ask",
+      "POST /api/chat/pregnancy"
+    ],
+    "status": [
+      "GET /api/ai/status",
+      "GET /api/chat/status"
+    ]
+  },
+  "flow": [
+    "User Question",
+    "Frontend",
+    "Backend",
+    "Embedding Model",
+    "MongoDB Vector Search",
+    "Context + Question",
+    "Llama 3.3 70B via Groq",
+    "Transformer processes + reasons",
+    "AI-generated answer",
+    "User receives response"
+  ],
+  "embeddingModel": {
+    "model": "Xenova/all-MiniLM-L6-v2",
+    "runtime": "@huggingface/transformers",
+    "purpose": "Convert user question and pregnancy context into meaning vectors for retrieval."
+  },
+  "vectorSearch": {
+    "database": "MongoDB Atlas",
+    "collection": "pregnancy_knowledge",
+    "index": "pregnancy_vector_index",
+    "path": "embedding",
+    "fallback": "MongoDB pregnancy RAG collection search"
+  },
+  "knowledgeSources": [
+    "pregnancy_knowledge",
+    "pregnancy_weeks",
+    "symptoms",
+    "danger_signs",
+    "nutrition",
+    "articles",
+    "faqs",
+    "who_guidelines",
+    "who_document_chunks",
+    "pregnancy_source_datasets",
+    "maternal_health_risk_records",
+    "who_anc_data_elements",
+    "mn_survey_records"
+  ],
+  "safetyRules": {
+    "emergencyFirst": true,
+    "urgentSymptoms": [
+      "heavy bleeding",
+      "fluid leaking",
+      "loss of consciousness",
+      "convulsions",
+      "severe abdominal pain",
+      "severe headache",
+      "vision changes",
+      "chest pain",
+      "trouble breathing",
+      "reduced baby movement",
+      "self harm"
+    ],
+    "disclaimer": "MamaSafe provides health education and does not replace advice from a qualified healthcare professional."
+  },
+  "environment": {
+    "required": [
+      "GROQ_API_KEY"
+    ],
+    "optional": {
+      "GROQ_CHAT_MODEL": "llama-3.3-70b-versatile",
+      "PREGNANCY_VECTOR_COLLECTION": "pregnancy_knowledge",
+      "PREGNANCY_VECTOR_INDEX": "pregnancy_vector_index",
+      "PREGNANCY_VECTOR_PATH": "embedding",
+      "TRANSFORMER_MODEL": "Xenova/all-MiniLM-L6-v2"
+    }
+  }
+}

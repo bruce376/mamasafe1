@@ -1,0 +1,93 @@
+[
+  {
+    "month": 0,
+    "title": "Newborn",
+    "milestones": ["Responds to sound", "Brings hands to face", "Makes reflex movements"],
+    "careFocus": "Feeding every 2-3 hours, lots of skin-to-skin contact",
+    "sleep": "16-18 hours total, wake every 2-3 hours to feed"
+  },
+  {
+    "month": 1,
+    "title": "1 Month",
+    "milestones": ["Begins to smile", "Tracks objects with eyes", "Lifts head briefly"],
+    "careFocus": "Tummy time practice, responding to cues",
+    "sleep": "15-16 hours, longer stretches at night"
+  },
+  {
+    "month": 2,
+    "title": "2 Months",
+    "milestones": ["Social smile", "Coos and makes sounds", "Holds head up"],
+    "careFocus": "Interactive play, reading to baby",
+    "sleep": "14-16 hours, 4-5 naps"
+  },
+  {
+    "month": 3,
+    "title": "3 Months",
+    "milestones": ["Laughs", "Recognizes faces", "Grasps objects"],
+    "careFocus": "Establish routines, more tummy time",
+    "sleep": "14-15 hours, bedtime routine important"
+  },
+  {
+    "month": 4,
+    "title": "4 Months",
+    "milestones": ["Rolls over", "Babbles", "Reaches for toys"],
+    "careFocus": "Safe exploration, watching for rolling",
+    "sleep": "14-15 hours, may start sleep regression"
+  },
+  {
+    "month": 5,
+    "title": "5 Months",
+    "milestones": ["Sits with support", "Transfers objects", "More vocal"],
+    "careFocus": "Introducing solid foods may begin",
+    "sleep": "14 hours, 3 naps typical"
+  },
+  {
+    "month": 6,
+    "title": "6 Months",
+    "milestones": ["Sits independently", "Starts solids", "Babbles strings"],
+    "careFocus": "First foods, sitting practice, teething care",
+    "sleep": "14 hours, 2-3 naps"
+  },
+  {
+    "month": 7,
+    "title": "7 Months",
+    "milestones": ["Crawling attempts", "Object permanence", "Responds to name"],
+    "careFocus": "Baby-proofing, varied solid foods",
+    "sleep": "13-14 hours, 2-3 naps"
+  },
+  {
+    "month": 8,
+    "title": "8 Months",
+    "milestones": ["Crawls well", "Pulls to stand", "Pincer grasp"],
+    "careFocus": "Safety priority, finger foods",
+    "sleep": "13-14 hours, 2 naps"
+  },
+  {
+    "month": 9,
+    "title": "9 Months",
+    "milestones": ["Stands holding on", "Waves bye-bye", "Understands 'no'"],
+    "careFocus": "Communication games, cruising practice",
+    "sleep": "13-14 hours, 2 naps"
+  },
+  {
+    "month": 10,
+    "title": "10 Months",
+    "milestones": ["Cruises furniture", "Gestures for needs", "Explores everything"],
+    "careFocus": "Constant supervision, reading together",
+    "sleep": "12-14 hours, 2 naps"
+  },
+  {
+    "month": 11,
+    "title": "11 Months",
+    "milestones": ["Stands alone", "First words", "Imitates actions"],
+    "careFocus": "Language development, walking prep",
+    "sleep": "12-14 hours, 2 naps"
+  },
+  {
+    "month": 12,
+    "title": "12 Months",
+    "milestones": ["Walks with help or alone", "Says 1-3 words", "Follows instructions"],
+    "careFocus": "Celebration! Transitioning to toddler",
+    "sleep": "12-14 hours, 1-2 naps"
+  }
+]

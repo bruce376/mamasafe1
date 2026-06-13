@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Error Fix Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+        <h1>🔧 Error Fix Test</h1>
+        <p>Testing the fix for non-finite value errors in audio parameters.</p>
+        
+        <!-- Test Controls -->
+        <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h3>Error Fix Tests</h3>
+            <button onclick="testValidation()">✅ Test Parameter Validation</button>
+            <button onclick="testSongSelection()">🎵 Test Song Selection</button>
+            <button onclick="testErrorHandling()">⚠️ Test Error Handling</button>
+        </div>
+        
+        <!-- Status Display -->
+        <div style="background: #ecfdf5; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h3>Fix Status</h3>
+            <div id="fixStatus">
+                <p>✅ Added frequency validation in playNote()</p>
+                <p>✅ Added duration validation in playNote()</p>
+                <p>✅ Added note data validation in playLullabyMelody()</p>
+                <p>✅ Added error logging for debugging</p>
+            </div>
+        </div>
+        
+        <!-- Sleep Songs Library -->
+        <div class="ai-game">
+            <div class="mini-game-head">
+                <span class="mini-game-badge ai-badge">🔧 Fixed Version</span>
+                <h4>Baby Sleep Songs (Error-Free)</h4>
+                <p>10 classic lullabies with robust error handling.</p>
+            </div>
+            
+            <div class="sleep-songs-container">
+                <div class="audio-player" id="audioPlayer">
+                    <audio id="songAudio"></audio>
+                    <div class="player-controls">
+                        <button id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
+                        <button onclick="stopAudio()">⏹️ Stop</button>
+                        <div class="volume-control">
+                            <span>🔊</span>
+                            <input type="range" id="volumeSlider" min="0" max="100" value="70" onchange="changeVolume(this.value)">
+                        </div>
+                    </div>
+                    <div class="now-playing" id="nowPlaying">No song selected</div>
+                </div>
+                
+                <div class="songs-list" id="songsList">
+                    <!-- Songs will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="mini-game-feedback" id="songsFeedback">Error handling improved - songs should play without crashes</div>
+        </div>
+        
+        <!-- Error Fix Details -->
+        <div style="background: #fff5f5; padding: 20px; border-radius: 10px; margin-top: 20px;">
+            <h3>🔧 Error Fixes Applied</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #667eea; color: white;">
+                    <th style="padding: 8px; text-align: left;">Issue</th>
+                    <th style="padding: 8px; text-align: left;">Fix</th>
+                    <th style="padding: 8px; text-align: center;">Status</th>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">Non-finite frequency values</td>
+                    <td style="padding: 8px;">Added isFinite() validation</td>
+                    <td style="padding: 8px; text-align: center;">✅ Fixed</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">Invalid duration values</td>
+                    <td style="padding: 8px;">Added duration validation</td>
+                    <td style="padding: 8px; text-align: center;">✅ Fixed</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">Missing note data</td>
+                    <td style="padding: 8px;">Added note validation</td>
+                    <td style="padding: 8px; text-align: center;">✅ Fixed</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">No error logging</td>
+                    <td style="padding: 8px;">Added console.error() calls</td>
+                    <td style="padding: 8px; text-align: center;">✅ Added</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <script src="script-new.js"></script>
+    <script>
+        let testResults = [];
+        
+        function updateStatus(message, isError = false) {
+            const statusDiv = document.getElementById('fixStatus');
+            const statusItem = document.createElement('p');
+            statusItem.style.color = isError ? 'red' : 'green';
+            statusItem.textContent = message;
+            statusDiv.appendChild(statusItem);
+            testResults.push({message, isError});
+        }
+        
+        function testValidation() {
+            updateStatus('🔍 Testing parameter validation...');
+            
+            // Test with invalid frequency
+            try {
+                if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    const audioContext = new AudioContextClass();
+                    const gainNode = audioContext.createGain();
+                    gainNode.connect(audioContext.destination);
+                    
+                    // This should not crash due to validation
+                    playNote(audioContext, gainNode, NaN, audioContext.currentTime, 1000);
+                    playNote(audioContext, gainNode, Infinity, audioContext.currentTime, 1000);
+                    playNote(audioContext, gainNode, -100, audioContext.currentTime, 1000);
+                    
+                    setTimeout(() => {
+                        audioContext.close();
+                        updateStatus('✅ Parameter validation working correctly');
+                    }, 500);
+                }
+            } catch (error) {
+                updateStatus(`❌ Validation test failed: ${error.message}`, true);
+            }
+        }
+        
+        function testSongSelection() {
+            updateStatus('🎵 Testing song selection with error handling...');
+            
+            try {
+                // Test with a valid song
+                const song = sleepSongs.find(s => s.id === 1);
+                if (song) {
+                    selectSong(1);
+                    updateStatus('✅ Song selection test successful');
+                } else {
+                    updateStatus('❌ Song not found', true);
+                }
+            } catch (error) {
+                updateStatus(`❌ Song selection test failed: ${error.message}`, true);
+            }
+        }
+        
+        function testErrorHandling() {
+            updateStatus('⚠️ Testing error handling...');
+            
+            // Override console.error to capture errors
+            const originalError = console.error;
+            let errorCount = 0;
+            
+            console.error = function(...args) {
+                errorCount++;
+                originalError.apply(console, args);
+            };
+            
+            try {
+                // Test with invalid melody data
+                const invalidMelody = [
+                    {note: 'INVALID_NOTE', duration: 800},
+                    {note: '', duration: 800},
+                    {note: 'C4', duration: NaN},
+                    {note: 'C4', duration: -100}
+                ];
+                
+                // This should handle errors gracefully
+                if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    const audioContext = new AudioContextClass();
+                    const gainNode = audioContext.createGain();
+                    gainNode.connect(audioContext.destination);
+                    
+                    invalidMelody.forEach(note => {
+                        if (noteFrequencies[note.note]) {
+                            playNote(audioContext, gainNode, noteFrequencies[note.note], audioContext.currentTime, note.duration);
+                        }
+                    });
+                    
+                    setTimeout(() => {
+                        audioContext.close();
+                        console.error = originalError; // Restore original
+                        updateStatus(`✅ Error handling test complete - ${errorCount} errors caught`);
+                    }, 1000);
+                }
+            } catch (error) {
+                console.error = originalError; // Restore original
+                updateStatus(`❌ Error handling test failed: ${error.message}`, true);
+            }
+        }
+        
+        // Override global error handler
+        window.addEventListener('error', (event) => {
+            updateStatus(`❌ Global error caught: ${event.error.message}`, true);
+            console.error('Global Error:', event.error);
+        });
+        
+        // Initialize sleep songs immediately for testing
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                initializeSleepSongs();
+                updateStatus('✅ Initialization successful');
+            } catch (error) {
+                updateStatus(`❌ Initialization failed: ${error.message}`, true);
+            }
+        });
+    </script>
+</body>
+</html>

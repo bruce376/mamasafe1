@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Mamasafe</title>
+    <link rel="stylesheet" href="styles.css?v=20260608-guest-preview-lock">
+    <style>
+        body {
+            background: #fff7f5;
+        }
+
+        .standalone-auth {
+            align-items: center;
+            background:
+                linear-gradient(135deg, rgba(20, 184, 166, 0.16), rgba(255, 255, 255, 0) 42%),
+                linear-gradient(315deg, rgba(251, 113, 133, 0.2), rgba(255, 255, 255, 0) 44%),
+                #fff7f5;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 28px;
+        }
+
+        .standalone-auth-shell {
+            display: grid;
+            gap: 22px;
+            grid-template-columns: minmax(320px, 0.95fr) minmax(340px, 1fr);
+            max-width: 1120px;
+            width: 100%;
+        }
+
+        .standalone-panel,
+        .standalone-card {
+            border-radius: 8px;
+            min-width: 0;
+        }
+
+        .standalone-panel {
+            background:
+                linear-gradient(135deg, rgba(74, 40, 92, 0.96), rgba(15, 118, 110, 0.92)),
+                #4a285c;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 620px;
+            overflow: hidden;
+            padding: clamp(28px, 4vw, 46px);
+            position: relative;
+        }
+
+        .standalone-panel::before {
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+            background-size: 42px 42px;
+            content: "";
+            inset: 0;
+            opacity: 0.28;
+            pointer-events: none;
+            position: absolute;
+        }
+
+        .standalone-panel > * {
+            position: relative;
+        }
+
+        .standalone-eyebrow {
+            color: #a8edea;
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 950;
+            letter-spacing: 0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .standalone-panel h1 {
+            color: #ffffff;
+            font-size: clamp(34px, 5vw, 58px);
+            font-weight: 950;
+            letter-spacing: 0;
+            line-height: 1;
+            margin: 0 0 18px;
+        }
+
+        .standalone-panel p {
+            color: rgba(255, 255, 255, 0.84);
+            font-size: 17px;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .standalone-card {
+            align-self: center;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid #ffe4e6;
+            box-shadow: 0 22px 60px rgba(136, 58, 116, 0.12);
+            padding: clamp(26px, 4vw, 42px);
+        }
+
+        .standalone-logo {
+            align-items: center;
+            background: #fff7f5;
+            border: 1px solid #ffe4e6;
+            border-radius: 8px;
+            color: #883a74;
+            display: inline-flex;
+            font-size: 15px;
+            font-weight: 950;
+            height: 44px;
+            justify-content: center;
+            margin-bottom: 18px;
+            padding: 0 14px;
+        }
+
+        .standalone-card h2 {
+            color: #0f172a;
+            font-size: clamp(28px, 4vw, 40px);
+            font-weight: 950;
+            letter-spacing: 0;
+            line-height: 1.05;
+            margin: 0 0 10px;
+        }
+
+        .standalone-card p {
+            color: #64748b;
+            line-height: 1.6;
+            margin: 0 0 24px;
+        }
+
+        .standalone-actions {
+            display: grid;
+            gap: 12px;
+        }
+
+        .standalone-btn {
+            align-items: center;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            color: #0f172a;
+            display: flex;
+            font-weight: 900;
+            gap: 12px;
+            justify-content: center;
+            min-height: 52px;
+            padding: 12px 18px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .standalone-btn:hover {
+            border-color: #14b8a6;
+            transform: translateY(-1px);
+        }
+
+        .standalone-btn-primary {
+            background: linear-gradient(135deg, #fb7185, #14b8a6);
+            border: 0;
+            color: #ffffff;
+            box-shadow: 0 15px 34px rgba(251, 113, 133, 0.2);
+        }
+
+        .standalone-divider {
+            align-items: center;
+            color: #64748b;
+            display: flex;
+            font-size: 13px;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .standalone-divider::before,
+        .standalone-divider::after {
+            background: #e2e8f0;
+            content: "";
+            flex: 1;
+            height: 1px;
+        }
+
+        .google-icon {
+            height: 20px;
+            width: 20px;
+        }
+
+        .standalone-note {
+            background: #fff7f5;
+            border: 1px solid #ffe4e6;
+            border-radius: 8px;
+            color: #883a74;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-top: 20px;
+            padding: 14px;
+        }
+
+        .loading {
+            color: #64748b;
+            display: none;
+            margin-top: 18px;
+            text-align: center;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+            border: 3px solid #ffe4e6;
+            border-radius: 50%;
+            border-top-color: #14b8a6;
+            height: 30px;
+            margin: 0 auto 10px;
+            width: 30px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 920px) {
+            .standalone-auth-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .standalone-panel {
+                min-height: auto;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .standalone-auth {
+                padding: 14px;
+            }
+
+            .standalone-panel,
+            .standalone-card {
+                padding: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="standalone-auth">
+        <div class="standalone-auth-shell">
+            <aside class="standalone-panel">
+                <div>
+                    <span class="standalone-eyebrow">Mamasafe login</span>
+                    <h1>Welcome back to your motherhood space.</h1>
+                    <p>Sign in to continue your pregnancy, courses, names, and support tools from one gentle dashboard.</p>
+                </div>
+            </aside>
+
+            <section class="standalone-card" aria-labelledby="authTitle">
+                <div class="standalone-logo">Mamasafe</div>
+                <h2 id="authTitle">Continue your care journey</h2>
+                <p>Use Google or quick local access to open Mamasafe. Your tools are designed for mothers and caregivers at every stage.</p>
+
+                <div class="standalone-actions">
+                    <a href="javascript:void(0)" class="standalone-btn" id="googleLogin">
+                        <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#14b8a6" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#f59e0b" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#fb7185" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Continue with Google
+                    </a>
+
+                    <div class="standalone-divider">or</div>
+
+                    <a href="index.html#login" class="standalone-btn standalone-btn-primary">Email or Phone Login</a>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Connecting to Google...</p>
+                </div>
+
+                <div class="standalone-note">
+                    If Google login is not connected yet, use Quick Login for immediate access to the health chatbot and care tools.
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const googleLogin = document.getElementById('googleLogin');
+        googleLogin?.addEventListener('click', function() {
+            document.getElementById('loading').style.display = 'block';
+            this.style.display = 'none';
+        });
+
+    </script>
+    <script type="module" src="js/auth/firebase-auth.js?v=20260607-password-reset-fix"></script>
+<script src="js/auth/guest-feature-lock.js?v=20260608-guest-preview-lock"></script>
+</body>
+</html>

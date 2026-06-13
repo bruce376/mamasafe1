@@ -1,0 +1,3089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mamasafe - Pregnancy Care, Courses & Baby Names</title>
+    <link rel="icon" type="image/png" href="assets/mamasafe-logo.png">
+    <link rel="stylesheet" href="styles.css?v=20260609-pregnancy-tools">
+    <base target="_self">
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <span>Mamasafe pregnancy care and learning support for mothers</span>
+                <div class="top-links">
+                    <a href="#">Get Our App</a>
+                    <a href="javascript:void(0)" onclick="navigateTo('help-section')">Help Center</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <a class="logo" onclick="navigateTo('home')">
+                    <div class="logo-icon" aria-hidden="true"><img src="assets/mamasafe-logo.png" alt=""></div>
+                    Mamasafe
+                </a>
+                
+                <nav class="main-nav">
+                    <a onclick="navigateTo('pregnancy')" data-page="pregnancy">Pregnancy <span class="account-badge"></span></a>
+                    <a onclick="navigateTo('courses')" data-page="courses">Courses <span class="account-badge"></span></a>
+                    <a onclick="navigateTo('names')" data-page="names">Baby Names <span class="account-badge"></span></a>
+                    <a onclick="navigateTo('help-section')" data-page="help-section">Help Section <span class="account-badge"></span></a>
+                </nav>
+
+                <div class="header-actions">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search..." id="globalSearch">
+                        <button class="search-btn" type="button" aria-label="Search">&#x1F50D;</button>
+                    </div>
+                    <div class="nav-notifications">
+                        <button class="notification-nav-btn" id="notificationNavBtn" type="button" aria-label="Notifications" onclick="toggleNotificationsPanel()">
+                            <span class="notification-nav-icon">&#x1F514;</span>
+                            <span class="notification-nav-count" id="notificationNavCount">0</span>
+                        </button>
+                        <div class="notification-panel" id="notificationPanel" aria-live="polite">
+                            <div class="notification-panel-head">
+                                <div>
+                                    <strong>Notifications & Alerts</strong>
+                                    <span>Stay updated on important messages</span>
+                                </div>
+                                <div class="notification-panel-actions">
+                                    <button type="button" onclick="enableBrowserNotifications()">Enable alerts</button>
+                                    <button type="button" onclick="refreshNotificationsPanel()">Refresh</button>
+                                    <button type="button" onclick="clearNotificationsPanel()">Clear</button>
+                                </div>
+                            </div>
+                            <div class="notification-tabs">
+                                <button class="notification-tab active" data-tab="notifications" onclick="switchNotificationTab('notifications')">
+                                    <span class="tab-icon">🔔</span> Notifications
+                                </button>
+                                <button class="notification-tab" data-tab="messages" onclick="switchNotificationTab('messages')">
+                                    <span class="tab-icon">💬</span> Messages
+                                </button>
+                                <button class="notification-tab" data-tab="alerts" onclick="switchNotificationTab('alerts')">
+                                    <span class="tab-icon">⚠️</span> Alerts
+                                </button>
+                            </div>
+                            <div class="notification-tab-content active" id="notifications-tab">
+                                <div class="notification-list" id="notificationList">
+                                    <div class="notification-empty">No notifications yet</div>
+                                </div>
+                            </div>
+                            <div class="notification-tab-content" id="messages-tab">
+                                <div class="notification-list" id="messagesList">
+                                    <div class="notification-empty">No messages yet</div>
+                                </div>
+                            </div>
+                            <div class="notification-tab-content" id="alerts-tab">
+                                <div class="notification-list" id="alertsList">
+                                    <div class="notification-empty">No alerts yet</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="dark-mode-toggle-nav" id="darkModeToggleNav" onclick="toggleDarkMode()">
+                        <span class="toggle-icon-nav">&#x1F319;</span>
+                    </button>
+                    <button class="login-btn" id="loginBtn" onclick="navigateTo('login')">Login</button>
+                    <button class="join-btn" id="joinBtn" onclick="navigateTo('signup')">Sign Up</button>
+                    <button class="account-btn" id="accountBtn" onclick="navigateTo('account')" style="display: none;">My Account</button>
+                    <button class="logout-btn" id="logoutBtn" onclick="handleLogout()" style="display: none;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HOME PAGE -->
+    <section id="home" class="page-section active">
+        <div class="home-command">
+            <div class="container">
+                <div class="home-hero-grid">
+                    <div class="home-hero-panel">
+                        <span class="home-hero-kicker">Mamasafe command center</span>
+                        <h1>Clear care tools for pregnancy, learning, names, and support.</h1>
+                        <p>Open the right tracker fast, review daily pregnancy priorities, and keep professional help close without digging through the app.</p>
+                        <div class="home-hero-actions">
+                            <button class="btn-primary" onclick="homeStartJourney()">Open My Care Space</button>
+                            <button class="btn-secondary" onclick="openHomeHealthAI()">Ask Mamasafe AI</button>
+                            <button class="btn-secondary" onclick="navigateTo('help-section')">Get Professional Help</button>
+                        </div>
+                        <div class="home-metric-strip">
+                            <div><strong>4</strong><span>Care spaces</span></div>
+                            <div><strong>10+</strong><span>Focused tools</span></div>
+                            <div><strong>24/7</strong><span>AI support</span></div>
+                            <div><strong id="homeSyncStatus">Checking...</strong><span>Sync status</span></div>
+                        </div>
+                    </div>
+
+                    <aside class="home-live-card">
+                        <div class="home-live-head">
+                            <span>Start here</span>
+                            <strong>Personal route</strong>
+                        </div>
+                        <label for="homeJourneySelect">Care area</label>
+                        <select id="homeJourneySelect" onchange="homeUpdateJourneyPreview()">
+                            <option value="pregnancy">Pregnancy hub</option>
+                            <option value="courses">Courses</option>
+                            <option value="names">Baby names</option>
+                            <option value="help-section">Professional help</option>
+                        </select>
+                        <div class="home-stage-preview" id="homeStagePreview">
+                            Choose an area to see the best next action.
+                        </div>
+                        <button class="home-wide-btn" type="button" onclick="homeStartJourney()">Continue</button>
+                        <div class="home-quick-row">
+                            <button type="button" onclick="navigateTo('names')">Names</button>
+                            <button type="button" onclick="navigateTo('courses')">Courses</button>
+                            <button type="button" onclick="toggleNotificationsPanel()">Alerts</button>
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="home-priority-strip">
+                    <button type="button" onclick="navigateTo('due-date-calculator')"><span>Due Date</span><strong>Calculate pregnancy timing</strong></button>
+                    <button type="button" onclick="navigateTo('baby-kick-counter')"><span>Kick Counter</span><strong>Track baby movement</strong></button>
+                    <button type="button" onclick="navigateTo('contraction-timer')"><span>Contractions</span><strong>Time labor patterns</strong></button>
+                    <button type="button" onclick="navigateTo('courses')"><span>Courses</span><strong>Study guided lessons</strong></button>
+                </div>
+
+                <div class="home-operations-grid">
+                    <article class="home-card home-calculator-card">
+                        <div class="home-card-title">
+                            <span>Quick calculator</span>
+                            <strong>Pregnancy due date</strong>
+                        </div>
+                        <div class="home-form-grid">
+                            <label>First day of last period
+                                <input type="date" id="homeLastPeriod">
+                            </label>
+                            <label>Cycle length
+                                <select id="homeCycleLength">
+                                    <option value="28">28 days</option>
+                                    <option value="21">21 days</option>
+                                    <option value="25">25 days</option>
+                                    <option value="30">30 days</option>
+                                    <option value="35">35 days</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button class="calculate-btn" id="homeCalculateBtn" onclick="calculateHomeDueDate()">Calculate</button>
+                        <div class="home-result-grid" id="homeResult">
+                            <div><span>Estimated date</span><strong id="homeDueDate">--</strong></div>
+                            <div><span>Weeks remaining</span><strong id="homeWeeks">--</strong></div>
+                        </div>
+                    </article>
+
+                    <article class="home-card">
+                        <div class="home-card-title">
+                            <span>Today</span>
+                            <strong>Daily care checklist</strong>
+                        </div>
+                        <div class="home-checklist">
+                            <label><input type="checkbox" data-home-task="hydration" onchange="homeSaveChecklist()"> Hydration and nutrition check</label>
+                            <label><input type="checkbox" data-home-task="movement" onchange="homeSaveChecklist()"> Movement, rest, or recovery plan</label>
+                            <label><input type="checkbox" data-home-task="appointment" onchange="homeSaveChecklist()"> Appointment or medication reminder</label>
+                            <label><input type="checkbox" data-home-task="support" onchange="homeSaveChecklist()"> Review support and emergency options</label>
+                        </div>
+                        <p id="homeChecklistStatus" class="home-subtle">0 of 4 completed</p>
+                    </article>
+
+                    <article class="home-card home-alert-card">
+                        <div class="home-card-title">
+                            <span>Safety</span>
+                            <strong>Fast healthcare access</strong>
+                        </div>
+                        <p>For severe bleeding, chest pain, trouble breathing, fainting, seizures, or reduced baby movement, seek urgent medical care immediately.</p>
+                        <div class="home-alert-actions">
+                            <a href="tel:912">Call 912</a>
+                            <button type="button" onclick="navigateTo('help-section')">Find Hospital</button>
+                            <button type="button" onclick="openHomeHealthAI()">Ask Mamasafe AI</button>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="home-section-heading">
+                    <span>Care pathways</span>
+                    <h2>Choose the workspace that matches today</h2>
+                    <p>Each area opens focused functions, records, guidance, and next-step actions for pregnancy care.</p>
+                </div>
+
+                <div class="home-journey-grid">
+                    <article onclick="navigateTo('pregnancy')">
+                        <span class="home-journey-code">PG</span>
+                        <h3>Pregnancy</h3>
+                        <p>Weekly growth, symptoms, kicks, appointments, contractions, and pregnancy briefing.</p>
+                        <strong>Open pregnancy hub</strong>
+                    </article>
+                    <article onclick="navigateTo('courses')">
+                        <span class="home-journey-code">LRN</span>
+                        <h3>Courses</h3>
+                        <p>Birth preparation, pregnancy health, breastfeeding basics, safety, and practical care skills.</p>
+                        <strong>Open learning center</strong>
+                    </article>
+                    <article onclick="navigateTo('names')">
+                        <span class="home-journey-code">NAM</span>
+                        <h3>Baby Names</h3>
+                        <p>Search names, compare meanings, save favorites, and open AI-powered name details.</p>
+                        <strong>Open name finder</strong>
+                    </article>
+                    <article onclick="navigateTo('help-section')">
+                        <span class="home-journey-code">SOS</span>
+                        <h3>Professional Help</h3>
+                        <p>Hospitals, emergency guidance, ambulance access, help requests, and contacts.</p>
+                        <strong>Open help center</strong>
+                    </article>
+                </div>
+
+                <div class="home-tool-belt">
+                    <div class="home-section-heading">
+                        <span>Tool library</span>
+                        <h2>Everything important, grouped clearly</h2>
+                    </div>
+                    <div class="home-tool-grid">
+                        <button type="button" onclick="navigateTo('due-date-calculator')"><span>Pregnancy</span>Due Date</button>
+                        <button type="button" onclick="navigateTo('pregnancy-tracker')"><span>Pregnancy</span>Tracker</button>
+                        <button type="button" onclick="navigateTo('baby-kick-counter')"><span>Pregnancy</span>Kick Counter</button>
+                        <button type="button" onclick="navigateTo('contraction-timer')"><span>Pregnancy</span>Contractions</button>
+                        <button type="button" onclick="navigateTo('courses')"><span>Learning</span>Courses</button>
+                        <button type="button" onclick="navigateTo('names')"><span>Names</span>Baby Names</button>
+                        <button type="button" onclick="navigateTo('help-section')"><span>Support</span>Help Center</button>
+                        <button type="button" onclick="navigateTo('account')"><span>Account</span>Saved Care</button>
+                    </div>
+                </div>
+
+                <div class="home-insight-grid">
+                    <article class="home-card">
+                        <div class="home-card-title">
+                            <span>Records</span>
+                            <strong>Saved care activity</strong>
+                        </div>
+                        <p class="home-subtle">Keep profile details, checklist progress, notifications, course progress, and tracker activity connected to your account when backend sync is available.</p>
+                        <button class="home-wide-btn" type="button" onclick="navigateTo('account')">Open Account</button>
+                    </article>
+                    <article class="home-card">
+                        <div class="home-card-title">
+                            <span>Learning</span>
+                            <strong>Prepare before the next milestone</strong>
+                        </div>
+                        <p class="home-subtle">Use short courses and practical guides for pregnancy preparation, birth planning, breastfeeding basics, safety, and recovery.</p>
+                        <button class="home-wide-btn" type="button" onclick="navigateTo('courses')">Browse Courses</button>
+                    </article>
+                    <article class="home-card">
+                        <div class="home-card-title">
+                            <span>Support</span>
+                            <strong>Ask questions sooner</strong>
+                        </div>
+                        <p class="home-subtle">Use AI guidance for general education and the professional help area for urgent or location-based support.</p>
+                        <button class="home-wide-btn" type="button" onclick="openHomeHealthAI()">Open Mamasafe AI</button>
+                    </article>
+                </div>
+
+                <div class="home-community-panel">
+                    <div>
+                        <span class="home-hero-kicker">Support network</span>
+                        <h2>A modern motherhood dashboard that stays simple.</h2>
+                        <p>One homepage for decisions, tools, learning, records, and urgent support.</p>
+                    </div>
+                    <div class="home-community-stats">
+                        <div><strong>Clear</strong><span>Navigation</span></div>
+                        <div><strong>Fast</strong><span>Tool access</span></div>
+                        <div><strong>Ready</strong><span>Help paths</span></div>
+                    </div>
+                    <button class="btn-primary" onclick="navigateTo('signup')">Create Mother Account</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LOGIN PAGE -->
+    <section id="login" class="page-section">
+        <div class="auth-container auth-motherhood">
+            <div class="auth-shell">
+                <aside class="auth-story-panel">
+                    <span class="auth-eyebrow">Mamasafe private dashboard</span>
+                    <h1>Welcome back to your motherhood space.</h1>
+                    <p>Continue tracking pregnancy, courses, saved names, and support requests from one calm place built for mothers and caregivers.</p>
+                    <div class="auth-insight-grid">
+                        <div>
+                            <strong>Care timeline</strong>
+                            <span>Pregnancy, learning, names, and support tools</span>
+                        </div>
+                        <div>
+                            <strong>Saved progress</strong>
+                            <span>Courses, trackers, and favorite names</span>
+                        </div>
+                        <div>
+                            <strong>AI support</strong>
+                            <span>Personalized guidance when you need it</span>
+                        </div>
+                    </div>
+                    <div class="auth-quote">
+                        <span>Today focus</span>
+                        <p>Small records become clearer care decisions.</p>
+                    </div>
+                </aside>
+
+                <div class="auth-card auth-card-modern">
+                    <div class="auth-header">
+                        <span class="auth-eyebrow">Mother login</span>
+                        <h2>Continue your care journey</h2>
+                        <p>Sign in to reopen your saved dashboard and personal guidance.</p>
+                    </div>
+
+                    <form class="auth-form" onsubmit="handleLogin(event)">
+                        <div class="auth-field">
+                            <label for="loginEmail">Email address</label>
+                            <input type="email" id="loginEmail" placeholder="mama@example.com" autocomplete="email" required>
+                        </div>
+
+                        <div class="auth-field">
+                            <label for="loginPassword">Password</label>
+                            <div class="auth-password-wrap">
+                                <input type="password" id="loginPassword" placeholder="Enter your password" autocomplete="current-password" required>
+                                <button type="button" onclick="toggleAuthPassword('loginPassword', this)">Show</button>
+                            </div>
+                        </div>
+
+                        <div class="form-options auth-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="rememberMe" checked>
+                                <span>Keep me signed in on this device</span>
+                            </label>
+                            <a href="javascript:void(0)" class="forgot-link" onclick="showAuthHelp('password')">Need help?</a>
+                        </div>
+
+                        <button type="submit" class="auth-btn">Open My Mamasafe Dashboard</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        <p>New here? <a href="javascript:void(0)" onclick="navigateTo('signup')">Create your motherhood profile</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SIGN UP PAGE -->
+    <section id="signup" class="page-section">
+        <div class="auth-container auth-motherhood auth-signup-page">
+            <div class="auth-shell">
+                <aside class="auth-story-panel auth-story-panel-light">
+                    <span class="auth-eyebrow">Designed for mothers</span>
+                    <h1>Create a profile that follows your care journey.</h1>
+                    <p>Tell Mamasafe where you are now so the app can bring the right trackers, reminders, courses, and AI guidance closer.</p>
+                    <div class="auth-stage-list">
+                        <div><strong>1</strong><span>Choose your motherhood stage</span></div>
+                        <div><strong>2</strong><span>Save your care priorities</span></div>
+                        <div><strong>3</strong><span>Start with a personalized dashboard</span></div>
+                    </div>
+                </aside>
+
+                <div class="auth-card auth-card-modern auth-card-wide">
+                    <div class="auth-header">
+                        <span class="auth-eyebrow">Motherhood profile</span>
+                        <h2>Start your Mamasafe space</h2>
+                        <p>Set up a private profile for pregnancy tracking, courses, names, and professional support.</p>
+                    </div>
+
+                    <form class="auth-form" onsubmit="handleSignup(event)">
+                        <div class="form-row">
+                            <div class="auth-field">
+                                <label for="firstName">First name</label>
+                                <input type="text" id="firstName" placeholder="First name" autocomplete="given-name" required>
+                            </div>
+                            <div class="auth-field">
+                                <label for="lastName">Last name</label>
+                                <input type="text" id="lastName" placeholder="Last name" autocomplete="family-name" required>
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label for="signupEmail">Email address</label>
+                            <input type="email" id="signupEmail" placeholder="mama@example.com" autocomplete="email" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="auth-field">
+                                <label for="signupPassword">Password</label>
+                                <div class="auth-password-wrap">
+                                    <input type="password" id="signupPassword" placeholder="Create a password" autocomplete="new-password" required>
+                                    <button type="button" onclick="toggleAuthPassword('signupPassword', this)">Show</button>
+                                </div>
+                                <small>Use at least 8 characters.</small>
+                            </div>
+                            <div class="auth-field">
+                                <label for="confirmPassword">Confirm password</label>
+                                <div class="auth-password-wrap">
+                                    <input type="password" id="confirmPassword" placeholder="Confirm password" autocomplete="new-password" required>
+                                    <button type="button" onclick="toggleAuthPassword('confirmPassword', this)">Show</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="auth-field">
+                                <label for="motherhoodStage">Motherhood stage</label>
+                                <select id="motherhoodStage">
+                                    <option value="pregnant">Pregnant</option>
+                                    <option value="courses">Learning courses</option>
+                                    <option value="names">Finding a baby name</option>
+                                    <option value="support">Professional support</option>
+                                </select>
+                            </div>
+                            <div class="auth-field">
+                                <label for="signupCareDate">Due date</label>
+                                <input type="date" id="signupCareDate">
+                            </div>
+                        </div>
+
+                        <div class="auth-field">
+                            <label for="carePriority">Main care priority</label>
+                            <select id="carePriority">
+                                <option value="pregnancy-tracking">Pregnancy tracking</option>
+                                <option value="courses">Courses and preparation</option>
+                                <option value="names">Finding a baby name</option>
+                                <option value="support">Professional support</option>
+                            </select>
+                        </div>
+
+                        <div class="form-options auth-options auth-options-stack">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="agreeTerms" required>
+                                <span>I agree to the Mamasafe terms and privacy policy.</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="weeklyTipsOptIn" checked>
+                                <span>Send me gentle weekly care reminders.</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="auth-btn">Create My Mamasafe Profile</button>
+                    </form>
+
+                    <div class="auth-footer">
+                        <p>Already have an account? <a href="javascript:void(0)" onclick="navigateTo('login')">Log in to your care space</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<!-- PREGNANCY PAGE -->
+    <section id="pregnancy" class="page-section">
+        <div class="pregnancy-rag-page" id="pregnancyRagPage">
+            <div class="pregnancy-rag-hero">
+                <div class="container">
+                    <div class="pregnancy-rag-hero-grid">
+                        <div class="pregnancy-rag-copy">
+                            <span class="pregnancy-rag-kicker">Pregnancy Risk Screening</span>
+                            <h1>AI-powered maternal vitals assessment.</h1>
+                            <div class="pregnancy-rag-actions">
+                                <button type="button" class="pregnancy-rag-primary" onclick="document.getElementById('pregnancyDecisionForm').scrollIntoView({ behavior: 'smooth', block: 'center' })">Analyze vitals</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pregnancy-rag-main">
+                <div class="container">
+                    <section class="pregnancy-rag-panel pregnancy-decision-panel" aria-labelledby="pregnancyDecisionTitle">
+                        <div class="pregnancy-rag-panel-head">
+                            <span>Core assessment</span>
+                            <h2 id="pregnancyDecisionTitle">Maternal vitals risk screen</h2>
+                        </div>
+                        <form id="pregnancyDecisionForm" class="pregnancy-rag-form pregnancy-decision-form">
+                            <div class="pregnancy-decision-inputs">
+                                <label>
+                                    Age
+                                    <input id="pregnancyDecisionAge" type="number" min="10" max="60" value="25" required>
+                                </label>
+                                <label>
+                                    Blood pressure
+                                    <input id="pregnancyDecisionBloodPressure" type="text" inputmode="numeric" pattern="[0-9]{2,3}[^0-9]+[0-9]{2,3}" value="120/80" placeholder="120/80" required>
+                                </label>
+                                <label>
+                                    Body temp F
+                                    <input id="pregnancyDecisionTemp" type="number" step="0.1" value="98.6" required>
+                                </label>
+                                <label>
+                                    Heart rate
+                                    <input id="pregnancyDecisionHeartRate" type="number" min="30" max="220" value="70" required>
+                                </label>
+                                <label>
+                                    Body weight kg
+                                    <input id="pregnancyDecisionWeight" type="number" min="35" max="200" step="0.1" value="63">
+                                </label>
+                                <label>
+                                    Previous complications
+                                    <select id="pregnancyDecisionPreviousComplications">
+                                        <option value="0" selected>No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    Diabetes history
+                                    <select id="pregnancyDecisionDiabetes">
+                                        <option value="none" selected>No diabetes</option>
+                                        <option value="preexisting">Diabetes before pregnancy</option>
+                                        <option value="gestational">Gestational diabetes</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    Mental health flag
+                                    <select id="pregnancyDecisionMentalHealth">
+                                        <option value="0" selected>No</option>
+                                        <option value="1">Yes</option>
+                                    </select>
+                                </label>
+                                <label>
+                                    Week
+                                    <input id="pregnancyDecisionWeek" type="number" min="1" max="42" value="24">
+                                </label>
+                            </div>
+                            <label>
+                                Symptoms or notes
+                                <textarea id="pregnancyDecisionSymptoms" rows="3" placeholder="Example: headache, swelling, bleeding, reduced movement"></textarea>
+                            </label>
+                            <div class="pregnancy-rag-submit-row">
+                                <button type="submit" class="pregnancy-rag-primary">Analyze maternal risk</button>
+                            </div>
+                        </form>
+                        <div id="pregnancyDecisionOutput" class="pregnancy-rag-answer pregnancy-decision-output" aria-live="polite">
+                            <strong>Risk result appears here.</strong>
+                            <p>The dashboard will show the risk level, confidence, probability bars, and the main reasons behind the result.</p>
+                        </div>
+                    </section>
+
+                    <section class="pregnancy-rag-panel pregnancy-week-panel" aria-labelledby="pregnancyWeekTrackerTitle">
+                        <div class="pregnancy-rag-panel-head">
+                            <span>Week-by-week tracker</span>
+                            <h2 id="pregnancyWeekTrackerTitle">Follow pregnancy progress from week 1 to 42</h2>
+                            <p>Pick a week to see baby growth, mother changes, care priorities, provider questions, and when to call for help.</p>
+                        </div>
+
+                        <div class="pregnancy-week-buttons" id="pregnancyWeekButtons" aria-label="Select pregnancy week"></div>
+
+                        <div class="pregnancy-week-control">
+                            <label for="pregnancyWeekRange">
+                                Pregnancy week
+                                <input id="pregnancyWeekRange" type="range" min="1" max="42" value="24">
+                            </label>
+                            <div class="pregnancy-week-control-actions">
+                                <input id="pregnancyWeekNumber" type="number" min="1" max="42" value="24" aria-label="Selected pregnancy week">
+                                <button type="button" class="pregnancy-rag-secondary" id="pregnancyWeekSyncVitals">Use in vitals form</button>
+                            </div>
+                        </div>
+
+                        <div class="pregnancy-week-layout">
+                            <div class="pregnancy-week-visual">
+                                <img id="pregnancyWeekImage" src="assets/pregnancy-weeks/week-24.png" alt="Pregnancy week 24 visual">
+                                <div class="pregnancy-week-image-note" id="pregnancyWeekImageNote">Week 24 baby-size visual.</div>
+                            </div>
+                            <div class="pregnancy-week-summary">
+                                <div class="pregnancy-week-kpis">
+                                    <div><span>Week</span><strong id="pregnancyWeekCurrent">24</strong></div>
+                                    <div><span>Trimester</span><strong id="pregnancyWeekTrimester">Second</strong></div>
+                                    <div><span>Size cue</span><strong id="pregnancyWeekSize">corn on the cob</strong></div>
+                                </div>
+                                <h3 id="pregnancyWeekTitle">Week 24 care snapshot</h3>
+                                <p id="pregnancyWeekIntro">Choose any week to load the care snapshot.</p>
+                            </div>
+                        </div>
+
+                        <div class="pregnancy-week-card-grid">
+                            <article>
+                                <h3>Baby this week</h3>
+                                <ul id="pregnancyWeekBabyList"></ul>
+                            </article>
+                            <article>
+                                <h3>Mother changes</h3>
+                                <ul id="pregnancyWeekMotherList"></ul>
+                            </article>
+                            <article>
+                                <h3>Care focus</h3>
+                                <ul id="pregnancyWeekCareList"></ul>
+                            </article>
+                            <article>
+                                <h3>Ask your provider</h3>
+                                <ul id="pregnancyWeekQuestionList"></ul>
+                            </article>
+                        </div>
+
+                        <div class="pregnancy-week-warning">
+                            <strong>Call sooner if</strong>
+                            <ul id="pregnancyWeekWarningList"></ul>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- BABY NAMES PAGE -->
+    <section id="names" class="page-section names-page">
+        <div class="names-hero">
+            <div class="container">
+                <div class="names-eyebrow">Baby names</div>
+                <h1>Find a name you love</h1>
+                <p>Search by name, meaning, origin, or style. Save favorites and compare your shortlist without the clutter.</p>
+                <div class="names-hero-metrics" aria-label="Names page highlights">
+                    <div><strong>200+</strong><span>local names</span></div>
+                    <div><strong>AI</strong><span>guided ideas</span></div>
+                    <div><strong>1 tap</strong><span>save favorites</span></div>
+                </div>
+                
+                <div class="names-search-container">
+                    <input type="text" placeholder="Search by name, meaning, or origin..." id="nameSearchInput" class="names-search-input">
+                    <button onclick="searchNames()" class="btn-primary">🔍 Search</button>
+                </div>
+
+                <div class="names-online-controls" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
+                    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-gray);">
+                        <input type="checkbox" id="onlineNamesToggle" style="transform: translateY(1px);" checked>
+                        ✨ AI-Powered Search
+                    </label>
+                    <span id="namesOnlineStatus" style="font-size: 13px; color: var(--text-gray);"></span>
+                </div>
+
+                <!-- Favorites Toggle -->
+                <div class="names-view-toggle" style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
+                    <button id="showAllNamesBtn" class="btn-primary">All Names</button>
+                    <button id="showFavoritesBtn" class="btn-secondary">My Favorites ❤️</button>
+                </div>
+
+                <div class="name-categories">
+                    <a class="category-pill active" onclick="filterNames('all', this)">All Names</a>
+                    <a class="category-pill" onclick="filterNames('boy', this)">Boy Names</a>
+                    <a class="category-pill" onclick="filterNames('girl', this)">Girl Names</a>
+                    <a class="category-pill" onclick="filterNames('unisex', this)">Unisex</a>
+                    <a class="category-pill" onclick="filterNames('unique', this)">Unique</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="names-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 id="namesTitle">Popular Names</h2>
+                    <select class="names-sort-select" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" onchange="sortNames(this.value)">
+                        <option value="popular">Most Popular</option>
+                        <option value="az">A-Z</option>
+                        <option value="za">Z-A</option>
+                    </select>
+                </div>
+                <div class="names-container">
+                    <!-- Horizontal Navigation -->
+                    <div class="names-scroll-nav">
+                        <button class="scroll-nav-btn" onclick="scrollNames('left')">← Previous</button>
+                        <button class="scroll-nav-btn" onclick="scrollNames('right')">Next →</button>
+                    </div>
+                    
+                    <div class="names-list" id="namesList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Name Detail Modal -->
+    <div id="nameDetailModal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalNameTitle">
+        <div class="modal-content name-detail-modal">
+            <button class="modal-close-btn" type="button" aria-label="Close name details" onclick="closeNameDetailModal()">&times;</button>
+            <div class="modal-header">
+                <h2 id="modalNameTitle">Name</h2>
+                <div class="modal-gender-icon" id="modalGenderIcon">👶</div>
+            </div>
+            <div class="modal-body">
+                <div class="info-row">
+                    <span class="info-label">Meaning:</span>
+                    <span id="modalMeaning">Loading...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Origin:</span>
+                    <span id="modalOrigin">Loading...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Gender:</span>
+                    <span id="modalGender">Loading...</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">History & Background:</span>
+                    <span id="modalHistory">Loading...</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- COURSES PAGE -->
+    <section id="courses" class="page-section">
+        <div class="free-courses-hero">
+            <div class="container">
+                <div class="free-hero-inner">
+                    <div class="free-hero-copy">
+                        <span class="badge-glow">🎁 Free Course Hub</span>
+                        <h1>Build a smarter pregnancy and baby learning path</h1>
+                        <p>Search lessons, unlock starter courses, generate a Llama 3.3 70B path, and keep progress visible from one polished dashboard.</p>
+                        <div class="course-hero-actions">
+                            <button class="btn-primary" onclick="unlockAllStarterCourses()">Unlock Starter Path</button>
+                            <button class="btn-secondary course-hero-secondary" onclick="generateCourseRecommendations()">Build My Path</button>
+                            <button class="btn-secondary course-hero-secondary" onclick="askExpert()">Ask Expert AI</button>
+                        </div>
+                        <div class="courses-hero-stats" aria-label="Learning summary">
+                            <div class="course-stat-card">
+                                <span id="statTotalCourses">0</span>
+                                <p>Courses</p>
+                            </div>
+                            <div class="course-stat-card">
+                                <span id="statEnrolled">0</span>
+                                <p>Unlocked</p>
+                            </div>
+                            <div class="course-stat-card">
+                                <span id="statCompleted">0</span>
+                                <p>Completed</p>
+                            </div>
+                            <div class="course-stat-card">
+                                <span id="statStreak">0</span>
+                                <p>Day streak</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="free-hero-cards">
+                        <div class="feature-card">
+                            <h3>AI notes</h3>
+                            <p>Generate deeper topic notes and course answers from the connected Llama 3.3 70B learning engine.</p>
+                        </div>
+                        <div class="feature-card">
+                            <h3>Guided progress</h3>
+                            <p>Filter courses, unlock your starter path, and continue from the next unfinished topic.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="free-course-grid">
+                <div class="free-course-main">
+                    <div class="section-header-glass">
+                        <div class="section-badge-glow">📚 Free Courses</div>
+                        <h2 class="section-title-3d">Choose the next lesson with confidence</h2>
+                        <p class="section-subtitle-glass">Open a course to study topics, generate AI notes, ask questions, and mark progress.</p>
+                    </div>
+                    <div class="course-control-panel">
+                        <div class="course-search-field">
+                            <span>Search</span>
+                            <input id="courseSearchInput" type="search" placeholder="Course, topic, nutrition, sleep..." autocomplete="off">
+                        </div>
+                        <div class="course-filter-grid">
+                            <label>
+                                Category
+                                <select id="courseCategoryFilter">
+                                    <option value="all">All categories</option>
+                                    <option value="Pregnancy">Pregnancy</option>
+                                    <option value="Nutrition">Nutrition</option>
+                                    <option value="Sleep">Sleep</option>
+                                    <option value="Wellness">Wellness</option>
+                                    <option value="Fitness">Fitness</option>
+                                    <option value="Safety">Safety</option>
+                                </select>
+                            </label>
+                            <label>
+                                Stage
+                                <select id="courseStageFilter">
+                                    <option value="all">Every stage</option>
+                                    <option value="planning">Planning</option>
+                                    <option value="pregnancy">Pregnancy</option>
+                                    <option value="postpartum">Postpartum</option>
+                                </select>
+                            </label>
+                            <label>
+                                Sort
+                                <select id="courseSortSelect">
+                                    <option value="recommended">Recommended</option>
+                                    <option value="progress">Progress</option>
+                                    <option value="topics">Most topics</option>
+                                    <option value="az">A to Z</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="course-view-toggle" aria-label="Course view">
+                            <button id="courseViewGrid" class="active" type="button">Grid</button>
+                            <button id="courseViewList" type="button">List</button>
+                        </div>
+                    </div>
+
+                    <div class="course-path-panel">
+                        <div class="course-path-copy">
+                            <span>Learning map</span>
+                            <strong>Your unlocked courses light up as you progress.</strong>
+                        </div>
+                        <div id="neuralPathVisualizer" class="course-path-visualizer"></div>
+                    </div>
+
+                    <div id="freeCoursesGrid" class="course-card-grid course-card-grid-pro"></div>
+                </div>
+
+                <aside class="free-course-sidebar">
+                    <div class="feature-card course-ai-panel">
+                        <h3>AI Path Builder</h3>
+                        <p>Personalize recommendations with your stage, goals, and learning pace.</p>
+                        <label>
+                            Stage
+                            <select id="assessmentStage">
+                                <option value="planning">Planning</option>
+                                <option value="pregnancy">Pregnancy</option>
+                                <option value="postpartum">Postpartum</option>
+                            </select>
+                        </label>
+                        <div class="course-goal-chips">
+                            <label><input class="goal-checkbox" type="checkbox" value="birth"> Birth</label>
+                            <label><input class="goal-checkbox" type="checkbox" value="nutrition"> Nutrition</label>
+                            <label><input class="goal-checkbox" type="checkbox" value="sleep"> Sleep</label>
+                            <label><input class="goal-checkbox" type="checkbox" value="wellness"> Wellness</label>
+                        </div>
+                        <div class="course-ai-selects">
+                            <label>
+                                Pace
+                                <select id="assessmentPreference">
+                                    <option value="flexible">Flexible</option>
+                                    <option value="quick">Quick lessons</option>
+                                    <option value="deep">Deep study</option>
+                                </select>
+                            </label>
+                            <label>
+                                Experience
+                                <select id="assessmentExperience">
+                                    <option value="first-time">First-time parent</option>
+                                    <option value="experienced">Experienced parent</option>
+                                    <option value="professional">Professional learner</option>
+                                </select>
+                            </label>
+                        </div>
+                        <button class="btn-primary" onclick="generateCourseRecommendations()">Generate Path</button>
+                    </div>
+                    <div class="feature-card feature-card-highlight">
+                        <h3>Today’s learning tip</h3>
+                        <p id="dailyTip">Loading today’s tip...</p>
+                        <button class="btn-secondary" onclick="refreshDailyTip()">Refresh Tip</button>
+                    </div>
+
+                    <div class="feature-card">
+                        <h3>Unlocked courses</h3>
+                        <div id="unlockedCoursesList" class="unlocked-courses-list"></div>
+                    </div>
+
+                    <div class="feature-card course-insight-card">
+                        <h3>Progress snapshot</h3>
+                        <div class="course-mini-metrics">
+                            <div><span id="statTotalTopics">0</span><small>Topics</small></div>
+                            <div><span id="statProgressAverage">0%</span><small>Average</small></div>
+                        </div>
+                        <button class="btn-secondary" onclick="askExpert()">Ask Expert AI</button>
+                    </div>
+                </aside>
+            </div>
+        </div>
+
+        <div id="courseContentModal" class="groq-course-modal hidden">
+            <div class="groq-modal-container">
+                <div class="groq-modal-header">
+                    <h2 id="groqCourseTitle">Course Title</h2>
+                    <button class="groq-close-btn" onclick="closeGroqModal()">×</button>
+                </div>
+                <div class="groq-modal-body">
+                    <p id="groqCourseDescription"></p>
+                    <div id="groqCourseModules" class="groq-modules-container"></div>
+                </div>
+                <div class="groq-modal-footer">
+                    <button class="btn-primary" onclick="closeGroqModal()">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Resources Section removed -->
+        <template id="courses-additional-resources-removed" hidden>
+            <div class="section-header-glass" style="margin-top: 60px;">
+                <div class="section-badge-glow">🌟 Additional Resources</div>
+                <h2 class="section-title-3d">Essential Pregnancy & Parenting Resources</h2>
+                <p class="section-subtitle-glass">Expert guidance and information to support your journey</p>
+            </div>
+
+            <div class="resources-grid">
+                <!-- Nutrition Advice -->
+                <div class="resource-card-glass">
+                    <div class="resource-icon">🥗</div>
+                    <h3 class="resource-title">Nutrition Advice</h3>
+                    <p class="resource-description">Expert guidance on healthy eating during pregnancy and breastfeeding</p>
+                    <ul class="resource-list">
+                        <li>🥬 Prenatal vitamins and supplements</li>
+                        <li>🍎 Foods to eat and avoid</li>
+                        <li>💧 Hydration tips</li>
+                        <li>🍽️ Meal planning guidance</li>
+                    </ul>
+                    <button class="btn-glass-primary" onclick="showNutritionModal()">View Nutrition Guide</button>
+                </div>
+
+                <!-- Exercise Guidance -->
+                <div class="resource-card-glass">
+                    <div class="resource-icon">🏃‍♀️</div>
+                    <h3 class="resource-title">Exercise Guidance</h3>
+                    <p class="resource-description">Safe and effective exercises for each stage of pregnancy</p>
+                    <ul class="resource-list">
+                        <li>🧘 Prenatal yoga routines</li>
+                        <li>🚶 Safe cardio exercises</li>
+                        <li>💪 Strength training tips</li>
+                        <li>🤰 Trimester-specific workouts</li>
+                    </ul>
+                    <button class="btn-glass-primary" onclick="showExerciseModal()">View Exercise Guide</button>
+                </div>
+
+                <!-- Warning Signs -->
+                <div class="resource-card-glass">
+                    <div class="resource-icon">⚠️</div>
+                    <h3 class="resource-title">Warning Signs</h3>
+                    <p class="resource-description">Important warning signs to watch for during pregnancy</p>
+                    <ul class="resource-list">
+                        <li>🚨 When to call your doctor</li>
+                        <li>🩸 Bleeding and spotting</li>
+                        <li>🤢 Severe nausea/vomiting</li>
+                        <li>🤕 Abdominal pain</li>
+                    </ul>
+                    <button class="btn-glass-primary" onclick="showWarningSignsModal()">View Warning Signs</button>
+                </div>
+
+                <!-- Articles & Videos -->
+                <div class="resource-card-glass">
+                    <div class="resource-icon">📹</div>
+                    <h3 class="resource-title">Articles & Videos</h3>
+                    <p class="resource-description">Curated educational content from healthcare professionals</p>
+                    <ul class="resource-list">
+                        <li>📚 Expert-written articles</li>
+                        <li>🎥 Instructional videos</li>
+                        <li>👩‍⚕️ Doctor interviews</li>
+                        <li>📱 Mobile-friendly content</li>
+                    </ul>
+                    <button class="btn-glass-primary" onclick="showArticlesModal()">Browse Content</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Nutrition Modal -->
+        <div id="nutritionModal" class="modal-overlay hidden">
+            <div class="resource-modal-content">
+                <button class="modal-close" onclick="closeNutritionModal()">×</button>
+                <h2>🥗 Nutrition Advice</h2>
+                <div class="nutrition-content">
+                    <h3>Prenatal Nutrition Essentials</h3>
+                    <p>A balanced diet is crucial for your baby's development and your health during pregnancy.</p>
+                    
+                    <div class="nutrition-section">
+                        <h4>🥬 Key Nutrients</h4>
+                        <ul>
+                            <li><strong>Folic Acid:</strong> Prevents birth defects (leafy greens, fortified cereals)</li>
+                            <li><strong>Iron:</strong> Supports blood production (red meat, beans, spinach)</li>
+                            <li><strong>Calcium:</strong> Builds baby's bones (dairy, fortified plant milk)</li>
+                            <li><strong>Protein:</strong> Tissue growth (lean meats, eggs, nuts)</li>
+                            <li><strong>DHA:</strong> Brain development (fatty fish, supplements)</li>
+                        </ul>
+                    </div>
+
+                    <div class="nutrition-section">
+                        <h4>🚫 Foods to Avoid</h4>
+                        <ul>
+                            <li>Raw or undercooked meat, eggs, and fish</li>
+                            <li>Unpasteurized dairy products</li>
+                            <li>High-mercury fish (shark, swordfish, king mackerel)</li>
+                            <li>Excessive caffeine (limit to 200mg/day)</li>
+                            <li>Alcohol completely</li>
+                        </ul>
+                    </div>
+
+                    <div class="nutrition-section">
+                        <h4>💧 Hydration Tips</h4>
+                        <ul>
+                            <li>Drink 8-10 glasses of water daily</li>
+                            <li>Carry a water bottle everywhere</li>
+                            <li>Limit sugary drinks and juices</li>
+                            <li>Monitor urine color (pale yellow is ideal)</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="closeNutritionModal()">Close</button>
+            </div>
+        </div>
+
+        <!-- Exercise Modal -->
+        <div id="exerciseModal" class="modal-overlay hidden">
+            <div class="resource-modal-content">
+                <button class="modal-close" onclick="closeExerciseModal()">×</button>
+                <h2>🏃‍♀️ Exercise Guidance</h2>
+                <div class="exercise-content">
+                    <h3>Safe Pregnancy Exercises</h3>
+                    <p>Regular exercise can help you feel better, sleep better, and prepare for labor.</p>
+                    
+                    <div class="exercise-section">
+                        <h4>🧘 First Trimester (Weeks 1-12)</h4>
+                        <ul>
+                            <li>Walking 30 minutes daily</li>
+                            <li>Prenatal yoga (gentle stretches)</li>
+                            <li>Swimming (low impact)</li>
+                            <li>Light strength training</li>
+                        </ul>
+                    </div>
+
+                    <div class="exercise-section">
+                        <h4>🤰 Second Trimester (Weeks 13-26)</h4>
+                        <ul>
+                            <li>Continue walking and swimming</li>
+                            <li>Prenatal pilates (focus on core)</li>
+                            <li>Stationary cycling</li>
+                            <li>Avoid exercises lying flat on back</li>
+                        </ul>
+                    </div>
+
+                    <div class="exercise-section">
+                        <h4>🤰 Third Trimester (Weeks 27-40)</h4>
+                        <ul>
+                            <li>Shorter, more frequent walks</li>
+                            <li>Gentle stretching and yoga</li>
+                            <li>Kegel exercises</li>
+                            <li>Pelvic floor exercises</li>
+                        </ul>
+                    </div>
+
+                    <div class="exercise-section warning">
+                        <h4>⚠️ When to Stop Exercising</h4>
+                        <ul>
+                            <li>Dizziness or shortness of breath</li>
+                            <li>Chest pain or palpitations</li>
+                            <li>Vaginal bleeding or leakage</li>
+                            <li>Uterine contractions</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="closeExerciseModal()">Close</button>
+            </div>
+        </div>
+
+        <!-- Warning Signs Modal -->
+        <div id="warningSignsModal" class="modal-overlay hidden">
+            <div class="resource-modal-content">
+                <button class="modal-close" onclick="closeWarningSignsModal()">×</button>
+                <h2>⚠️ Warning Signs During Pregnancy</h2>
+                <div class="warning-content">
+                    <h3>When to Call Your Doctor Immediately</h3>
+                    
+                    <div class="warning-section urgent">
+                        <h4>🚨 Emergency Warning Signs</h4>
+                        <ul>
+                            <li>Vaginal bleeding or spotting</li>
+                            <li>Severe abdominal pain or cramping</li>
+                            <li>Severe headache or vision changes</li>
+                            <li>Sudden swelling of hands, face, or feet</li>
+                            <li>Decreased fetal movement</li>
+                            <li>Fever over 100.4°F (38°C)</li>
+                            <li>Leakage of fluid from vagina</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-section">
+                        <h4>🩸 Bleeding Concerns</h4>
+                        <ul>
+                            <li>Any bleeding during pregnancy should be reported</li>
+                            <li>Heavy bleeding (soaking a pad in an hour) - seek emergency care</li>
+                            <li>Light spotting may be normal but still contact your doctor</li>
+                            <li>Bleeding with pain or cramping needs immediate attention</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-section">
+                        <h4>🤢 Severe Nausea & Vomiting</h4>
+                        <ul>
+                            <li>Morning sickness is normal, but severe vomiting is not</li>
+                            <li>Unable to keep fluids down for 24 hours</li>
+                            <li>Signs of dehydration (dark urine, dizziness)</li>
+                            <li>Weight loss of more than 5 pounds</li>
+                        </ul>
+                    </div>
+
+                    <div class="warning-section">
+                        <h4>🤕 Abdominal Pain</h4>
+                        <ul>
+                            <li>Mild cramping can be normal as uterus grows</li>
+                            <li>Severe or persistent pain needs evaluation</li>
+                            <li>Pain accompanied by bleeding requires immediate care</li>
+                            <li>Sharp pain on one side could indicate ectopic pregnancy</li>
+                        </ul>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="closeWarningSignsModal()">Close</button>
+            </div>
+        </div>
+
+        <!-- Articles & Videos Modal -->
+        <div id="articlesModal" class="modal-overlay hidden">
+            <div class="resource-modal-content">
+                <button class="modal-close" onclick="closeArticlesModal()">×</button>
+                <h2>📹 Articles & Videos</h2>
+                <div class="articles-content">
+                    <h3>Featured Educational Content</h3>
+                    
+                    <div class="articles-grid">
+
+                        <div class="article-card">
+                            <div class="article-icon">🎥</div>
+                            <h4>Infant CPR Tutorial</h4>
+                            <p>Essential life-saving skills every parent should know.</p>
+                            <button class="btn-secondary">Watch Video</button>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="closeArticlesModal()">Close</button>
+            </div>
+        </div>
+        </template>
+    </section>
+
+    <!-- ACCOUNT PAGE -->
+    <section id="account" class="page-section">
+        <div class="account-modern">
+            <div class="account-shell">
+                <div class="account-hero">
+                    <div class="account-hero-copy">
+                        <span class="account-kicker">Private care dashboard</span>
+                        <h1 id="accountGreeting">Welcome back</h1>
+                        <p id="accountSummary">Your saved pregnancy, learning, names, and support tools are ready.</p>
+                        <div class="account-hero-actions">
+                            <button type="button" onclick="navigateTo('home')">Open Home</button>
+                            <button type="button" onclick="navigateTo('pregnancy')">Continue Tracking</button>
+                        </div>
+                    </div>
+                    <div class="account-profile-panel">
+                        <div class="account-avatar" id="accountInitials">MS</div>
+                        <div>
+                            <span id="accountStageLabel">Pregnancy care</span>
+                            <strong id="accountEmail">user@example.com</strong>
+                            <small id="accountMemberSince">Member since today</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="account-metrics">
+                    <article>
+                        <span>Care week</span>
+                        <strong id="currentWeek">Week 24</strong>
+                        <small id="accountTrimester">Second trimester</small>
+                    </article>
+                    <article>
+                        <span>Due date</span>
+                        <strong id="dueDate">Add date</strong>
+                        <small id="accountDaysLeft">Set your timeline</small>
+                    </article>
+                    <article>
+                        <span>Saved focus</span>
+                        <strong id="accountPriority">Pregnancy tracking</strong>
+                        <small id="babySize">Size updates appear here</small>
+                    </article>
+                    <article>
+                        <span>Readiness</span>
+                        <strong id="accountReadiness">68%</strong>
+                        <small>Profile, tools, and settings</small>
+                    </article>
+                </div>
+
+                <div class="account-layout">
+                    <aside class="account-left-rail">
+                        <section class="account-panel account-profile-card">
+                            <div class="account-panel-head">
+                                <span>Profile</span>
+                                <button type="button" onclick="editProfile()">Edit</button>
+                            </div>
+                            <div class="account-info-stack">
+                                <div><span>Email</span><strong id="profileEmail">user@example.com</strong></div>
+                                <div><span>Account type</span><strong>Premium member</strong></div>
+                                <div><span>Visibility</span><strong id="accountVisibility">Private</strong></div>
+                            </div>
+                        </section>
+
+                        <section class="account-panel">
+                            <div class="account-panel-head">
+                                <span>Settings</span>
+                                <button type="button" onclick="saveSettings()">Save</button>
+                            </div>
+                            <div class="account-settings">
+                                <label><span>Email notifications</span><input type="checkbox" id="emailNotif" checked></label>
+                                <label><span>Weekly care updates</span><input type="checkbox" id="weeklyUpdates" checked></label>
+                                <label><span>Community digest</span><input type="checkbox" id="communityDigest"></label>
+                                <label><span>Profile visibility</span>
+                                    <select id="profileVisibility">
+                                        <option value="private">Private</option>
+                                        <option value="friends">Friends only</option>
+                                        <option value="public">Public</option>
+                                    </select>
+                                </label>
+                            </div>
+                        </section>
+                    </aside>
+
+                    <main class="account-main-grid">
+                        <section class="account-panel account-timeline-panel">
+                            <div class="account-panel-head">
+                                <span>Pregnancy Timeline</span>
+                                <button type="button" onclick="navigateTo('due-date-calculator')">Update</button>
+                            </div>
+                            <div class="account-progress-track">
+                                <div class="account-progress-fill" id="accountProgressFill"></div>
+                            </div>
+                            <div class="account-timeline">
+                                <div class="active"><span>Now</span><strong id="timelineNow">Week 24 check-in</strong></div>
+                                <div><span>Next</span><strong id="timelineNext">Prenatal visit and symptom log</strong></div>
+                                <div><span>Prepare</span><strong>Hospital bag, birth plan, and guided course</strong></div>
+                            </div>
+                        </section>
+
+                        <section class="account-panel">
+                            <div class="account-panel-head">
+                                <span>Saved Tools</span>
+                                <button type="button" onclick="navigateTo('home')">All tools</button>
+                            </div>
+                            <div class="account-tool-grid">
+                                <button type="button" onclick="navigateTo('due-date-calculator')"><span>DD</span><strong>Due Date</strong><small>Timeline</small></button>
+                                <button type="button" onclick="navigateTo('names')"><span>BN</span><strong>Baby Names</strong><small>Shortlist</small></button>
+                                <button type="button" onclick="navigateTo('baby-kick-counter')"><span>KC</span><strong>Kick Counter</strong><small>Movement</small></button>
+                                <button type="button" onclick="navigateTo('contraction-timer')"><span>CT</span><strong>Contractions</strong><small>Labor</small></button>
+                            </div>
+                        </section>
+
+                        <section class="account-panel">
+                            <div class="account-panel-head">
+                                <span>Learning Path</span>
+                                <button type="button" onclick="navigateTo('courses')">Browse</button>
+                            </div>
+                            <div class="account-course-list" id="accountCourseList">
+                                <article><div><strong>Childbirth Education</strong><span>75% complete</span></div><button type="button" onclick="navigateTo('courses')">Continue</button></article>
+                                <article><div><strong>Breastfeeding Basics</strong><span>Ready to review</span></div><button type="button" onclick="navigateTo('courses')">Review</button></article>
+                                <article><div><strong>Pregnancy Safety Basics</strong><span>Ready to start</span></div><button type="button" onclick="navigateTo('courses')">Start</button></article>
+                            </div>
+                        </section>
+
+                        <section class="account-panel account-health-panel">
+                            <div class="account-panel-head">
+                                <span>Care Signals</span>
+                                <button type="button" onclick="navigateTo('help-section')">Help</button>
+                            </div>
+                            <div class="account-signal-grid">
+                                <div><span class="good"></span><strong>Hydration</strong><small>Keep daily water tracking active</small></div>
+                                <div><span class="warn"></span><strong>Appointments</strong><small id="accountAppointmentHint">Add your next visit</small></div>
+                                <div><span class="calm"></span><strong>Symptoms</strong><small>Log changes for better insights</small></div>
+                            </div>
+                        </section>
+
+                        <section class="account-panel account-actions-panel">
+                            <div class="account-panel-head">
+                                <span>Quick Actions</span>
+                            </div>
+                            <div class="account-action-row">
+                                <button type="button" onclick="navigateTo('pregnancy')">Pregnancy Hub</button>
+                                <button type="button" onclick="navigateTo('due-date-calculator')">Due Date</button>
+                                <button type="button" onclick="navigateTo('courses')">Courses</button>
+                                <button type="button" onclick="navigateTo('help-section')">Help</button>
+                            </div>
+                        </section>
+                    </main>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ADMIN PANEL PAGE -->
+    <section id="admin" class="page-section">
+        <div class="admin-page">
+            <aside class="admin-sidebar" aria-label="Admin sections">
+                <div class="admin-brand">
+                    <span class="admin-brand-mark">MC</span>
+                    <div>
+                        <strong>Mamasafe Admin</strong>
+                        <small>System control center</small>
+                    </div>
+                </div>
+                <button type="button" class="admin-nav active" data-admin-view="dashboard" onclick="adminSetView('dashboard')">Dashboard</button>
+                <button type="button" class="admin-nav" data-admin-view="users" onclick="adminSetView('users')">Users</button>
+                <button type="button" class="admin-nav" data-admin-view="ai" onclick="adminSetView('ai')">AI Monitoring</button>
+                <button type="button" class="admin-nav" data-admin-view="help" onclick="adminSetView('help')">Help Requests</button>
+                <button type="button" class="admin-nav" data-admin-view="emergency" onclick="adminSetView('emergency')">Emergencies</button>
+                <button type="button" class="admin-nav" data-admin-view="content" onclick="adminSetView('content')">Content</button>
+                <button type="button" class="admin-nav" data-admin-view="notifications" onclick="adminSetView('notifications')">Notifications</button>
+                <button type="button" class="admin-nav" data-admin-view="reports" onclick="adminSetView('reports')">Reports</button>
+                <button type="button" class="admin-nav" data-admin-view="settings" onclick="adminSetView('settings')">Settings</button>
+                <button type="button" class="admin-nav admin-logout" onclick="adminLogout()">Logout</button>
+            </aside>
+
+            <main class="admin-main">
+                <section id="adminLoginPanel" class="admin-login-card">
+                    <span class="admin-kicker">Secure administrator access</span>
+                    <h1>Admin Login</h1>
+                    <p>Sign in to monitor mothers, AI activity, help requests, emergency alerts, content, and system notifications.</p>
+                    <form onsubmit="adminLogin(event)">
+                        <label for="adminEmail">Admin Username</label>
+                        <input id="adminEmail" type="text" autocomplete="username" required placeholder="mamasafeadmin">
+                        <label for="adminPassword">Password</label>
+                        <input id="adminPassword" type="password" autocomplete="current-password" required placeholder="Enter admin password">
+                        <button type="submit" class="admin-primary">Login to Admin Panel</button>
+                    </form>
+                    <small id="adminLoginHint">Use the credentials configured in the backend environment.</small>
+                    <div class="admin-login-actions">
+                        <button type="button" id="adminBackToMamasafeLogin" class="admin-secondary" onclick="adminBackToMamasafeLogin()" hidden>
+                            Go back to Mamasafe login page
+                        </button>
+                    </div>
+                </section>
+
+                <section id="adminWorkspace" class="admin-workspace" hidden>
+                    <div class="admin-topbar">
+                        <div>
+                            <span class="admin-kicker">Live project command center</span>
+                            <h1 id="adminPageTitle">Admin Dashboard</h1>
+                        </div>
+                        <div class="admin-top-actions">
+                            <button type="button" onclick="adminLoadCurrentView()">Refresh</button>
+                            <button type="button" onclick="adminSetView('notifications')">Send Notice</button>
+                        </div>
+                    </div>
+
+                    <div id="adminStatus" class="admin-status" role="status"></div>
+
+                    <div id="adminView-dashboard" class="admin-view active">
+                        <div id="adminStats" class="admin-stat-grid"></div>
+                        <div class="admin-grid-two">
+                            <article class="admin-card">
+                                <div class="admin-card-head">
+                                    <h2>Quick Actions</h2>
+                                    <span>Safety first</span>
+                                </div>
+                                <div class="admin-action-grid">
+                                    <button type="button" onclick="adminSetView('content')">Add Article</button>
+                                    <button type="button" onclick="adminSetView('notifications')">Send Notification</button>
+                                    <button type="button" onclick="adminSetView('emergency')">View Emergencies</button>
+                                    <button type="button" onclick="adminSetView('ai')">Review AI Logs</button>
+                                </div>
+                            </article>
+                            <article class="admin-card">
+                                <div class="admin-card-head">
+                                    <h2>Active Users</h2>
+                                    <span>Created accounts</span>
+                                </div>
+                                <div id="adminDashboardUsers" class="admin-feed"></div>
+                            </article>
+                            <article class="admin-card">
+                                <div class="admin-card-head">
+                                    <h2>Recent Activity</h2>
+                                    <span>MongoDB synced</span>
+                                </div>
+                                <div id="adminActivityFeed" class="admin-feed"></div>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div id="adminView-users" class="admin-view">
+                        <article class="admin-card">
+                            <div class="admin-card-head">
+                                <h2>User Management</h2>
+                                <input id="adminUserSearch" type="search" placeholder="Search name, email, stage..." oninput="adminFilterUsers()">
+                            </div>
+                            <div id="adminUsersTable" class="admin-table-wrap"></div>
+                        </article>
+                    </div>
+
+                    <div id="adminView-ai" class="admin-view">
+                        <article class="admin-card">
+                            <div class="admin-card-head">
+                                <h2>AI Chat Monitoring</h2>
+                                <span>Danger topics are highlighted</span>
+                            </div>
+                            <div id="adminAiLogs" class="admin-feed"></div>
+                        </article>
+                    </div>
+
+                    <div id="adminView-help" class="admin-view">
+                        <article class="admin-card">
+                            <div class="admin-card-head">
+                                <h2>Help Requests</h2>
+                                <span>Pending, urgent, and resolved support</span>
+                            </div>
+                            <div id="adminHelpRequests" class="admin-table-wrap"></div>
+                        </article>
+                    </div>
+
+                    <div id="adminView-emergency" class="admin-view">
+                        <article class="admin-card admin-emergency-card">
+                            <div class="admin-card-head">
+                                <h2>Emergency Management</h2>
+                                <span>Call ambulance: 912</span>
+                            </div>
+                            <div id="adminEmergencyList" class="admin-feed"></div>
+                            <a class="admin-danger-link" href="tel:912">Call 912 Ambulance Now</a>
+                        </article>
+                    </div>
+
+                    <div id="adminView-content" class="admin-view">
+                        <article class="admin-card">
+                            <div class="admin-card-head">
+                                <h2>Content Management</h2>
+                                <span>Educational pregnancy content</span>
+                            </div>
+                            <form class="admin-form-grid" onsubmit="adminSaveContent(event)">
+                                <input id="adminArticleTitle" required placeholder="Article title">
+                                <select id="adminArticleCategory">
+                                    <option>Nutrition</option>
+                                    <option>Exercise</option>
+                                    <option>Mental Health</option>
+                                    <option>Emergency Signs</option>
+                                    <option>Baby Growth</option>
+                                    <option>Labor Preparation</option>
+                                </select>
+                                <textarea id="adminArticleContent" required placeholder="Write trusted guidance here"></textarea>
+                                <button type="submit" class="admin-primary">Save Article Draft</button>
+                            </form>
+                            <div id="adminContentList" class="admin-feed"></div>
+                        </article>
+                    </div>
+
+                    <div id="adminView-notifications" class="admin-view">
+                        <article class="admin-card">
+                            <div class="admin-card-head">
+                                <h2>Notifications & Announcements</h2>
+                                <span>Broadcast to mothers</span>
+                            </div>
+                            <form class="admin-form-grid" onsubmit="adminSendNotification(event)">
+                                <input id="adminNoticeTitle" required placeholder="Notification title">
+                                <textarea id="adminNoticeMessage" required placeholder="Message for users"></textarea>
+                                <select id="adminNoticeAudience">
+                                    <option value="all">All users</option>
+                                    <option value="pregnancy">Pregnancy users</option>
+                                    <option value="courses">Learning users</option>
+                                    <option value="emergency">Emergency notice</option>
+                                </select>
+                                <button type="submit" class="admin-primary">Send Notification</button>
+                            </form>
+                        </article>
+                    </div>
+
+                    <div id="adminView-reports" class="admin-view">
+                        <div id="adminReportsGrid" class="admin-stat-grid"></div>
+                        <article class="admin-card">
+                            <div class="admin-card-head">
+                                <h2>Reports & Analytics</h2>
+                                <button type="button" onclick="adminExportReport()">Export JSON Report</button>
+                            </div>
+                            <canvas id="adminMiniChart" width="900" height="260" aria-label="Admin analytics chart"></canvas>
+                        </article>
+                    </div>
+
+                    <div id="adminView-settings" class="admin-view">
+                        <article class="admin-card">
+                            <div class="admin-card-head">
+                                <h2>System Settings</h2>
+                                <span>Security and access control</span>
+                            </div>
+                            <div class="admin-settings-grid">
+                                <label><input type="checkbox" checked> Email notifications enabled</label>
+                                <label><input type="checkbox" checked> Emergency alerts enabled</label>
+                                <label><input type="checkbox" checked> AI safety monitoring enabled</label>
+                                <label><input type="checkbox"> Maintenance mode</label>
+                            </div>
+                            <p class="admin-muted">Admin credentials are controlled from the backend environment file, not from the browser.</p>
+                        </article>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </section>
+<!-- DUE DATE CALCULATOR PAGE -->
+    <section id="due-date-calculator" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Due Date Calculator</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Calculate your baby's due date based on your last menstrual period or conception date.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="calculator-container">
+                    <div class="calc-card">
+                        <h3>Calculate Your Due Date</h3>
+                        <div class="form-group">
+                            <label>Last Menstrual Period:</label>
+                            <input type="date" id="dueDateLMP" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Average Cycle Length:</label>
+                            <select id="cycleLength" class="form-input">
+                                <option value="28">28 days</option>
+                                <option value="26">26 days</option>
+                                <option value="27">27 days</option>
+                                <option value="29">29 days</option>
+                                <option value="30">30 days</option>
+                                <option value="31">31 days</option>
+                                <option value="32">32 days</option>
+                            </select>
+                        </div>
+                        <button onclick="calculateDueDate()" class="btn-primary">Calculate Due Date</button>
+                        <div id="dueDateResult" class="result-box signs-result-panel due-date-result-panel">
+                            <h4>Your Calculated Due Date</h4>
+                            <div class="sign-result sign-result-low" id="dueDateBanner">
+                                <div class="sign-result-label" id="dueDateLabel">Due date preview</div>
+                                <p id="dueDateSummary">Enter your last menstrual period and cycle length to see the calculated result here.</p>
+                            </div>
+                            <div class="signs-result-grid">
+                                <div class="signs-result-card">
+                                    <span class="signs-result-title">Estimated due date</span>
+                                    <strong id="dueDateValue">--</strong>
+                                    <small id="dueDateCycleNote">Based on your selected cycle length</small>
+                                </div>
+                                <div class="signs-result-card">
+                                    <span class="signs-result-title">Current pregnancy week</span>
+                                    <strong id="dueDateWeeks">--</strong>
+                                    <small id="dueDateTrimester">Trimester information will appear here.</small>
+                                </div>
+                                <div class="signs-result-card signs-result-card-wide">
+                                    <span class="signs-result-title">Calculation details</span>
+                                    <strong id="dueDateMethod">280 days from the first day of your last period</strong>
+                                    <small id="dueDateRange">The expected full-term range will appear here.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h4>About Due Date Calculation</h4>
+                        <p>The due date is calculated as 280 days (40 weeks) from the first day of your last menstrual period. This method assumes a 28-day menstrual cycle.</p>
+                        <ul>
+                            <li>Only 5% of babies are born on their exact due date</li>
+                            <li>Most babies are born between 37-42 weeks</li>
+                            <li>Your healthcare provider may adjust your due date after ultrasound</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PREGNANCY TRACKER PAGE -->
+    <section id="pregnancy-tracker" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Pregnancy Tracker</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Track your pregnancy week by week with personalized updates and milestones.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="tracker-container">
+                    <div class="tracker-input">
+                        <h3>Track Your Pregnancy</h3>
+                        <div class="form-group">
+                            <label>Due Date:</label>
+                            <input type="date" id="trackerDueDate" class="form-input">
+                        </div>
+                        <button onclick="trackPregnancy()" class="btn-primary">Track Pregnancy</button>
+                        <div id="pregnancyResult" class="result-box" style="display: none;"></div>
+                    </div>
+
+                    <div class="milestone-section">
+                        <h4>Pregnancy Milestones</h4>
+                        <div class="milestone-grid">
+                            <div class="milestone-card">
+                                <div class="milestone-week">Week 12</div>
+                                <div class="milestone-text">End of first trimester</div>
+                            </div>
+                            <div class="milestone-card">
+                                <div class="milestone-week">Week 20</div>
+                                <div class="milestone-text">Anatomy scan</div>
+                            </div>
+                            <div class="milestone-card">
+                                <div class="milestone-week">Week 28</div>
+                                <div class="milestone-text">Third trimester begins</div>
+                            </div>
+                            <div class="milestone-card">
+                                <div class="milestone-week">Week 37</div>
+                                <div class="milestone-text">Full term pregnancy</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<!-- BABY KICK COUNTER PAGE -->
+    <section id="baby-kick-counter" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Baby Kick Counter</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Monitor your baby's movements to ensure they're active and healthy.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="kick-counter-container">
+                    <div class="kick-display">
+                        <h3>Kick Counter</h3>
+                        <div class="kick-stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="kickCount">0</div>
+                                <div class="stat-label">Kicks</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="kickTimer">00:00</div>
+                                <div class="stat-label">Time</div>
+                            </div>
+                        </div>
+                        <div class="kick-controls">
+                            <button id="kickStartBtn" onclick="startKickCounter()" class="btn-primary">Start Counting</button>
+                            <button id="kickBtn" onclick="countKick()" class="btn-secondary" disabled>Kick!</button>
+                            <button onclick="resetKickCounter()" class="btn-outline">Reset</button>
+                        </div>
+                    </div>
+
+                    <div class="kick-info">
+                        <h4>How to Count Kicks</h4>
+                        <ul>
+                            <li>Count 10 kicks and note how long it takes</li>
+                            <li>Most babies complete 10 kicks within 2 hours</li>
+                            <li>Best time to count is when baby is usually active</li>
+                            <li>Lie on your left side for better counting</li>
+                            <li>Contact your provider if it takes longer than 2 hours</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTRACTION TIMER PAGE -->
+    <section id="contraction-timer" class="page-section">
+        <div class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 style="font-size: 42px; margin-bottom: 15px; color: var(--text-dark);">Contraction Timer</h1>
+                    <p style="font-size: 18px; color: var(--text-gray); margin-bottom: 30px;">Time your contractions to know when it's time to go to the hospital.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="container">
+                <div class="contraction-timer-container">
+                    <div class="timer-display">
+                        <h3>Contraction Timer</h3>
+                        <div class="timer-stats">
+                            <div class="stat-item">
+                                <div class="stat-number" id="currentTimer">00:00</div>
+                                <div class="stat-label">Current</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="frequencyTime">--:--</div>
+                                <div class="stat-label">Frequency</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number" id="durationTime">00:00</div>
+                                <div class="stat-label">Duration</div>
+                            </div>
+                        </div>
+                        <div class="timer-controls">
+                            <button id="contractionStartBtn" onclick="startContraction()" class="btn-primary">Contraction Start</button>
+                            <button id="contractionEndBtn" onclick="endContraction()" class="btn-secondary" disabled>Contraction End</button>
+                            <button onclick="resetContractionTimer()" class="btn-outline">Reset</button>
+                        </div>
+                        <div id="contractionLog" class="contraction-log"></div>
+                    </div>
+
+                    <div class="contraction-info">
+                        <h4>When to Call Your Provider</h4>
+                        <div class="alert-box">
+                            <strong>5-1-1 Rule:</strong> Call when contractions are 5 minutes apart, lasting 1 minute, for 1 hour.
+                        </div>
+                        <ul>
+                            <li>Contractions getting stronger and closer together</li>
+                            <li>Can't walk or talk during contractions</li>
+                            <li>Water breaks or bleeding occurs</li>
+                            <li>Baby movements decrease significantly</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+<!-- PROFESSIONAL HELP SECTION -->
+    <section id="help-section" class="page-section">
+        <div class="professional-help">
+            <div class="ph-hero">
+                <div class="container">
+                    <div class="ph-hero-grid">
+                        <div>
+                            <span class="ph-kicker">Professional Help Center</span>
+                            <h1>Healthcare support for mothers, fast and calm.</h1>
+                            <p>Find nearby hospitals, emergency steps, trusted medical information, appointment links, and support request tools in one place.</p>
+                            <div class="ph-hero-actions">
+                                <button class="ph-btn ph-btn-light" type="button" onclick="setHelpPanel('hospitals')">Find Hospitals</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="ph-dashboard">
+                    <button class="ph-quick-card" type="button" onclick="setHelpPanel('hospitals')">
+                        <span>Nearby Hospitals</span>
+                        <strong>Search maternity and emergency facilities</strong>
+                    </button>
+                    <button class="ph-quick-card" type="button" onclick="setHelpPanel('pharmacies')">
+                        <span>Nearby Pharmacies</span>
+                        <strong>Search prescription and retail pharmacies</strong>
+                    </button>
+                    <button class="ph-quick-card" type="button" onclick="setHelpPanel('booking')">
+                        <span>Book Appointment</span>
+                        <strong>External clinic and hospital booking links</strong>
+                    </button>
+                </div>
+
+                <div class="ph-tabs" role="tablist" aria-label="Professional help tools">
+                    <button class="active" type="button" data-help-tab="dashboard" onclick="setHelpPanel('dashboard')">Dashboard</button>
+                    <button type="button" data-help-tab="search-all" onclick="setHelpPanel('search-all')">Search All</button>
+                    <button type="button" data-help-tab="hospitals" onclick="setHelpPanel('hospitals')">Hospitals</button>
+                    <button type="button" data-help-tab="pharmacies" onclick="setHelpPanel('pharmacies')">Pharmacies</button>
+                    <button type="button" data-help-tab="booking" onclick="setHelpPanel('booking')">Appointments</button>
+                </div>
+
+                <div class="ph-panel active" id="ph-dashboard-panel">
+                    <div class="ph-section-heading">
+                        <span>Help Dashboard</span>
+                        <h2>Choose the care support you need now.</h2>
+                    </div>
+                    <div class="ph-grid-3">
+                        <article class="ph-info-card">
+                            <h3>Search All (AI)</h3>
+                            <p>Use Llama AI to search all hospitals and pharmacies in Rwanda.</p>
+                            <button type="button" onclick="setHelpPanel('search-all')">Search All</button>
+                        </article>
+                        <article class="ph-info-card">
+                            <h3>Nearby hospitals</h3>
+                            <p>Search by city, district, service type, or use location to open map directions to nearby facilities.</p>
+                            <button type="button" onclick="setHelpPanel('hospitals')">Search hospitals</button>
+                        </article>
+                        <article class="ph-info-card">
+                            <h3>Nearby pharmacies</h3>
+                            <p>Search by city, district, service type, or use location to open map directions to nearby pharmacies.</p>
+                            <button type="button" onclick="setHelpPanel('pharmacies')">Search pharmacies</button>
+                        </article>
+                    </div>
+                    <div class="ph-alert-strip">
+                        <strong>Danger signs:</strong>
+                        severe headache, blurred vision, swelling of face or hands, high fever, severe abdominal pain, waters breaking early, or baby moving much less than usual.
+                    </div>
+                </div>
+
+                <div class="ph-panel" id="ph-search-all-panel">
+                    <div class="ph-section-heading">
+                        <span>Search All (AI)</span>
+                        <h2>Ask Llama to find hospitals and pharmacies in Rwanda.</h2>
+                    </div>
+                    <div class="ph-search-row" style="gap: 10px;">
+                        <input id="helpAISearch" type="search" placeholder="e.g. 'Find hospitals in Gasabo' or 'Pharmacies in Butare with 24hr service'" style="flex: 2;">
+                        <button type="button" id="helpAISearchBtn" onclick="performAISearch()" style="flex: 1; background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color: #5a3438; border: none; border-radius: 8px; padding: 10px 16px; cursor: pointer;">
+                            Search with Llama
+                        </button>
+                    </div>
+                    <div class="ph-gps-status" id="helpAISearchStatus">Enter your query to use AI-powered search.</div>
+                    <div class="ph-card-list" id="helpAISearchResults"></div>
+                </div>
+
+                <div class="ph-panel" id="ph-hospitals-panel">
+                    <div class="ph-section-heading">
+                        <span>Nearby Hospitals</span>
+                        <h2>Find maternity, clinic, and emergency facilities.</h2>
+                    </div>
+                    <div class="ph-search-row">
+                        <input id="helpHospitalSearch" type="search" list="helpHospitalSuggestions" placeholder="Search Rwanda district, city, hospital, or service">
+                        <datalist id="helpHospitalSuggestions"></datalist>
+                        <select id="helpHospitalCategory">
+                            <option value="all">All facilities</option>
+                            <option value="public">Public hospitals</option>
+                            <option value="private">Private clinics</option>
+                            <option value="maternal">Maternal care centers</option>
+                            <option value="emergency">Emergency facilities</option>
+                        </select>
+                        <button type="button" onclick="filterHelpHospitals()">Search</button>
+                        <button type="button" onclick="useHelpLocation()">Use GPS</button>
+                    </div>
+                    <div class="ph-gps-status" id="helpGpsStatus">Tip: choose a Rwanda district, city, or hospital suggestion, or allow GPS to sort facilities nearest to your current location.</div>
+                    <div class="ph-card-list" id="helpHospitalList"></div>
+                </div>
+
+                <div class="ph-panel" id="ph-pharmacies-panel">
+                    <div class="ph-section-heading">
+                        <span>Nearby Pharmacies</span>
+                        <h2>Find prescription, retail, and emergency pharmacies.</h2>
+                    </div>
+                    <div class="ph-search-row">
+                        <input id="helpPharmacySearch" type="search" list="helpPharmacySuggestions" placeholder="Search Rwanda district, city, pharmacy, or service">
+                        <datalist id="helpPharmacySuggestions"></datalist>
+                        <select id="helpPharmacyCategory">
+                            <option value="all">All pharmacies</option>
+                            <option value="hospital">Hospital pharmacies</option>
+                            <option value="retail">Retail pharmacies</option>
+                            <option value="community">Community pharmacies</option>
+                        </select>
+                        <button type="button" onclick="filterHelpPharmacies()">Search</button>
+                        <button type="button" onclick="useHelpPharmacyLocation()">Use GPS</button>
+                    </div>
+                    <div class="ph-gps-status" id="helpPharmacyGpsStatus">Tip: choose a Rwanda district, city, or pharmacy, or allow GPS to sort facilities nearest to your current location.</div>
+                    <div class="ph-card-list" id="helpPharmacyList"></div>
+                </div>
+
+                <div class="ph-panel" id="ph-booking-panel">
+                    <div class="ph-section-heading">
+                        <span>Appointment Booking Links</span>
+                        <h2>Use external booking, calling, or messaging options.</h2>
+                    </div>
+                    <div class="ph-search-row">
+                        <input id="helpBookingSearch" type="search" list="helpBookingSuggestions" placeholder="Search for a hospital or clinic...">
+                        <datalist id="helpBookingSuggestions"></datalist>
+                        <select id="helpBookingCategory">
+                            <option value="all">All Facilities</option>
+                            <option value="public">Public Hospitals</option>
+                            <option value="private">Private Clinics</option>
+                            <option value="maternal">Maternity Care Centers</option>
+                            <option value="emergency">Emergency Facilities</option>
+                        </select>
+                    </div>
+                    <div class="ph-card-list" id="helpBookingList"></div>
+                    <div class="ph-prep-card">
+                        <h3>Before your appointment</h3>
+                        <p>Bring your ID, insurance or payment details, antenatal card, current medications, lab results, and a list of questions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Pregnancy</h4>
+                    <ul>
+                        <li><a onclick="navigateTo('pregnancy')">Week by Week</a></li>
+                        <li><a onclick="navigateTo('pregnancy')">Symptoms</a></li>
+                        <li><a onclick="navigateTo('pregnancy')">Labor & Delivery</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a onclick="navigateTo('names')">Baby Names</a></li>
+                        <li><a onclick="navigateTo('courses')">Courses</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a>Birth Clubs</a></li>
+                        <li><a>Forums</a></li>
+                        <li><a>App Download</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col footer-admin-col">
+                    <h4>System</h4>
+                    <ul>
+                        <li><a href="/admin" class="footer-admin-link">Admin</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div style="font-weight: bold; color: var(--primary-pink); font-size: 20px;">Mamasafe</div>
+                <div class="social-links">
+                    <a href="#">f</a>
+                    <a href="#">in</a>
+                    <a href="#">P</a>
+                    <a href="#">Y</a>
+                </div>
+                <div style="color: #95a5a6; font-size: 14px;">© 2026 Mamasafe, LLC. All rights reserved.</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Load modules in dependency order -->
+    <!-- Consolidated application script - contains all functions -->
+    <script>
+        // Define navigateTo immediately to prevent timing issues
+        function navigateTo(pageId, options = {}) {
+            console.log(`🔄 Navigating to page: ${pageId}`);
+            
+            // Remove active class from all pages
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.main-nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Show target page
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.add('active');
+                window.scrollTo(0, 0);
+            }
+        }
+    </script>
+    <script src="js/config/api-config.js?v=20260608-admin-api-base"></script>
+    <script src="js/services/api-service.js?v=20260611-rag-chatbot"></script>
+    <script src="js/services/db-sync.js?v=20260528-backend-sync"></script>
+    <script src="vendor/tfjs/tf.min.js?v=4.22.0"></script>
+    <script src="js/features/pregnancy-rag.js?v=20260611-tfjs-backend-fallback"></script>
+    <script src="courses-functions.js?v=20260527-remove-resources-section"></script>
+    <script src="script-new.js?v=20260612-admin-users-sync-v2"></script>
+    <script src="js/features/courses-ui.js?v=20260527-remove-resources-section"></script>
+    <script>
+        // Ensure navigateToTool function is available
+        function navigateToTool(pageId) {
+            // Check if user is logged in
+            const isLoggedIn = localStorage.getItem('bc_logged_in') === 'true';
+            
+            if (isLoggedIn) {
+                // User is logged in, navigate directly to the tool
+                navigateTo(pageId);
+            } else {
+                // User is not logged in, redirect to login page
+                // Store the intended destination for after login
+                localStorage.setItem('bc_intended_page', pageId);
+                navigateTo('login');
+                
+                // Show a message explaining why they need to login
+                setTimeout(() => {
+                    const message = document.createElement('div');
+                    message.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 15px 20px;
+                        border-radius: 10px;
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                        z-index: 10000;
+                        font-size: 14px;
+                        max-width: 300px;
+                        animation: slideIn 0.3s ease;
+                    `;
+                    message.innerHTML = `
+                        <strong>🔐 Login Required</strong><br>
+                        Please log in or sign up to access this premium feature.
+                    `;
+                    document.body.appendChild(message);
+                    
+                    // Remove message after 4 seconds
+                    setTimeout(() => {
+                        message.style.animation = 'slideOut 0.3s ease';
+                        setTimeout(() => message.remove(), 300);
+                    }, 4000);
+                }, 500);
+            }
+        }
+    </script>
+<script>
+// Account Dashboard Functions
+function initializeAccount() {
+    console.log('Initializing account dashboard...');
+    loadAccountData();
+}
+
+function loadAccountData() {
+    const userEmail = localStorage.getItem('bc_user_email') || 'user@example.com';
+    document.getElementById('accountEmail').textContent = userEmail;
+    document.getElementById('profileEmail').textContent = userEmail;
+    
+    // Load saved pregnancy data if exists
+    const savedData = localStorage.getItem('bc_pregnancy_data');
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        if (data.currentWeek) document.getElementById('currentWeek').textContent = `Week ${data.currentWeek}`;
+        if (data.dueDate) document.getElementById('dueDate').textContent = data.dueDate;
+        if (data.babySize) document.getElementById('babySize').textContent = data.babySize;
+    }
+    
+    // Load settings if exists
+    const settings = localStorage.getItem('bc_settings');
+    if (settings) {
+        const parsedSettings = JSON.parse(settings);
+        if (parsedSettings.emailNotif !== undefined) document.getElementById('emailNotif').checked = parsedSettings.emailNotif;
+        if (parsedSettings.weeklyUpdates !== undefined) document.getElementById('weeklyUpdates').checked = parsedSettings.weeklyUpdates;
+        if (parsedSettings.communityDigest !== undefined) document.getElementById('communityDigest').checked = parsedSettings.communityDigest;
+        if (parsedSettings.profileVisibility) document.getElementById('profileVisibility').value = parsedSettings.profileVisibility;
+    }
+}
+
+function editProfile() {
+    showNotification('Profile editing coming soon!', 'info');
+}
+
+function saveSettings() {
+    const settings = {
+        emailNotif: document.getElementById('emailNotif').checked,
+        weeklyUpdates: document.getElementById('weeklyUpdates').checked,
+        communityDigest: document.getElementById('communityDigest').checked,
+        profileVisibility: document.getElementById('profileVisibility').value
+    };
+    
+    localStorage.setItem('bc_settings', JSON.stringify(settings));
+    if (window.DB_SYNC) window.DB_SYNC.saveSettings(settings);
+    showNotification('Settings saved successfully!', 'success');
+}
+    </script>
+
+    <!-- Pregnancy Guide Pages -->
+    <div id="pregnancyGuideContainer" style="display: none;">
+        <!-- First Trimester Guide -->
+        <div id="first-trimester-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>First Trimester Complete Guide</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Week 1-4: Early Development</h3>
+                    <p>Your pregnancy begins with conception and implantation. The fertilized egg travels to the uterus and implants in the uterine wall.</p>
+                    <ul>
+                        <li>Week 1: Conception occurs</li>
+                        <li>Week 2: Implantation begins</li>
+                        <li>Week 3: Neural tube forms</li>
+                        <li>Week 4: Heart begins beating</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Week 5-8: Organ Development</h3>
+                    <p>Major organs and systems begin to form during this critical period.</p>
+                    <ul>
+                        <li>Week 5: Brain and spinal cord develop</li>
+                        <li>Week 6: Heart chambers form</li>
+                        <li>Week 7: Limbs begin to form</li>
+                        <li>Week 8: Facial features develop</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Week 9-13: Fetal Period</h3>
+                    <p>Your baby is now called a fetus and continues rapid development.</p>
+                    <ul>
+                        <li>Week 9: Fetal movement begins</li>
+                        <li>Week 10: Fingernails form</li>
+                        <li>Week 11: Gender can be determined</li>
+                        <li>Week 12: Baby can make fists</li>
+                        <li>Week 13: Placenta fully functional</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Common Symptoms & Management</h3>
+                    <ul>
+                        <li><strong>Morning Sickness:</strong> Eat small, frequent meals</li>
+                        <li><strong>Fatigue:</strong> Rest when possible, maintain sleep schedule</li>
+                        <li><strong>Breast Tenderness:</strong> Wear supportive bras</li>
+                        <li><strong>Frequent Urination:</strong> Stay hydrated but limit fluids before bed</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Essential Tests & Appointments</h3>
+                    <ul>
+                        <li>First prenatal visit (8-12 weeks)</li>
+                        <li>Blood tests: Rh factor, blood type, immunity</li>
+                        <li>Ultrasound: Confirm due date, check heartbeat</li>
+                        <li>Genetic screening options</li>
+                        <li>Weight and blood pressure monitoring</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Second Trimester Guide -->
+        <div id="second-trimester-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Second Trimester Complete Guide</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Week 14-20: Growth & Movement</h3>
+                    <p>The "honeymoon phase" of pregnancy with increased energy and reduced nausea.</p>
+                    <ul>
+                        <li>Week 14: Baby can swallow and suck</li>
+                        <li>Week 15: Baby can hear sounds</li>
+                        <li>Week 16: You may feel first movements</li>
+                        <li>Week 17: Fat deposits begin</li>
+                        <li>Week 18: Baby practices breathing</li>
+                        <li>Week 19: Vernix caseosa develops</li>
+                        <li>Week 20: Anatomy scan ultrasound</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Week 21-27: Rapid Development</h3>
+                    <p>Baby's senses develop and you'll feel stronger movements.</p>
+                    <ul>
+                        <li>Week 21: Taste buds develop</li>
+                        <li>Week 22: Baby responds to voices</li>
+                        <li>Week 23: Fingerprints form</li>
+                        <li>Week 24: Lungs produce surfactant</li>
+                        <li>Week 25: Hair color determined</li>
+                        <li>Week 26: Eyes open and close</li>
+                        <li>Week 27: Baby practices breathing regularly</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Physical Changes & Management</h3>
+                    <ul>
+                        <li><strong>Belly Growth:</strong> Maternity clothes recommended</li>
+                        <li><strong>Back Pain:</strong> Proper posture, pregnancy pillows</li>
+                        <li><strong>Round Ligament Pain:</strong> Gentle stretching</li>
+                        <li><strong>Swelling:</strong> Elevate feet, stay hydrated</li>
+                        <li><strong>Shortness of Breath:</strong> Baby pressing on diaphragm</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Key Medical Milestones</h3>
+                    <ul>
+                        <li>Anatomy scan (18-22 weeks)</li>
+                        <li>Glucose tolerance test (24-28 weeks)</li>
+                        <li>Rh immunoglobulin if Rh-negative</li>
+                        <li>Regular weight and blood pressure checks</li>
+                        <li>Fetal heartbeat monitoring</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Third Trimester Guide -->
+        <div id="third-trimester-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Third Trimester Complete Guide</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Week 28-32: Final Growth</h3>
+                    <p>Baby gains most weight and prepares for birth.</p>
+                    <ul>
+                        <li>Week 28: Baby can open eyes</li>
+                        <li>Week 29: Bones fully developed</li>
+                        <li>Week 30: Baby practices breathing</li>
+                        <li>Week 31: Rapid weight gain</li>
+                        <li>Week 32: Baby usually in head-down position</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Week 33-36: Birth Preparation</h3>
+                    <p>Baby's lungs mature and you prepare for delivery.</p>
+                    <ul>
+                        <li>Week 33: Immune system develops</li>
+                        <li>Week 34: Baby drops into pelvis</li>
+                        <li>Week 35: Vernix thickens</li>
+                        <li>Week 36: Considered full-term</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Week 37-40: Final Countdown</h3>
+                    <p>Baby is ready for birth and you're preparing for labor.</p>
+                    <ul>
+                        <li>Week 37: Baby's grasp reflex develops</li>
+                        <li>Week 38: Baby's organs are mature</li>
+                        <li>Week 39: Baby's lanugo sheds</li>
+                        <li>Week 40: Due date - baby ready for birth</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Labor Preparation Checklist</h3>
+                    <ul>
+                        <li>Pack hospital bag with essentials</li>
+                        <li>Install and practice with car seat</li>
+                        <li>Create birth plan</li>
+                        <li>Arrange childcare for older children</li>
+                        <li>Know labor signs and when to call</li>
+                        <li>Practice breathing exercises</li>
+                        <li>Plan transportation to hospital</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Common Late Pregnancy Symptoms</h3>
+                    <ul>
+                        <li><strong>Braxton Hicks:</strong> Practice contractions</li>
+                        <li><strong>Pelvic Pressure:</strong> Baby engaging</li>
+                        <li><strong>Nesting Instinct:</strong> Prepare for baby</li>
+                        <li><strong>Insomnia:</strong> Discomfort and anxiety</li>
+                        <li><strong>Leaking Colostrum:</strong> Breast preparation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Body & Health Guides -->
+        <div id="your-body-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Your Body During Pregnancy</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Body Changes Overview</h3>
+                    <p>Your body undergoes remarkable changes during pregnancy. Understanding these changes helps you manage discomfort and maintain optimal health.</p>
+                    <ul>
+                        <li><strong>First Trimester:</strong> Hormonal surges, breast tenderness, fatigue</li>
+                        <li><strong>Second Trimester:</strong> Growing belly, increased energy, back pain</li>
+                        <li><strong>Third Trimester:</strong> Weight gain, swelling, preparation for birth</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Managing Common Discomforts</h3>
+                    <ul>
+                        <li><strong>Back Pain:</strong> Practice good posture, use pregnancy pillows</li>
+                        <li><strong>Swelling:</strong> Elevate feet, stay hydrated, avoid prolonged standing</li>
+                        <li><strong>Fatigue:</strong> Prioritize sleep, accept help, gentle exercise</li>
+                        <li><strong>Breast Changes:</strong> Wear supportive bras, expect tenderness</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Self-Care Essentials</h3>
+                    <ul>
+                        <li>Daily gentle stretching and movement</li>
+                        <li>Warm baths with Epsom salts for muscle relief</li>
+                        <li>Regular prenatal massage if approved by provider</li>
+                        <li>Adequate rest and stress management techniques</li>
+                        <li>Proper hydration and nutrition</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="symptoms-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Pregnancy Symptoms Guide</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Normal Pregnancy Symptoms</h3>
+                    <ul>
+                        <li><strong>Morning Sickness:</strong> Nausea, typically improves after 12 weeks</li>
+                        <li><strong>Fatigue:</strong> Common in first and third trimesters</li>
+                        <li><strong>Frequent Urination:</strong> Due to hormonal changes and pressure</li>
+                        <li><strong>Food Cravings/Aversions:</strong> Hormonal taste changes</li>
+                        <li><strong>Mood Swings:</strong> Hormonal fluctuations</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>When to Call Your Doctor</h3>
+                    <ul>
+                        <li>Severe abdominal pain or cramping</li>
+                        <li>Heavy vaginal bleeding or clotting</li>
+                        <li>Fever above 100.4°F (38°C)</li>
+                        <li>Severe headache that doesn't respond to rest</li>
+                        <li>Vision changes or spots before eyes</li>
+                        <li>Decreased fetal movement (after 28 weeks)</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Symptom Management Strategies</h3>
+                    <ul>
+                        <li>Small, frequent meals for nausea</li>
+                        <li>Ginger tea or acupressure bands</li>
+                        <li>Cold compresses for headaches</li>
+                        <li>Extra rest and hydration</li>
+                        <li>Comfortable clothing and supportive shoes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="pregnancy-week-body-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Your Pregnancy Week by Week: Body Changes</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>First Trimester Body Changes (Weeks 1-13)</h3>
+                    <ul>
+                        <li><strong>Weeks 1-4:</strong> No visible changes yet, internal hormonal shifts</li>
+                        <li><strong>Weeks 5-8:</strong> Breast tenderness, fatigue, possible nausea</li>
+                        <li><strong>Weeks 9-13:</strong> Slight belly swelling, continued symptoms</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Second Trimester Body Changes (Weeks 14-27)</h3>
+                    <ul>
+                        <li><strong>Weeks 14-20:</strong> Noticeable belly growth, increased energy</li>
+                        <li><strong>Weeks 21-27:</strong> Rapid belly expansion, back pain begins</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Third Trimester Body Changes (Weeks 28-40)</h3>
+                    <ul>
+                        <li><strong>Weeks 28-32:</strong> Significant weight gain, swelling</li>
+                        <li><strong>Weeks 33-36:</strong> Baby drops, breathing improves</li>
+                        <li><strong>Weeks 37-40:</strong> Preparation for labor, braxton hicks</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="early-signs-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Early Signs of Pregnancy</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Common Early Pregnancy Signs</h3>
+                    <ul>
+                        <li><strong>Missed Period:</strong> Most reliable early sign</li>
+                        <li><strong>Tender Breasts:</strong> Hormonal changes cause sensitivity</li>
+                        <li><strong>Nausea:</strong> "Morning sickness" can occur any time</li>
+                        <li><strong>Fatigue:</strong> Extreme tiredness is common</li>
+                        <li><strong>Frequent Urination:</strong> Increased blood flow</li>
+                        <li><strong>Food Aversions:</strong> Sudden dislike of favorite foods</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>When to Take a Pregnancy Test</h3>
+                    <ul>
+                        <li>Best time: First thing in morning (concentrated hormones)</li>
+                        <li>Wait until at least one day after missed period</li>
+                        <li>Follow test instructions carefully</li>
+                        <li>Confirm with healthcare provider if positive</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Next Steps After Positive Test</h3>
+                    <ul>
+                        <li>Schedule first prenatal appointment</li>
+                        <li>Start taking prenatal vitamins</li>
+                        <li>Begin healthy lifestyle changes</li>
+                        <li>Avoid alcohol, smoking, and certain medications</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="sleep-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Sleep During Pregnancy</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Safe Sleep Positions</h3>
+                    <ul>
+                        <li><strong>Best Position:</strong> Left side sleeping improves blood flow</li>
+                        <li><strong>Avoid:</strong> Back sleeping after 20 weeks (pressure on vena cava)</li>
+                        <li><strong>Support:</strong> Use pillows for back, belly, and between knees</li>
+                        <li><strong>Elevation:</strong> Slightly elevate upper body if heartburn</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Common Sleep Issues & Solutions</h3>
+                    <ul>
+                        <li><strong>Insomnia:</strong> Establish routine, limit screen time before bed</li>
+                        <li><strong>Heartburn:</strong> Avoid large meals, sleep elevated</li>
+                        <li><strong>Leg Cramps:</strong> Stretch before bed, stay hydrated</li>
+                        <li><strong>Frequent Urination:</strong> Limit fluids before bedtime</li>
+                        <li><strong>Restless Legs:</strong> Exercise regularly, massage</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Sleep Environment Tips</h3>
+                    <ul>
+                        <li>Keep room cool (65-70°F)</li>
+                        <li>Use blackout curtains for darkness</li>
+                        <li>White noise machine can help</li>
+                        <li>Comfortable pregnancy pillows</li>
+                        <li>Consistent bedtime routine</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Baby's Development Guides -->
+        <div id="your-baby-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Your Baby's Development</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>First Trimester Development</h3>
+                    <ul>
+                        <li><strong>Week 4:</strong> Heart begins beating</li>
+                        <li><strong>Week 6:</strong> Neural tube closes, brain develops</li>
+                        <li><strong>Week 8:</strong> All major organs formed</li>
+                        <li><strong>Week 12:</strong> Baby can make fists, gender determined</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Second Trimester Development</h3>
+                    <ul>
+                        <li><strong>Week 16:</strong> You may feel first movements</li>
+                        <li><strong>Week 20:</strong> Anatomy scan, baby responds to sounds</li>
+                        <li><strong>Week 24:</strong> Lungs develop surfactant</li>
+                        <li><strong>Week 27:</strong> Baby practices breathing regularly</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Third Trimester Development</h3>
+                    <ul>
+                        <li><strong>Week 28:</strong> Baby opens eyes, rapid brain growth</li>
+                        <li><strong>Week 32:</strong> Baby usually head-down position</li>
+                        <li><strong>Week 36:</strong> Considered full-term, immune system develops</li>
+                        <li><strong>Week 40:</strong> Ready for birth, all organs mature</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="twins-more-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Twins & Multiple Pregnancy</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Multiple Pregnancy Types</h3>
+                    <ul>
+                        <li><strong>Identical Twins:</strong> One fertilized egg splits</li>
+                        <li><strong>Fraternal Twins:</strong> Two separate eggs fertilized</li>
+                        <li><strong>Triplets+:</strong> Can be identical, fraternal, or mixed</li>
+                        <li><strong>Higher-Order Multiples:</strong> Rare and sometimes associated with assisted reproductive care</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Special Considerations</h3>
+                    <ul>
+                        <li>More frequent prenatal visits</li>
+                        <li>Earlier delivery (typically 36-37 weeks)</li>
+                        <li>Increased weight gain needs</li>
+                        <li>Higher risk of complications</li>
+                        <li>Specialized monitoring required</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Preparation for Multiples</h3>
+                    <ul>
+                        <li>Arrange additional help and support</li>
+                        <li>Prepare larger nursery space</li>
+                        <li>Consider double stroller and equipment</li>
+                        <li>Plan for postpartum recovery with multiple babies</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="fetal-health-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Fetal Health & Development</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Fetal Development Monitoring</h3>
+                    <ul>
+                        <li><strong>Ultrasound Scans:</strong> Anatomy scan (18-22 weeks)</li>
+                        <li><strong>Fetal Movement:</strong> Kick counting after 28 weeks</li>
+                        <li><strong>Heart Rate:</strong> 120-160 beats per minute</li>
+                        <li><strong>Growth Measurements:</strong> Fundal height tracking</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Optimal Fetal Environment</h3>
+                    <ul>
+                        <li>Balanced nutrition with adequate calories</li>
+                        <li>Regular prenatal care visits</li>
+                        <li>Avoid harmful substances (alcohol, tobacco)</li>
+                        <li>Manage maternal health conditions</li>
+                        <li>Stress reduction and adequate rest</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Warning Signs for Fetal Health</h3>
+                    <ul>
+                        <li>Decreased fetal movement</li>
+                        <li>Vaginal bleeding or fluid leakage</li>
+                        <li>Severe abdominal pain</li>
+                        <li>Fever or infection signs</li>
+                        <li>High blood pressure or swelling</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="cord-blood-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Cord Blood Banking</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>What is Cord Blood Banking?</h3>
+                    <ul>
+                        <li>Collection of blood from umbilical cord after birth</li>
+                        <li>Contains stem cells with medical potential</li>
+                        <li>Can be stored for future medical use</li>
+                        <li>May help treat certain diseases and conditions</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Banking Options</h3>
+                    <ul>
+                        <li><strong>Private Banking:</strong> Stored for your family's use</li>
+                        <li><strong>Public Banking:</strong> Donated for anyone's use</li>
+                        <li><strong>Delayed Clamping:</strong> Blood goes to baby first</li>
+                        <li>Costs and benefits vary by option</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Decision Considerations</h3>
+                    <ul>
+                        <li>Family medical history</li>
+                        <li>Financial costs (private banking)</li>
+                        <li>Ethnic background (public banking needs)</li>
+                        <li>Collection process and timing</li>
+                        <li>Medical research and future potential</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diet & Fitness Guides -->
+        <div id="fitness-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Fitness During Pregnancy</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Safe Pregnancy Exercises</h3>
+                    <ul>
+                        <li><strong>Walking:</strong> Excellent for all trimesters</li>
+                        <li><strong>Swimming:</strong> Low-impact, full-body workout</li>
+                        <li><strong>Prenatal Yoga:</strong> Improves flexibility and reduces stress</li>
+                        <li><strong>Stationary Cycling:</strong> Safe cardio option</li>
+                        <li><strong>Strength Training:</strong> Light weights with proper form</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Exercises to Avoid</h3>
+                    <ul>
+                        <li>Contact sports (soccer, basketball)</li>
+                        <li>Activities with falling risk (skiing, horseback riding)</li>
+                        <li>Exercises lying flat on back after 20 weeks</li>
+                        <li>High-impact jumping or bouncing</li>
+                        <li>Heavy weightlifting</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Exercise Guidelines</h3>
+                    <ul>
+                        <li>Consult healthcare provider before starting</li>
+                        <li>Stay hydrated during exercise</li>
+                        <li>Listen to your body - stop if painful</li>
+                        <li>Avoid overheating</li>
+                        <li>Modify exercises as pregnancy progresses</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="pregnancy-nutrients-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Pregnancy Nutrients</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Essential Pregnancy Nutrients</h3>
+                    <ul>
+                        <li><strong>Folic Acid:</strong> 400-800mcg daily - prevents birth defects</li>
+                        <li><strong>Iron:</strong> 27mg daily - prevents anemia</li>
+                        <li><strong>Calcium:</strong> 1000mg daily - builds baby's bones</li>
+                        <li><strong>Protein:</strong> 70-100g daily - baby's building blocks</li>
+                        <li><strong>DHA:</strong> 200-300mg daily - brain development</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Nutrient-Rich Foods</h3>
+                    <ul>
+                        <li><strong>Leafy Greens:</strong> Spinach, kale (folate, iron)</li>
+                        <li><strong>Lean Proteins:</strong> Chicken, fish, beans (protein, iron)</li>
+                        <li><strong>Dairy:</strong> Milk, yogurt (calcium, protein)</li>
+                        <li><strong>Whole Grains:</strong> Oats, quinoa (fiber, B vitamins)</li>
+                        <li><strong>Healthy Fats:</strong> Avocado, nuts (DHA, vitamin E)</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Nutrient Deficiency Signs</h3>
+                    <ul>
+                        <li><strong>Iron:</strong> Fatigue, pale skin, shortness of breath</li>
+                        <li><strong>Calcium:</strong> Muscle cramps, tingling in fingers</li>
+                        <li><strong>Folic Acid:</strong> May not show obvious signs</li>
+                        <li><strong>Vitamin D:</strong> Fatigue, bone pain, weakness</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="healthy-eating-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Healthy Eating During Pregnancy</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Pregnancy Diet Basics</h3>
+                    <ul>
+                        <li>Eat balanced meals with all food groups</li>
+                        <li>Focus on nutrient-dense whole foods</li>
+                        <li>Avoid processed and junk foods</li>
+                        <li>Practice food safety thoroughly</li>
+                        <li>Stay well hydrated (8-10 glasses daily)</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Foods to Avoid</h3>
+                    <ul>
+                        <li>Raw or undercooked meat and fish</li>
+                        <li>Unpasteurized dairy products</li>
+                        <li>High-mercury fish (shark, swordfish)</li>
+                        <li>Raw sprouts and unwashed produce</li>
+                        <li>Excessive caffeine (limit to 200mg daily)</li>
+                        <li>Alcohol completely</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Meal Planning Tips</h3>
+                    <ul>
+                        <li>Eat small, frequent meals</li>
+                        <li>Include protein at each meal</li>
+                        <li>Choose colorful fruits and vegetables</li>
+                        <li>Plan meals around pregnancy needs</li>
+                        <li>Prepare healthy snacks in advance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="best-foods-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>The Best Foods for Pregnancy</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Top Pregnancy Superfoods</h3>
+                    <ul>
+                        <li><strong>Salmon:</strong> DHA, protein, low mercury</li>
+                        <li><strong>Eggs:</strong> Complete protein, choline, DHA</li>
+                        <li><strong>Greek Yogurt:</strong> Probiotics, calcium, protein</li>
+                        <li><strong>Dark Leafy Greens:</strong> Folate, iron, calcium</li>
+                        <li><strong>Legumes:</strong> Protein, fiber, folate, iron</li>
+                        <li><strong>Berries:</strong> Antioxidants, fiber, vitamin C</li>
+                        <li><strong>Nuts and Seeds:</strong> Healthy fats, protein, minerals</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Daily Food Recommendations</h3>
+                    <ul>
+                        <li><strong>Protein:</strong> 5-6 servings daily</li>
+                        <li><strong>Fruits:</strong> 2-4 servings daily</li>
+                        <li><strong>Vegetables:</strong> 3-5 servings daily</li>
+                        <li><strong>Grains:</strong> 6-8 servings daily</li>
+                        <li><strong>Dairy:</strong> 3-4 servings daily</li>
+                        <li><strong>Healthy Fats:</strong> 2-3 servings daily</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Food Preparation Tips</h3>
+                    <ul>
+                        <li>Wash all produce thoroughly</li>
+                        <li>Cook meats to proper temperatures</li>
+                        <li>Avoid cross-contamination</li>
+                        <li>Store foods at safe temperatures</li>
+                        <li>Read labels for hidden ingredients</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="pregnancy-diet-guide" class="pregnancy-guide-page">
+            <div class="guide-header">
+                <h2>Pregnancy Diet</h2>
+                <button onclick="closePregnancyGuide()" class="guide-close-btn">Close Guide</button>
+            </div>
+            <div class="guide-content">
+                <div class="guide-section">
+                    <h3>Trimester-Specific Nutrition</h3>
+                    <ul>
+                        <li><strong>First Trimester:</strong> Focus on folate, B6 for nausea</li>
+                        <li><strong>Second Trimester:</strong> Increase protein, calcium, DHA</li>
+                        <li><strong>Third Trimester:</strong> Extra calories, iron, vitamin K</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Caloric Needs by Trimester</h3>
+                    <ul>
+                        <li><strong>First Trimester:</strong> No extra calories needed</li>
+                        <li><strong>Second Trimester:</strong> +340 calories daily</li>
+                        <li><strong>Third Trimester:</strong> +452 calories daily</li>
+                        <li><strong>Twins:</strong> +600 calories daily in second/third trimesters</li>
+                    </ul>
+                </div>
+                <div class="guide-section">
+                    <h3>Sample Daily Meal Plan</h3>
+                    <ul>
+                        <li><strong>Breakfast:</strong> Whole grain cereal with berries and milk</li>
+                        <li><strong>Snack:</strong> Greek yogurt with nuts</li>
+                        <li><strong>Lunch:</strong> Salmon salad with mixed greens</li>
+                        <li><strong>Snack:</strong> Apple with almond butter</li>
+                        <li><strong>Dinner:</strong> Lean protein with roasted vegetables</li>
+                        <li><strong>Evening:</strong> Small bowl of fruit</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional guides can be added here for other topics -->
+    </div>
+
+    <!-- Guide Styles -->
+    <style>
+        .pregnancy-guide-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 10002;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .guide-header {
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff4757 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10003;
+        }
+        
+        .guide-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .guide-close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .guide-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .guide-content {
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .guide-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #ff6b9d;
+        }
+        
+        .guide-section h3 {
+            color: #0f2a56;
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .guide-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .guide-section ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .guide-section li {
+            margin-bottom: 8px;
+            color: #0f2a56;
+            line-height: 1.5;
+        }
+        
+        .guide-section strong {
+            color: #ff6b9d;
+        }
+        
+        @media (max-width: 768px) {
+            .guide-content {
+                padding: 20px;
+            }
+            
+            .guide-header {
+                padding: 15px;
+            }
+            
+            .guide-header h2 {
+                font-size: 20px;
+            }
+            
+            .guide-section {
+                padding: 15px;
+            }
+        }
+        
+        /* AI Milestone Tracker Styles */
+        .ai-milestone-tracker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            z-index: 10002;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .tracker-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10003;
+        }
+        
+        .tracker-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .tracker-header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .tracker-close-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .tracker-close-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .tracker-content {
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .tracker-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .tracker-section h3 {
+            color: #0f2a56;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .milestone-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .milestone-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .milestone-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .milestone-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .milestone-content {
+            flex: 1;
+        }
+        
+        .milestone-week, .milestone-month {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .milestone-text {
+            font-size: 14px;
+            color: #0f2a56;
+            line-height: 1.4;
+        }
+        
+        .ai-insights {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .insight-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff4757 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .insight-text {
+            flex: 1;
+            font-size: 14px;
+            color: #0f2a56;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 768px) {
+            .tracker-content {
+                padding: 20px;
+            }
+            
+            .tracker-header {
+                padding: 15px;
+            }
+            
+            .tracker-header h2 {
+                font-size: 20px;
+            }
+            
+            .tracker-section {
+                padding: 15px;
+            }
+            
+            .milestone-item {
+                padding: 12px;
+            }
+            
+            .milestone-icon {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</body>
+</html>
+
+
+

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toddler Playtime & Activities - Mamasafe</title>
+    <link rel="icon" type="image/png" href="../../assets/mamasafe-logo.png">
+    <link rel="stylesheet" href="styles.css?v=20260323-pregnancy-topics-guides">
+    </head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-bar-content">
+                <span>The #1 pregnancy & parenting resource worldwide</span>
+                <div class="top-links">
+                    <a href="index.html">Back to Home</a>
+                    <a href="#">Get Our App</a>
+                    <a href="#">Help Center</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <a class="logo" href="index.html">
+                    <div class="logo-icon"><img src="../../assets/mamasafe-logo.png" alt="Mamasafe logo"></div>
+                    Mamasafe
+                </a>
+                
+                <nav class="main-nav">
+                    <a href="index.html">Home</a>
+                    <a href="index.html">Getting Pregnant</a>
+                    <a href="index.html">Pregnancy</a>
+                    <a href="index.html">Baby</a>
+                    <a href="index.html" style="color: #667eea; font-weight: 600;">Toddler</a>
+                    <a href="index.html">Family</a>
+                    <a href="index.html">Courses</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Playtime Content -->
+    <div class="hero" style="background: linear-gradient(135deg, #ff6b9d 0%, #ff9800 100%); min-height: 100vh; position: relative;">
+        <div class="floating-elements">
+            <div class="floating-element" style="left: 5%; animation-delay: 0s;"></div>
+            <div class="floating-element" style="left: 20%; animation-delay: 1s;"></div>
+            <div class="floating-element" style="left: 40%; animation-delay: 2s;"></div>
+            <div class="floating-element" style="left: 60%; animation-delay: 3s;"></div>
+            <div class="floating-element" style="left: 80%; animation-delay: 4s;"></div>
+        </div>
+        
+        <div class="container" style="position: relative; z-index: 10; padding-top: 80px;">
+            <div style="text-align: center; color: white; padding: 40px 0;">
+                <div style="font-size: 80px; margin-bottom: 20px;"></div>
+                <h1 style="font-size: 48px; font-weight: 800; margin-bottom: 20px;">Playtime & Activities</h1>
+                <p style="font-size: 20px; opacity: 0.9; max-width: 600px; margin: 0 auto 40px;">Fun, educational activities to support your toddler's development</p>
+            </div>
+            
+            <!-- Playtime Tools Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                
+                <!-- Activity Generator -->
+                <div style="background: rgba(255,255,255,0.95); border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #ff6b9d 0%, #ff6b9d 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 30px;"></div>
+                        <div>
+                            <h3 style="font-size: 22px; font-weight: 700; color: #0f2a56; margin: 0;">Activity Generator</h3>
+                            <p style="font-size: 14px; color: #666; margin: 5px 0 0 0;">Get personalized activities</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #0f2a56; margin-bottom: 8px;">Child's Age</label>
+                        <select id="playAgeSelect" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; margin-bottom: 15px;">
+                            <option value="12">12 months</option>
+                            <option value="18">18 months</option>
+                            <option value="24">2 years</option>
+                            <option value="36">3 years</option>
+                        </select>
+                        
+                        <label style="display: block; font-size: 14px; font-weight: 600; color: #0f2a56; margin-bottom: 8px;">Activity Type</label>
+                        <select id="activityTypeSelect" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px;">
+                            <option value="educational">Educational</option>
+                            <option value="physical">Physical Activity</option>
+                            <option value="creative">Creative Arts</option>
+                            <option value="sensory">Sensory Play</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="generateActivity()" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #ff6b9d 0%, #ff6b9d 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">Generate Activity</button>
+                    
+                    <div id="generatedActivity" style="margin-top: 20px; display: none;"></div>
+                </div>
+                
+                <!-- Entertainment Ideas -->
+                <div style="background: rgba(255,255,255,0.95); border-radius: 20px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.3);">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #48dbfb 0%, #0abde3 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 30px;"></div>
+                        <div>
+                            <h3 style="font-size: 22px; font-weight: 700; color: #0f2a56; margin: 0;">Entertainment Ideas</h3>
+                            <p style="font-size: 14px; color: #666; margin: 5px 0 0 0;">Fun for whole family</p>
+                        </div>
+                    </div>
+                    
+                    <div id="entertainmentCategories" style="display: grid; gap: 12px; margin-bottom: 20px;">
+                        <div onclick="showEntertainment('indoor')" style="padding: 15px; background: #e3f2fd; border-radius: 10px; cursor: pointer; transition: all 0.3s;">
+                            <strong style="color: #7c3aed;">Indoor Activities</strong>
+                            <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">Rainy day fun ideas</p>
+                        </div>
+                        <div onclick="showEntertainment('outdoor')" style="padding: 15px; background: #ecfdf5; border-radius: 10px; cursor: pointer; transition: all 0.3s;">
+                            <strong style="color: #00d4aa;">Outdoor Adventures</strong>
+                            <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">Explore the outdoors</p>
+                        </div>
+                    </div>
+                    
+                    <div id="entertainmentDetails" style="display: none; padding: 15px; background: #f5f5f5; border-radius: 10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="toddler-functions.js?v=20260409-1010"></script>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Toddler Playtime & Activities page loaded');
+        });
+    </script>
+</body>
+</html>

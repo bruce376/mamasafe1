@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mamasafe Admin Portal</title>
+    <script>
+        (function () {
+            var frontendOrigin = 'https://mamasafe-95d58.web.app';
+            var renderOrigin = 'https://mamasafe1.onrender.com';
+            var isFile = window.location.protocol === 'file:';
+            var targetOrigin = window.location.origin === renderOrigin ? frontendOrigin : window.location.origin;
+            var target = isFile
+                ? '../index.html#admin'
+                : targetOrigin.replace(/\/$/, '') + '/index.html#admin';
+            var meta = document.createElement('meta');
+            meta.httpEquiv = 'refresh';
+            meta.content = '0; url=' + target;
+            document.head.appendChild(meta);
+            window.location.replace(target);
+        })();
+    </script>
+</head>
+<body>
+    <p>Opening Mamasafe Admin Portal...</p>
+</body>
+</html>

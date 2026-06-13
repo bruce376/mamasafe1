@@ -1,0 +1,36 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "hosting": {
+<<<<<<< HEAD
+    "public": "mamasafe/frontend",
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'unsafe-hashes' https://www.gstatic.com https://apis.google.com; script-src-elem 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; script-src-attr 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:5000 http://127.0.0.1:5000 https://mamasafe1.onrender.com https://mamasafe-95d58.web.app https://mamasafe-95d58.firebaseapp.com https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://firebase.googleapis.com https://*.googleapis.com https://*.firebaseio.com https://www.wikidata.org https://wikidata.org; media-src 'self'; object-src 'none'; frame-src 'self' https://*.firebaseapp.com https://accounts.google.com"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      }
+    ],
+=======
+    "public": "frontend",
+>>>>>>> bf31cb0e50b8df9c8c026ba3cbd60d08781c019b
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "**/package*.json",
+      "**/screenshots/**",
+      "**/src/**",
+      "**/test*.html"
+    ]
+  }
+}

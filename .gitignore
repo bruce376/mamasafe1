@@ -1,0 +1,62 @@
+
+# All node_modules directories (anywhere in the repo)
+node_modules/
+*/node_modules/
+**/node_modules/
+
+# All virtual environments
+venv/
+*/venv/
+**/venv/
+
+# Environment files (keep secret!)
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Build and output files
+dist/
+build/
+*.log
+backend-*.log
+frontend-*.log
+
+# Python
+__pycache__/
+*.pyc
+
+# Large files, tools, and installers
+.tools/
+*.bin
+*.onnx
+*.safetensors
+*.zip
+*.msi
+*.exe
+*.7z
+*.rar
+
+# Temporary files and installers
+temp_*
+*.tmp
+
+# MongoDB installers and large binaries
+mongodb*.exe
+mongodb*.zip
+mongodb*.msi
+vc_redist*.exe
+
+# Large TFJS vendor files
+mamasafe/frontend/vendor/
+
+# Temporary: exclude pregnancy week images to make push smaller
+mamasafe/frontend/assets/pregnancy-weeks/

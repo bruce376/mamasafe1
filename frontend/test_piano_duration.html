@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Piano Notes & Duration Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+        <h1>🎹 Piano Notes & Duration Test</h1>
+        <p>Testing piano-like tones and 1+ minute song durations.</p>
+        
+        <!-- Test Controls -->
+        <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h3>Quick Tests</h3>
+            <button onclick="testPianoNote()">🎹 Test Piano Note</button>
+            <button onclick="testSongDuration()">⏱️ Test Song Duration</button>
+            <button onclick="calculateAllDurations()">📊 Calculate All Durations</button>
+        </div>
+        
+        <!-- Duration Display -->
+        <div style="background: #ecfdf5; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+            <h3>Song Durations</h3>
+            <div id="durationDisplay">Click "Calculate All Durations" to see song lengths</div>
+        </div>
+        
+        <!-- Sleep Songs Library -->
+        <div class="ai-game">
+            <div class="mini-game-head">
+                <span class="mini-game-badge ai-badge">🎹 Piano Lullabies</span>
+                <h4>Baby Sleep Songs (Piano Version)</h4>
+                <p>10 classic lullabies with piano-like tones, each lasting 1+ minute.</p>
+            </div>
+            
+            <div class="sleep-songs-container">
+                <div class="audio-player" id="audioPlayer">
+                    <audio id="songAudio"></audio>
+                    <div class="player-controls">
+                        <button id="playPauseBtn" onclick="togglePlayPause()">▶️ Play</button>
+                        <button onclick="stopAudio()">⏹️ Stop</button>
+                        <div class="volume-control">
+                            <span>🔊</span>
+                            <input type="range" id="volumeSlider" min="0" max="100" value="70" onchange="changeVolume(this.value)">
+                        </div>
+                    </div>
+                    <div class="now-playing" id="nowPlaying">No song selected</div>
+                </div>
+                
+                <div class="songs-list" id="songsList">
+                    <!-- Songs will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="mini-game-feedback" id="songsFeedback">Each song now plays for 1+ minute with piano tones</div>
+        </div>
+        
+        <!-- Piano Technology Info -->
+        <div style="background: #fff5f5; padding: 20px; border-radius: 10px; margin-top: 20px;">
+            <h3>🎹 Piano Technology</h3>
+            <p><strong>Multi-Oscillator Synthesis</strong> - 3 oscillators create rich piano tones</p>
+            <p><strong>Triangle + Sine Waves</strong> - Fundamental + harmonics for authentic piano sound</p>
+            <p><strong>Attack/Decay/Sustain/Release</strong> - Professional envelope shaping</p>
+            <p><strong>Extended Melodies</strong> - Each song now 60-90 seconds long</p>
+            <p><strong>No Repetition</strong> - Single extended playthrough for variety</p>
+        </div>
+    </div>
+
+    <script src="script-new.js"></script>
+    <script>
+        // Test functions
+        function testPianoNote() {
+            if ('AudioContext' in window || 'webkitAudioContext' in window) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContextClass();
+                const gainNode = audioContext.createGain();
+                gainNode.connect(audioContext.destination);
+                gainNode.gain.value = 0.3;
+                
+                // Test piano note C4
+                playNote(audioContext, gainNode, 261.63, audioContext.currentTime, 1000);
+                
+                setTimeout(() => audioContext.close(), 1500);
+                alert('🎹 Playing piano C4 note (1 second)');
+            } else {
+                alert('❌ Web Audio API not supported');
+            }
+        }
+        
+        function testSongDuration() {
+            const twinkleSong = sleepSongs.find(s => s.id === 1);
+            if (twinkleSong) {
+                const duration = getSongDuration(twinkleSong);
+                const minutes = Math.floor(duration / 60000);
+                const seconds = Math.floor((duration % 60000) / 1000);
+                alert(`⏱️ Twinkle Twinkle Little Star duration: ${minutes}:${seconds.toString().padStart(2, '0')}`);
+            }
+        }
+        
+        function calculateAllDurations() {
+            let durationHtml = '<table style="width: 100%; border-collapse: collapse;">';
+            durationHtml += '<tr style="background: #667eea; color: white;"><th style="padding: 8px; text-align: left;">Song</th><th style="padding: 8px; text-align: center;">Duration</th><th style="padding: 8px; text-align: center;">Notes</th></tr>';
+            
+            sleepSongs.forEach(song => {
+                const duration = getSongDuration(song);
+                const melody = lullabyMelodies[song.id];
+                const noteCount = melody ? melody.length : 0;
+                const minutes = Math.floor(duration / 60000);
+                const seconds = Math.floor((duration % 60000) / 1000);
+                
+                durationHtml += `<tr style="border-bottom: 1px solid #eee;">`;
+                durationHtml += `<td style="padding: 8px;">${song.title}</td>`;
+                durationHtml += `<td style="padding: 8px; text-align: center;">${minutes}:${seconds.toString().padStart(2, '0')}</td>`;
+                durationHtml += `<td style="padding: 8px; text-align: center;">${noteCount} notes</td>`;
+                durationHtml += `</tr>`;
+            });
+            
+            durationHtml += '</table>';
+            document.getElementById('durationDisplay').innerHTML = durationHtml;
+        }
+        
+        // Initialize sleep songs immediately for testing
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSleepSongs();
+            calculateAllDurations();
+        });
+    </script>
+</body>
+</html>

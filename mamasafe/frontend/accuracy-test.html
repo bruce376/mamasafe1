@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mamasafe AI Model Validation</title>
+    <style>
+        :root {
+            --navy: #0f2a56;
+            --blue: #2563eb;
+            --sky: #0ea5e9;
+            --pink: #ec4899;
+            --soft-pink: #fdf2f8;
+            --soft-sky: #f0f9ff;
+            --border: #dbeafe;
+            --text: #17324d;
+            --muted: #5b708f;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, var(--soft-sky), var(--soft-pink));
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            padding: 28px;
+        }
+
+        .container {
+            width: min(1100px, 100%);
+            margin: 0 auto;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(37, 99, 235, 0.14);
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(15, 42, 86, 0.12);
+            padding: 24px;
+        }
+
+        .headline {
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 18px;
+            margin-bottom: 18px;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: var(--navy);
+            margin: 0;
+        }
+
+        h1 {
+            font-size: clamp(1.7rem, 4vw, 2.6rem);
+            line-height: 1.1;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            min-height: 42px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--blue);
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 800;
+            padding: 10px 14px;
+        }
+
+        button.secondary {
+            background: var(--pink);
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin: 18px 0;
+        }
+
+        .metric {
+            border-left: 5px solid var(--sky);
+            border-radius: 8px;
+            background: #ffffff;
+            padding: 14px;
+        }
+
+        .metric.high {
+            border-left-color: var(--pink);
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .metric strong {
+            display: block;
+            color: var(--navy);
+            font-size: 1.65rem;
+            margin-top: 6px;
+        }
+
+        .status {
+            border-radius: 8px;
+            background: var(--soft-sky);
+            color: var(--navy);
+            font-weight: 800;
+            margin: 16px 0;
+            padding: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid var(--border);
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--soft-sky);
+            color: var(--navy);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+        }
+
+        code {
+            color: var(--navy);
+            white-space: normal;
+        }
+
+        .badge {
+            display: inline-flex;
+            border-radius: 999px;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 900;
+            padding: 5px 8px;
+            text-transform: uppercase;
+        }
+
+        .pass {
+            background: var(--sky);
+        }
+
+        .fail {
+            background: var(--pink);
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 14px;
+            }
+
+            .headline,
+            .actions {
+                display: grid;
+            }
+
+            .metrics {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <section class="panel">
+            <div class="headline">
+                <div>
+                    <h1>AI Model Validation Audit</h1>
+                    <p>Train the server-side maternal-risk AI from MongoDB records, then test the saved model against holdout patient-risk records.</p>
+                </div>
+                <div class="actions">
+                    <button type="button" class="secondary" id="trainBtn">Train / Refresh AI</button>
+                    <button type="button" id="auditBtn">Run Accuracy Audit</button>
+                </div>
+            </div>
+
+            <div id="statusBox" class="status">Checking saved custom AI model...</div>
+
+            <div class="metrics" id="metricSummary">
+                <div class="metric high">
+                    <span>Accuracy</span>
+                    <strong id="accuracyLabel">--</strong>
+                </div>
+                <div class="metric">
+                    <span>Correct</span>
+                    <strong id="correctLabel">--</strong>
+                </div>
+                <div class="metric">
+                    <span>Records tested</span>
+                    <strong id="recordsLabel">--</strong>
+                </div>
+                <div class="metric">
+                    <span>Runtime</span>
+                    <strong id="runtimeLabel">--</strong>
+                </div>
+            </div>
+
+            <h2>Patient Cross-Examination Matrix</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vitals Segment</th>
+                        <th>Database Label</th>
+                        <th>AI Prediction</th>
+                        <th>Confidence</th>
+                        <th>Audit</th>
+                    </tr>
+                </thead>
+                <tbody id="auditTableBody">
+                    <tr>
+                        <td colspan="5">No audit has run yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        function getBackendOrigins() {
+            const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:';
+            return [...new Set([
+                location.origin && location.origin !== 'null' ? location.origin : '',
+                isLocal ? 'http://localhost:5000' : '',
+                isLocal ? 'http://localhost:3000' : ''
+            ].filter(Boolean))];
+        }
+
+        async function apiFetch(path, options) {
+            let lastError;
+            let lastResponse;
+            for (const origin of getBackendOrigins()) {
+                try {
+                    const response = await fetch(`${origin}${path}`, options);
+                    if ((response.status === 404 || response.status >= 500) && getBackendOrigins().length > 1) {
+                        lastResponse = response;
+                        continue;
+                    }
+                    return response;
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+            if (lastResponse) return lastResponse;
+            throw lastError || new Error('Could not reach the backend API');
+        }
+
+        async function readJson(response) {
+            const text = await response.text();
+            return text ? JSON.parse(text) : {};
+        }
+
+        function setStatus(message) {
+            document.getElementById('statusBox').textContent = message;
+        }
+
+        function setBusy(button, busy, label) {
+            button.disabled = busy;
+            button.textContent = busy ? label : button.dataset.label;
+        }
+
+        async function refreshStatus() {
+            try {
+                const response = await apiFetch('/api/model/status');
+                const data = await readJson(response);
+                if (!response.ok || data.success === false) throw new Error(data.details || data.error || 'Status failed');
+                if (!data.exists) {
+                    setStatus('No saved model found yet. Click Train / Refresh AI to create backend/models/maternal-health-model.');
+                    return;
+                }
+                const meta = data.metadata || {};
+                setStatus(`Saved model ready. Source: ${meta.sourceCollection || 'MongoDB dataset'}; trained: ${meta.trainedAt || 'unknown'}.`);
+                document.getElementById('runtimeLabel').textContent = meta.runtime || '--';
+            } catch (error) {
+                setStatus(`Could not check model status: ${error.message}`);
+            }
+        }
+
+        async function trainModel() {
+            const button = document.getElementById('trainBtn');
+            setBusy(button, true, 'Training...');
+            setStatus('Training server-side TensorFlow model from MongoDB records. This can take a little while.');
+            try {
+                const response = await apiFetch('/api/model/train', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ epochs: 40, limit: 1600, testSplit: 0.2 })
+                });
+                const data = await readJson(response);
+                if (!response.ok || data.success === false) throw new Error(data.details || data.error || 'Training failed');
+                const meta = data.metadata || {};
+                setStatus(`Training complete. Holdout accuracy: ${data.evaluation?.accuracyPercentage || meta.holdoutAccuracyPercentage || '0.00'}%. Model saved at ${data.modelPath || meta.modelPath}.`);
+                await runAudit();
+            } catch (error) {
+                setStatus(`Training failed: ${error.message}`);
+            } finally {
+                setBusy(button, false);
+            }
+        }
+
+        async function runAudit() {
+            const button = document.getElementById('auditBtn');
+            const tableBody = document.getElementById('auditTableBody');
+            setBusy(button, true, 'Auditing...');
+            tableBody.innerHTML = '<tr><td colspan="5">Running validation against holdout records...</td></tr>';
+            try {
+                const response = await apiFetch('/api/model/evaluate-accuracy?limit=50');
+                const data = await readJson(response);
+                if (!response.ok || data.success === false) throw new Error(data.details || data.error || 'Audit failed');
+
+                document.getElementById('accuracyLabel').textContent = `${data.accuracyPercentage}%`;
+                document.getElementById('correctLabel').textContent = data.correctPredictions;
+                document.getElementById('recordsLabel').textContent = data.totalTestRecordsEvaluated;
+                document.getElementById('runtimeLabel').textContent = data.runtime || '--';
+                setStatus(`Audit complete. Tested ${data.totalTestRecordsEvaluated} holdout records from ${data.sourceCollection || 'MongoDB'}.`);
+
+                tableBody.innerHTML = '';
+                (data.testMatrix || []).forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><code>${row.vitalsSummary || ''}</code></td>
+                        <td><strong>${String(row.actual || '').toUpperCase()}</strong></td>
+                        <td><strong>${String(row.predicted || '').toUpperCase()}</strong></td>
+                        <td>${row.confidence || ''}</td>
+                        <td><span class="badge ${row.passed ? 'pass' : 'fail'}">${row.passed ? 'Passed' : 'Failed'}</span></td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            } catch (error) {
+                tableBody.innerHTML = `<tr><td colspan="5">Error: ${error.message}</td></tr>`;
+                setStatus(`Audit failed: ${error.message}`);
+            } finally {
+                setBusy(button, false);
+            }
+        }
+
+        document.getElementById('trainBtn').dataset.label = 'Train / Refresh AI';
+        document.getElementById('auditBtn').dataset.label = 'Run Accuracy Audit';
+        document.getElementById('trainBtn').addEventListener('click', trainModel);
+        document.getElementById('auditBtn').addEventListener('click', runAudit);
+        refreshStatus();
+    </script>
+</body>
+</html>

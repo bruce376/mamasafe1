@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pregnancy Companion - Mamasafe</title>
+    <link rel="icon" type="image/png" href="assets/mamasafe-logo.png">
+    <link rel="stylesheet" href="styles.css?v=20260608-guest-preview-lock">
+    <style>
+        .pregnancy-advanced-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .pregnancy-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            color: white;
+        }
+
+        .pregnancy-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+        }
+
+        .pregnancy-header p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .pregnancy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .pregnancy-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .pregnancy-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .pregnancy-card h3 {
+            margin: 0 0 20px 0;
+            color: #0f2a56;
+            font-size: 1.4em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        /* Pregnancy Week Tracker */
+        .pregnancy-week-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .week-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .current-week {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .week-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .week-label {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .day-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0f2a56;
+        }
+
+        .day-label {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .trimester-info, .due-date-info, .days-remaining {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .trimester-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* Baby Growth */
+        .baby-growth-card {
+            background: linear-gradient(135deg, #e8eaf6 0%, #fbc2eb 100%);
+        }
+
+        .growth-visual {
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .size-emoji {
+            font-size: 4em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .size-text {
+            font-size: 1.3em;
+            color: #0f2a56;
+        }
+
+        .growth-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-label {
+            display: block;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fbc2eb;
+        }
+
+        .development-milestones {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .development-milestones ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .development-milestones li {
+            margin: 8px 0;
+            color: #0f2a56;
+        }
+
+        /* Body Changes */
+        .body-changes-card {
+            background: linear-gradient(135deg, #a8edea 0%, #fff5f7 100%);
+        }
+
+        .changes-list {
+            margin: 20px 0;
+        }
+
+        .change-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .change-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+        }
+
+        .change-text {
+            color: #0f2a56;
+        }
+
+        .changes-tips {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #a8edea;
+        }
+
+        /* Daily Tips */
+        .daily-tip-card {
+            background: linear-gradient(135deg, #ff8fab 0%, #fff5f7 100%);
+        }
+
+        .tip-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .tip-category {
+            background: #ff8fab;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .tip-text {
+            font-size: 1.2em;
+            color: #0f2a56;
+            margin: 0;
+        }
+
+        /* Appointments */
+        .appointments-card {
+            background: linear-gradient(135deg, #a8edea 0%, #66a6ff 100%);
+        }
+
+        .appointments-list {
+            margin: 20px 0;
+        }
+
+        .appointment-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #66a6ff;
+        }
+
+        .appointment-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .appointment-date, .appointment-time, .appointment-type {
+            display: block;
+            margin: 5px 0;
+            color: #0f2a56;
+        }
+
+        .appointment-notes {
+            font-style: italic;
+            color: #666;
+            margin: 10px 0;
+        }
+
+        .appointment-actions {
+            margin-top: 10px;
+        }
+
+        .btn-complete, .btn-delete {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .btn-complete {
+            background: #00b894;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #ff4757;
+            color: white;
+        }
+
+        /* Medications */
+        .medications-card {
+            background: linear-gradient(135deg, #ffe4ec 0%, #ecfdf5 100%);
+        }
+
+        .medications-list {
+            margin: 20px 0;
+        }
+
+        .medication-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #ffe4ec;
+        }
+
+        .medication-item.taken {
+            background: #ecfdf5;
+            border-left-color: #00b894;
+        }
+
+        .medication-name, .medication-dosage, .medication-frequency {
+            display: block;
+            margin: 5px 0;
+            color: #0f2a56;
+        }
+
+        .medication-actions {
+            margin-top: 10px;
+        }
+
+        .btn-taken {
+            background: #00b894;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        /* Symptom Checker */
+        .symptom-result-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .symptom-result-card.emergency {
+            border: 3px solid #ff4757;
+        }
+
+        .symptom-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .symptom-item.mild {
+            background: #fff5f7;
+            border-left-color: #ff9800;
+        }
+
+        .symptom-item.moderate {
+            background: #fff5f7;
+            border-left-color: #ff8fab;
+        }
+
+        .symptom-item.severe {
+            background: #fff5f7;
+            border-left-color: #ff4757;
+        }
+
+        .symptom-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .symptom-severity {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .symptom-advice-text {
+            margin: 10px 0;
+            color: #0f2a56;
+        }
+
+        .emergency-warning {
+            background: #ff4757;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .disclaimer {
+            background: #fff5f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #ff9800;
+        }
+
+        /* Nutrition Guide */
+        .nutrition-guide-card {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        }
+
+        .nutrition-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .nutrition-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .nutrition-section h4, .nutrition-section h5 {
+            margin: 0 0 15px 0;
+            color: #0f2a56;
+        }
+
+        .nutrition-section ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .nutrition-section li {
+            margin: 8px 0;
+            color: #0f2a56;
+        }
+
+        .meal-day {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        /* Exercise */
+        .exercise-card {
+            background: linear-gradient(135deg, #a8edea 0%, #ecfdf5 100%);
+        }
+
+        .exercise-sections {
+            margin: 20px 0;
+        }
+
+        .exercise-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .exercise-section h4 {
+            margin: 0 0 15px 0;
+            color: #0f2a56;
+        }
+
+        .exercise-item {
+            padding: 15px;
+            margin: 10px 0;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .exercise-name {
+            font-weight: bold;
+            color: #0f2a56;
+            margin-bottom: 5px;
+        }
+
+        .exercise-duration, .exercise-benefit {
+            color: #666;
+            margin: 5px 0;
+        }
+
+        .exercise-warning {
+            background: #fff5f7;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #ff9800;
+        }
+
+        /* Weight Tracking */
+        .weight-tracking-card {
+            background: linear-gradient(135deg, #a8edea 0%, #8ec5fc 100%);
+        }
+
+        .weight-chart {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .weight-progress {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .weight-point {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 150px;
+        }
+
+        .weight-date, .weight-value, .weight-week {
+            display: block;
+            margin: 5px 0;
+            color: #0f2a56;
+        }
+
+        .weight-guidance {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .weight-guidance ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .weight-guidance li {
+            margin: 8px 0;
+            color: #0f2a56;
+        }
+
+        /* Water Intake */
+        .water-intake-card {
+            background: linear-gradient(135deg, #a8edea 0%, #66a6ff 100%);
+        }
+
+        .water-progress {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .water-glasses {
+            margin-bottom: 20px;
+        }
+
+        .glasses-count {
+            font-size: 3em;
+            font-weight: bold;
+            color: #66a6ff;
+        }
+
+        .glasses-label {
+            font-size: 1.2em;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #66a6ff, #a8edea);
+            transition: width 0.3s ease;
+        }
+
+        .water-percentage {
+            font-size: 1.5em;
+            color: #66a6ff;
+            margin: 10px 0;
+        }
+
+        .water-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn-add-water, .btn-reset-water {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .btn-add-water {
+            background: #66a6ff;
+            color: white;
+        }
+
+        .btn-reset-water {
+            background: #ff4757;
+            color: white;
+        }
+
+        .water-tip {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Mood Tracking */
+        .mood-tracking-card {
+            background: linear-gradient(135deg, #e8eaf6 0%, #fbc2eb 100%);
+        }
+
+        .mood-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .mood-button {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .mood-button:hover {
+            transform: scale(1.1);
+        }
+
+        .mood-emoji {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .mood-label {
+            color: white;
+            font-weight: bold;
+        }
+
+        .mood-history {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .mood-timeline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .mood-record {
+            background: #f5f5f5;
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mood-emoji {
+            font-size: 1.5em;
+        }
+
+        .mood-label, .mood-date {
+            color: #0f2a56;
+        }
+
+        /* Kick Counter */
+        .kick-counter-card {
+            background: linear-gradient(135deg, #a8edea 0%, #fff5f7 100%);
+        }
+
+        .kick-session {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .kick-info {
+            margin: 20px 0;
+        }
+
+        .kick-count {
+            margin: 20px 0;
+        }
+
+        .kick-number {
+            font-size: 4em;
+            font-weight: bold;
+            color: #a8edea;
+        }
+
+        .kick-label {
+            font-size: 1.5em;
+            color: #666;
+        }
+
+        .kick-time {
+            margin: 15px 0;
+        }
+
+        .time-label, .time-value {
+            color: #0f2a56;
+        }
+
+        .kick-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn-record-kick, .btn-end-session, .btn-start-kick {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .btn-record-kick {
+            background: #a8edea;
+            color: #0f2a56;
+        }
+
+        .btn-end-session {
+            background: #fff5f7;
+            color: #0f2a56;
+        }
+
+        .btn-start-kick {
+            background: #667eea;
+            color: white;
+        }
+
+        .kick-history {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .kick-record {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .kick-guidance {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Contraction Timer */
+        .contraction-timer-card {
+            background: linear-gradient(135deg, #ff8fab 0%, #ff6b9d 100%);
+        }
+
+        .contraction-session {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .active-contraction {
+            padding: 30px;
+        }
+
+        .timer-display {
+            margin: 30px 0;
+        }
+
+        .timer-label {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .timer-value {
+            font-size: 4em;
+            font-weight: bold;
+            color: #ff6b9d;
+        }
+
+        .btn-end-contraction, .btn-start-contraction {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .btn-end-contraction {
+            background: #ff6b9d;
+            color: white;
+        }
+
+        .btn-start-contraction {
+            background: #ff8fab;
+            color: white;
+        }
+
+        .contraction-history {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .contraction-record {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .contraction-guidance {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        /* Personal Notes */
+        .personal-notes-card {
+            background: linear-gradient(135deg, #a8edea 0%, #a8edea 100%);
+        }
+
+        .notes-list {
+            margin: 20px 0;
+        }
+
+        .note-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #a8edea;
+        }
+
+        .note-category {
+            background: #a8edea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .note-content {
+            color: #0f2a56;
+            margin: 10px 0;
+        }
+
+        .note-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .btn-delete-note {
+            background: #ff4757;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Emergency Button */
+        .emergency-section {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #ff6b9d 0%, #ff6b9d 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+
+        .emergency-section h3 {
+            color: white;
+            border-bottom: none;
+        }
+
+        .emergency-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-emergency {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-call-emergency {
+            background: #ff4757;
+        }
+
+        .btn-contact-doctor {
+            background: #00b894;
+        }
+
+        .btn-share-location {
+            background: #00b894;
+        }
+
+        /* Language Selector */
+        .language-selector {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .language-selector select {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin: 15px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #0f2a56;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background: #0f2a56;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .pregnancy-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .week-info {
+                grid-template-columns: 1fr;
+            }
+
+            .growth-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .nutrition-sections {
+                grid-template-columns: 1fr;
+            }
+
+            .emergency-buttons {
+                flex-direction: column;
+            }
+
+            .mood-selector {
+                flex-direction: column;
+            }
+
+            .mood-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pregnancy-advanced-container">
+        <div class="pregnancy-header">
+            <h1>🤰 Pregnancy Companion</h1>
+            <p>Your comprehensive guide through pregnancy</p>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="language-selector">
+            <select id="languageSelect" onchange="setLanguage(this.value)">
+                <option value="english">English</option>
+                <option value="kinyarwanda">Kinyarwanda</option>
+                <option value="french">French</option>
+            </select>
+        </div>
+
+        <!-- Pregnancy Week Tracker -->
+        <div class="pregnancy-grid">
+            <div class="pregnancy-card pregnancy-week-card">
+                <h3 data-translate="pregnancyWeek">🤰 Pregnancy Week Tracker</h3>
+                <div class="form-group">
+                    <label>Last Period Date:</label>
+                    <input type="date" id="lastPeriodDate" onchange="localStorage.setItem('lastPeriodDate', this.value); displayPregnancyWeek();">
+                </div>
+                <div id="pregnancyWeekDisplay"></div>
+            </div>
+
+            <!-- Baby Growth Tracker -->
+            <div class="pregnancy-card baby-growth-card">
+                <h3 data-translate="babyGrowth">👶 Baby Growth Tracker</h3>
+                <div class="form-group">
+                    <label>Current Week:</label>
+                    <input type="number" id="currentWeek" min="1" max="42" value="20" onchange="displayBabyGrowth(this.value)">
+                </div>
+                <div id="babyGrowthDisplay"></div>
+            </div>
+
+            <!-- Body Changes -->
+            <div class="pregnancy-card body-changes-card">
+                <h3 data-translate="bodyChanges">🌸 Body Changes</h3>
+                <div class="form-group">
+                    <label>Trimester:</label>
+                    <select id="trimesterSelect" onchange="displayBodyChanges(this.value)">
+                        <option value="first">First Trimester</option>
+                        <option value="second">Second Trimester</option>
+                        <option value="third">Third Trimester</option>
+                    </select>
+                </div>
+                <div id="bodyChangesDisplay"></div>
+            </div>
+
+            <!-- Daily Tip -->
+            <div class="pregnancy-card daily-tip-card">
+                <h3 data-translate="dailyTip">💡 Daily Pregnancy Tip</h3>
+                <div id="dailyTipDisplay"></div>
+            </div>
+
+            <!-- Appointments -->
+            <div class="pregnancy-card appointments-card">
+                <h3 data-translate="appointments">📅 Appointments</h3>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" id="appointmentDate">
+                </div>
+                <div class="form-group">
+                    <label>Time:</label>
+                    <input type="time" id="appointmentTime">
+                </div>
+                <div class="form-group">
+                    <label>Type:</label>
+                    <select id="appointmentType">
+                        <option value="Checkup">Regular Checkup</option>
+                        <option value="Ultrasound">Ultrasound</option>
+                        <option value="Lab Test">Lab Test</option>
+                        <option value="Specialist">Specialist Visit</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes:</label>
+                    <textarea id="appointmentNotes" rows="2"></textarea>
+                </div>
+                <button class="btn-primary" onclick="addAppointment()">Add Appointment</button>
+                <div id="appointmentsDisplay"></div>
+            </div>
+
+            <!-- Medications -->
+            <div class="pregnancy-card medications-card">
+                <h3 data-translate="medications">💊 Medications & Vitamins</h3>
+                <div class="form-group">
+                    <label>Name:</label>
+                    <input type="text" id="medicationName" placeholder="e.g., Prenatal Vitamins">
+                </div>
+                <div class="form-group">
+                    <label>Dosage:</label>
+                    <input type="text" id="medicationDosage" placeholder="e.g., 1 tablet daily">
+                </div>
+                <div class="form-group">
+                    <label>Frequency:</label>
+                    <select id="medicationFrequency">
+                        <option value="Daily">Daily</option>
+                        <option value="Twice Daily">Twice Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="As Needed">As Needed</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="addMedication()">Add Medication</button>
+                <div id="medicationsDisplay"></div>
+            </div>
+
+            <!-- Symptom Checker -->
+            <div class="pregnancy-card" style="background: linear-gradient(135deg, #e8eaf6 0%, #fbc2eb 100%);">
+                <h3>🏥 Symptom Checker</h3>
+                <div class="form-group">
+                    <label>Select Symptoms:</label>
+                    <select id="symptomSelect" multiple size="6">
+                        <option value="headache">Headache</option>
+                        <option value="bleeding">Bleeding</option>
+                        <option value="fever">Fever</option>
+                        <option value="backPain">Back Pain</option>
+                        <option value="swelling">Swelling</option>
+                        <option value="dizziness">Dizziness</option>
+                        <option value="contractions">Contractions</option>
+                        <option value="reducedMovement">Reduced Baby Movement</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="checkSymptoms()">Check Symptoms</button>
+                <div id="symptomResult"></div>
+            </div>
+
+            <!-- Nutrition Guide -->
+            <div class="pregnancy-card nutrition-guide-card">
+                <h3 data-translate="nutrition">🥗 Nutrition Guide</h3>
+                <button class="btn-primary" onclick="displayNutritionGuide()">Show Nutrition Guide</button>
+                <div id="nutritionGuideDisplay"></div>
+            </div>
+
+            <!-- Exercise -->
+            <div class="pregnancy-card exercise-card">
+                <h3 data-translate="exercise">🏃 Exercise & Fitness</h3>
+                <button class="btn-primary" onclick="displayExerciseSection()">Show Exercises</button>
+                <div id="exerciseDisplay"></div>
+            </div>
+
+            <!-- Weight Tracking -->
+            <div class="pregnancy-card weight-tracking-card">
+                <h3>⚖️ Weight Tracking</h3>
+                <div class="form-group">
+                    <label>Weight (kg):</label>
+                    <input type="number" id="weightInput" step="0.1" placeholder="e.g., 65.5">
+                </div>
+                <div class="form-group">
+                    <label>Date:</label>
+                    <input type="date" id="weightDate">
+                </div>
+                <button class="btn-primary" onclick="addWeightRecord()">Add Weight Record</button>
+                <div id="weightDisplay"></div>
+            </div>
+
+            <!-- Water Intake -->
+            <div class="pregnancy-card water-intake-card">
+                <h3>💧 Water Intake Tracker</h3>
+                <div id="waterDisplay"></div>
+            </div>
+
+            <!-- Mood Tracking -->
+            <div class="pregnancy-card mood-tracking-card">
+                <h3>😊 Mood Tracking</h3>
+                <div id="moodDisplay"></div>
+            </div>
+
+            <!-- Kick Counter -->
+            <div class="pregnancy-card kick-counter-card">
+                <h3>👶 Kick Counter</h3>
+                <div id="kickDisplay"></div>
+            </div>
+
+            <!-- Contraction Timer -->
+            <div class="pregnancy-card contraction-timer-card">
+                <h3>⏱️ Contraction Timer</h3>
+                <div id="contractionDisplay"></div>
+            </div>
+
+            <!-- Personal Notes -->
+            <div class="pregnancy-card personal-notes-card">
+                <h3>📝 Personal Notes</h3>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <select id="noteCategory">
+                        <option value="General">General</option>
+                        <option value="Questions for Doctor">Questions for Doctor</option>
+                        <option value="Symptoms">Symptoms</option>
+                        <option value="Personal">Personal</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Note:</label>
+                    <textarea id="noteInput" rows="3" placeholder="Write your note here..."></textarea>
+                </div>
+                <button class="btn-primary" onclick="addNote()">Add Note</button>
+                <div id="notesDisplay"></div>
+            </div>
+
+            <!-- Emergency Section -->
+            <div class="pregnancy-card emergency-section">
+                <h3>🚨 Emergency Assistance</h3>
+                <p>Quick access to emergency services and support</p>
+                <div class="emergency-buttons">
+                    <button class="btn-emergency btn-call-emergency" onclick="callEmergency()">📞 Call Emergency (911)</button>
+                    <button class="btn-emergency btn-contact-doctor" onclick="contactDoctor()">👨‍⚕️ Contact Doctor</button>
+                    <button class="btn-emergency btn-share-location" onclick="shareLocation()">📍 Share Location</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/features/pregnancy-advanced.js"></script>
+
+    <!-- Footer -->
+    <footer class="maternal-footer">
+        <div class="maternal-footer-container">
+            <div class="maternal-footer-top">
+                <div class="maternal-footer-brand">
+                    <div class="maternal-footer-logo">🤱</div>
+                    <h3>Mamasafe</h3>
+                    <p>Your trusted companion through motherhood</p>
+                    <div class="maternal-footer-social">
+                        <a href="#" class="maternal-social-link">📘</a>
+                        <a href="#" class="maternal-social-link">📸</a>
+                        <a href="#" class="maternal-social-link">🐦</a>
+                        <a href="#" class="maternal-social-link">▶️</a>
+                    </div>
+                </div>
+                <div class="maternal-footer-links">
+                    <div class="maternal-footer-column">
+                        <h4>Pregnancy</h4>
+                        <ul>
+                            <li><a href="index.html">Week by Week</a></li>
+                            <li><a href="index.html">Symptoms</a></li>
+                            <li><a href="index.html">Labor & Delivery</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Tools</h4>
+                        <ul>
+                            <li><a href="index.html">Due Date Calculator</a></li>
+                            <li><a href="index.html">Pregnancy Tracker</a></li>
+                            <li><a href="index.html">Help Section</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Resources</h4>
+                        <ul>
+                            <li><a href="index.html">Baby Names</a></li>
+                            <li><a href="index.html">Courses</a></li>
+                        </ul>
+                    </div>
+                    <div class="maternal-footer-column">
+                        <h4>Community</h4>
+                        <ul>
+                            <li><a>Birth Clubs</a></li>
+                            <li><a>Forums</a></li>
+                            <li><a>App Download</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="maternal-footer-bottom">
+                <div class="maternal-footer-copyright">
+                    <p>© 2026 Mamasafe. All rights reserved. Made with 💕 for mothers everywhere.</p>
+                </div>
+                <div class="maternal-footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+<script src="js/auth/guest-feature-lock.js?v=20260608-guest-preview-lock"></script>
+</body>
+</html>

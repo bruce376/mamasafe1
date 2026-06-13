@@ -1,0 +1,3295 @@
+require('dotenv').config();
+const crypto = require('crypto');
+const {
+    DOWNLOADED_SOURCE_SYSTEM,
+    DOWNLOADED_COLLECTIONS
+} = require('./pregnancyDownloadedDatasets');
+const {
+    getAiArchitectureLabel,
+    getAiModelMetadata
+} = require('../config/aiModel');
+
+const SEED_SCHEMA_VERSION = 2;
+const SEED_SOURCE_SYSTEM = 'mamasafe-rag-seed';
+const JSON_DATASET_SCHEMA_VERSION = 3;
+const JSON_DATASET_SOURCE_SYSTEM = 'mamasafe-json-knowledge-base';
+const JSON_DATASET_COLLECTIONS = ['pregnancy_weeks', 'symptoms', 'danger_signs', 'nutrition', 'articles', 'faqs'];
+const DATABASE_ONLY_DATASETS = true;
+const TRANSFORMER_DATASET_USE = {
+    engine: getAiArchitectureLabel('pregnancy RAG'),
+    primaryModel: getAiModelMetadata().model,
+    description: 'Llama 3.3 70B via Groq is the main MamaSafe pregnancy AI. It uses MongoDB pregnancy datasets, maternal-risk records, vector/RAG retrieval, and safety rules for this result.',
+    datasets: [
+        'imported pregnancy datasets',
+        'maternal-risk records',
+        'CDC/WHO safety rules',
+        'MongoDB pregnancy knowledge collections'
+    ],
+    collections: [
+        'pregnancy_weeks',
+        'symptoms',
+        'danger_signs',
+        'nutrition',
+        'articles',
+        'faqs',
+        'who_guidelines',
+        'who_document_chunks',
+        'pregnancy_source_datasets',
+        'maternal_health_risk_records',
+        'maternal_mortality_indicators',
+        'health_pregnancy_indicators',
+        'who_anc_data_elements',
+        'mn_survey_records'
+    ]
+};
+const MATERNAL_RISK_TENSORFLOW_DATASET_USE = {
+    engine: 'Maternal-risk TensorFlow.js model + MongoDB',
+    primaryModel: 'mamasafe-maternal-risk-custom-ai',
+    description: 'The maternal vitals risk screen uses the saved TensorFlow.js maternal-risk model trained from maternal-risk records. MongoDB stores the training records, similar-record evidence, and saved vitals assessments.',
+    datasets: [
+        'MongoDB maternal_health_risk_records',
+        'MongoDB pregnancy_vital_assessments',
+        'CDC/WHO safety records for warning symptoms'
+    ],
+    collections: [
+        'maternal_health_risk_records',
+        'pregnancy_vital_assessments',
+        'danger_signs',
+        'who_guidelines',
+        'who_anc_data_elements'
+    ]
+};
+
+let seedPromise = null;
+let jsonDatasetCache = null;
+
+const pregnancyKnowledgeSeed = {};
+
+const collectionFields = {
+    pregnancy_weeks: ['title', 'babyDevelopment', 'motherChanges', 'symptomsCommon', 'tips', 'dangerAlerts', 'keywords'],
+    symptoms: ['name', 'aliases', 'description', 'selfCareTips', 'warningSigns', 'whenToSeeDoctor', 'keywords'],
+    danger_signs: ['sign', 'category', 'description', 'action', 'severity', 'keywords'],
+    nutrition: ['food', 'type', 'benefits', 'keywords'],
+    faqs: ['question', 'questionAliases', 'answer', 'tags', 'keywords'],
+    articles: ['title', 'content', 'category', 'keywords'],
+    who_guidelines: ['title', 'sourceOrganization', 'dataset', 'category', 'recommendation', 'careFunction', 'interventions', 'implementationNotes', 'keywords'],
+    who_document_chunks: ['title', 'documentTitle', 'sectionTitle', 'content', 'pregnancyUse', 'dataset', 'category', 'keywords'],
+    pregnancy_source_datasets: ['title', 'sourceOrganization', 'category', 'pregnancyUse', 'keywords', 'mongodbCollection'],
+    maternal_health_risk_records: ['title', 'summary', 'riskLevel', 'category', 'pregnancyUse', 'keywords'],
+    maternal_mortality_indicators: ['title', 'summary', 'indicatorCode', 'indicatorName', 'countryName', 'category', 'pregnancyUse', 'keywords'],
+    health_pregnancy_indicators: ['title', 'summary', 'indicatorCode', 'indicatorName', 'countryName', 'topic', 'category', 'pregnancyUse', 'keywords'],
+    who_anc_data_elements: ['title', 'description', 'sheetName', 'dataType', 'dataElementId', 'pregnancyUse', 'keywords'],
+    mn_survey_records: ['title', 'summary', 'measureCode', 'measureLabel', 'countryName', 'category', 'pregnancyUse', 'keywords']
+};
+
+const RAG_COLLECTIONS = ['danger_signs', 'who_guidelines', 'who_document_chunks', 'pregnancy_weeks', 'symptoms', 'nutrition', 'faqs', 'articles', ...DOWNLOADED_COLLECTIONS];
+const PERSONAL_COLLECTIONS = ['users', 'pregnancies', 'pregnancy_vital_assessments', 'chat_sessions', 'reminders'];
+const PREGNANCY_EXPLORER_COLLECTIONS = [...PERSONAL_COLLECTIONS, ...RAG_COLLECTIONS];
+
+const collectionExplorerMeta = {
+    users: {
+        layer: 'personal',
+        label: 'Users',
+        description: 'Account identity records. Sensitive fields are never returned in previews.'
+    },
+    pregnancies: {
+        layer: 'personal',
+        label: 'Pregnancies',
+        description: 'User pregnancy profile records with current week, trimester, risk level, notes, and due date.'
+    },
+    pregnancy_vital_assessments: {
+        layer: 'personal',
+        label: 'Vital assessments',
+        description: 'Deduplicated personal maternal vitals assessments generated by the pregnancy clinical intelligence panel.'
+    },
+    pregnancy_weeks: {
+        layer: 'dataset',
+        label: 'Pregnancy weeks',
+        description: 'Week-by-week MongoDB records used for development, symptoms, tips, and danger alerts.'
+    },
+    symptoms: {
+        layer: 'dataset',
+        label: 'Symptoms',
+        description: 'Symptom knowledge records with aliases, self-care guidance, and doctor-contact rules.'
+    },
+    danger_signs: {
+        layer: 'safety',
+        label: 'Danger signs',
+        description: 'Urgent safety records that override normal AI generation.'
+    },
+    nutrition: {
+        layer: 'dataset',
+        label: 'Nutrition',
+        description: 'Food and nutrition records for pregnancy guidance.'
+    },
+    faqs: {
+        layer: 'dataset',
+        label: 'FAQs',
+        description: 'Direct question-and-answer records for pregnancy RAG retrieval.'
+    },
+    articles: {
+        layer: 'dataset',
+        label: 'Articles',
+        description: 'Longer educational content grouped by category and keywords.'
+    },
+    who_guidelines: {
+        layer: 'who',
+        label: 'WHO guidelines',
+        description: 'Structured WHO antenatal-care recommendations.'
+    },
+    who_document_chunks: {
+        layer: 'who',
+        label: 'Document chunks',
+        description: 'Searchable PDF chunks extracted from downloaded CDC and WHO pregnancy datasets.'
+    },
+    pregnancy_source_datasets: {
+        layer: 'dataset',
+        label: 'Downloaded sources',
+        description: 'Audit records for the downloaded pregnancy datasets feeding MongoDB.'
+    },
+    maternal_health_risk_records: {
+        layer: 'dataset',
+        label: 'Maternal risk records',
+        description: 'Expanded maternal health risk CSV records with blood pressure, glucose, temperature, heart rate, BMI, diabetes flags, complications, mental-health flag, and risk level.'
+    },
+    maternal_mortality_indicators: {
+        layer: 'dataset',
+        label: 'Maternal mortality indicators',
+        description: 'World Bank maternal mortality indicator records by country and year for population-level maternal risk context.'
+    },
+    health_pregnancy_indicators: {
+        layer: 'dataset',
+        label: 'Health pregnancy indicators',
+        description: 'World Bank and WHO Global Health Observatory pregnancy, women-health, antenatal-care, fertility, anemia, birth, and newborn indicator records.'
+    },
+    who_anc_data_elements: {
+        layer: 'who',
+        label: 'WHO ANC data elements',
+        description: 'WHO ANC Digital Adaptation Kit core data dictionary elements from the downloaded workbook.'
+    },
+    mn_survey_records: {
+        layer: 'who',
+        label: 'MN survey records',
+        description: 'WHO Europe maternal nutrition survey rows with measure labels, country or region fields, pregnancy-stage categories, and response values.'
+    },
+    chat_sessions: {
+        layer: 'conversation',
+        label: 'Chat sessions',
+        description: 'Stored pregnancy RAG conversation metadata and retrieved source counts.'
+    },
+    reminders: {
+        layer: 'personal',
+        label: 'Reminders',
+        description: 'Prenatal checkups and care alert records.'
+    }
+};
+
+async function loadJsonPregnancyDataset() {
+    if (jsonDatasetCache) return jsonDatasetCache;
+    jsonDatasetCache = {};
+    return jsonDatasetCache;
+}
+
+function stableIdentityValue(value) {
+    return String(value ?? '').trim().toLowerCase();
+}
+
+function getJsonDatasetIdentity(collectionName, doc = {}) {
+    if (doc.knowledgeId) return doc.knowledgeId;
+    const identityParts = {
+        pregnancy_weeks: [doc.week, doc.title],
+        symptoms: [doc.name],
+        danger_signs: [doc.sign],
+        nutrition: [doc.food],
+        articles: [doc.title],
+        faqs: [doc.question]
+    }[collectionName] || [doc.title || doc.name || doc.question || doc.week];
+    const raw = `${collectionName}:${identityParts.map(stableIdentityValue).join(':')}`;
+    return crypto.createHash('sha1').update(raw).digest('hex').slice(0, 16);
+}
+
+function getJsonNaturalIdentityQuery(collectionName, doc = {}) {
+    const natural = {
+        pregnancy_weeks: doc.week || doc.title ? { week: doc.week, title: doc.title } : null,
+        symptoms: doc.name ? { name: doc.name } : null,
+        danger_signs: doc.sign ? { sign: doc.sign } : null,
+        nutrition: doc.food ? { food: doc.food } : null,
+        articles: doc.title ? { title: doc.title } : null,
+        faqs: doc.question ? { question: doc.question } : null
+    }[collectionName];
+
+    return natural || null;
+}
+
+async function ensureJsonPregnancyDataset(db) {
+    const dataset = await loadJsonPregnancyDataset();
+
+    for (const collectionName of JSON_DATASET_COLLECTIONS) {
+        const docs = Array.isArray(dataset[collectionName]) ? dataset[collectionName] : [];
+        if (!docs.length) continue;
+
+        const collection = db.collection(collectionName);
+        for (const doc of docs) {
+            const knowledgeId = getJsonDatasetIdentity(collectionName, doc);
+            const naturalIdentity = getJsonNaturalIdentityQuery(collectionName, doc);
+            const payload = {
+                ...doc,
+                knowledgeId,
+                updatedAt: new Date(),
+                sourceSystem: JSON_DATASET_SOURCE_SYSTEM,
+                schemaVersion: JSON_DATASET_SCHEMA_VERSION
+            };
+            const result = await collection.updateOne(
+                {
+                    sourceSystem: JSON_DATASET_SOURCE_SYSTEM,
+                    $or: [
+                        { knowledgeId },
+                        ...(naturalIdentity ? [naturalIdentity] : [])
+                    ]
+                },
+                {
+                    $set: payload,
+                    $setOnInsert: {
+                        seededAt: new Date(),
+                        createdAt: new Date()
+                    }
+                },
+                { upsert: true }
+            );
+
+            if (!result.upsertedCount && !result.matchedCount && !result.modifiedCount) {
+                await collection.insertOne({
+                    ...payload,
+                    seededAt: new Date(),
+                    createdAt: new Date()
+                });
+            }
+        }
+    }
+}
+
+function escapeRegExp(value) {
+    return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function toList(value) {
+    if (Array.isArray(value)) return value.filter(item => item !== undefined && item !== null && String(item).trim());
+    if (value === undefined || value === null || value === '') return [];
+    return [String(value)];
+}
+
+function renderValue(value) {
+    if (Array.isArray(value)) return value.filter(Boolean).join('; ');
+    if (typeof value === 'boolean') return value ? 'yes' : 'no';
+    if (value === undefined || value === null) return '';
+    return String(value);
+}
+
+function labelled(label, value) {
+    const rendered = renderValue(value);
+    return rendered ? `${label}: ${rendered}` : '';
+}
+
+function truncateText(value = '', limit = 260) {
+    const text = renderValue(value).replace(/\s+/g, ' ').trim();
+    if (text.length <= limit) return text;
+    return `${text.slice(0, limit - 1).trim()}...`;
+}
+
+function compactText(value = '', limit = 260) {
+    const text = renderValue(value).replace(/\s+/g, ' ').trim();
+    if (text.length <= limit) return text;
+    return `${text.slice(0, Math.max(0, limit - 1)).trim()}...`;
+}
+
+function toIsoLike(value) {
+    if (!value) return '';
+    if (value instanceof Date) return value.toISOString();
+    if (typeof value === 'object' && typeof value.toISOString === 'function') return value.toISOString();
+    return String(value);
+}
+
+function previewField(label, value) {
+    const rendered = renderValue(value);
+    return rendered ? { label, value: rendered } : null;
+}
+
+function compactFields(fields = []) {
+    return fields.filter(Boolean).slice(0, 8);
+}
+
+function buildGenericPreview(collectionName, doc = {}) {
+    const normalized = normalizeDoc(collectionName, doc);
+    const fields = compactFields([
+        previewField('Week', normalized.week),
+        previewField('Trimester', normalized.trimester),
+        previewField('Category', normalized.category),
+        previewField('Severity', normalized.severity),
+        previewField('Risk level', normalized.riskLevel),
+        previewField('Data type', normalized.dataType),
+        previewField('Sheet', normalized.sheetName),
+        previewField('File type', normalized.fileType),
+        previewField('Dataset', normalized.dataset),
+        previewField('Organization', normalized.sourceOrganization),
+        previewField('Document', normalized.documentTitle),
+        previewField('Page', normalized.pageStart ? `${normalized.pageStart}${normalized.pageEnd ? `-${normalized.pageEnd}` : ''}` : ''),
+        previewField('Schema', normalized.schemaVersion),
+        previewField('Source system', doc.sourceSystem)
+    ]);
+
+    return {
+        id: normalized.id,
+        collection: collectionName,
+        title: normalized.title || collectionExplorerMeta[collectionName]?.label || collectionName,
+        summary: truncateText(normalized.text || doc.content || doc.description || doc.answer || ''),
+        layer: collectionExplorerMeta[collectionName]?.layer || 'dataset',
+        badges: compactFields([
+            previewField('collection', collectionName),
+            previewField('category', normalized.category),
+            previewField('severity', normalized.severity),
+            previewField('risk', normalized.riskLevel),
+            previewField('dataset', normalized.dataset || doc.datasetId || doc.sourceSystem)
+        ]).map(item => item.value),
+        fields,
+        source: normalized.source || ''
+    };
+}
+
+function buildPersonalPreview(collectionName, doc = {}) {
+    if (collectionName === 'users') {
+        return {
+            id: doc._id ? String(doc._id) : doc.id || '',
+            collection: collectionName,
+            title: doc.name || doc.displayName || doc.username || 'Mother account',
+            summary: 'Account record preview. Password hashes, raw email addresses, and tokens are redacted.',
+            layer: 'personal',
+            badges: compactFields([
+                previewField('role', doc.role || 'mother'),
+                previewField('status', doc.status),
+                previewField('source', doc.source || doc.recordType)
+            ]).map(item => item.value),
+            fields: compactFields([
+                previewField('Role', doc.role || 'mother'),
+                previewField('Status', doc.status),
+                previewField('Journey', doc.journey || doc.stage),
+                previewField('Created', toIsoLike(doc.createdAt))
+            ]),
+            redacted: true
+        };
+    }
+
+    if (collectionName === 'pregnancies') {
+        return {
+            id: doc._id ? String(doc._id) : '',
+            collection: collectionName,
+            title: `Pregnancy profile${doc.currentWeek ? ` - week ${doc.currentWeek}` : ''}`,
+            summary: truncateText(doc.notes || doc.concerns || 'Pregnancy profile record stored separately from the searchable knowledge base.'),
+            layer: 'personal',
+            badges: compactFields([
+                previewField('week', doc.currentWeek || doc.week || doc.pregnancyWeek),
+                previewField('trimester', doc.trimester),
+                previewField('risk', doc.riskLevel)
+            ]).map(item => item.value),
+            fields: compactFields([
+                previewField('Current week', doc.currentWeek || doc.week || doc.pregnancyWeek),
+                previewField('Trimester', doc.trimester),
+                previewField('Risk level', doc.riskLevel),
+                previewField('Due date', toIsoLike(doc.dueDate)),
+                previewField('Created', toIsoLike(doc.createdAt))
+            ])
+        };
+    }
+
+    if (collectionName === 'pregnancy_vital_assessments') {
+        return {
+            id: doc._id ? String(doc._id) : doc.assessmentKey || '',
+            collection: collectionName,
+            title: `Maternal vitals assessment: ${doc.riskLevel || 'risk pending'}`,
+            summary: truncateText(doc.summary || 'Personal vitals assessment generated from the pregnancy clinical intelligence panel.'),
+            layer: 'personal',
+            badges: compactFields([
+                previewField('risk', doc.riskLevel),
+                previewField('week', doc.week),
+                previewField('source', doc.source)
+            ]).map(item => item.value),
+            fields: compactFields([
+                previewField('Age', doc.metrics?.age),
+                previewField('Blood pressure', doc.metrics?.systolicBP && doc.metrics?.diastolicBP ? `${doc.metrics.systolicBP}/${doc.metrics.diastolicBP}` : ''),
+                previewField('Blood sugar', doc.metrics?.bloodSugar),
+                previewField('Temperature', doc.metrics?.bodyTemp),
+                previewField('Heart rate', doc.metrics?.heartRate),
+                previewField('Saved', toIsoLike(doc.updatedAt || doc.createdAt))
+            ]),
+            redacted: true
+        };
+    }
+
+    if (collectionName === 'reminders') {
+        return {
+            id: doc._id ? String(doc._id) : doc.id || '',
+            collection: collectionName,
+            title: doc.title || doc.text || 'Prenatal reminder',
+            summary: truncateText(doc.notes || doc.description || 'Reminder record for prenatal care.'),
+            layer: 'personal',
+            badges: compactFields([
+                previewField('type', doc.type),
+                previewField('status', doc.status)
+            ]).map(item => item.value),
+            fields: compactFields([
+                previewField('Type', doc.type),
+                previewField('Date', toIsoLike(doc.date || doc.when)),
+                previewField('Status', doc.status),
+                previewField('Created', toIsoLike(doc.createdAt))
+            ])
+        };
+    }
+
+    if (collectionName === 'chat_sessions') {
+        const userMessage = Array.isArray(doc.messages) ? doc.messages.find(message => message.role === 'user') : null;
+        const assistantMessage = Array.isArray(doc.messages) ? doc.messages.find(message => message.role === 'assistant') : null;
+        const sourceCount = assistantMessage?.contextSources?.length || 0;
+        return {
+            id: doc._id ? String(doc._id) : '',
+            collection: collectionName,
+            title: 'Pregnancy RAG conversation',
+            summary: truncateText(userMessage?.content || 'Stored pregnancy question. Full private identifiers are not shown in this preview.'),
+            layer: 'conversation',
+            badges: compactFields([
+                previewField('source', doc.source),
+                previewField('urgent', assistantMessage?.urgent || doc.urgent),
+                previewField('sources', sourceCount)
+            ]).map(item => item.value),
+            fields: compactFields([
+                previewField('Pregnancy week', doc.pregnancyWeek),
+                previewField('Urgent', assistantMessage?.urgent || doc.urgent),
+                previewField('Retrieved sources', sourceCount),
+                previewField('Created', toIsoLike(doc.createdAt))
+            ]),
+            redacted: true
+        };
+    }
+
+    return buildGenericPreview(collectionName, doc);
+}
+
+function extractSearchTerms(question = '', symptoms = '') {
+    const text = `${question} ${symptoms}`.toLowerCase();
+    const raw = text.match(/[a-z0-9]+(?:\s+[a-z0-9]+)?/g) || [];
+    const stop = new Set([
+        'what', 'when', 'where', 'which', 'that', 'this', 'with', 'from', 'into', 'about',
+        'pregnancy', 'pregnant', 'normal', 'week', 'weeks', 'should', 'could', 'would',
+        'does', 'need', 'have', 'having', 'feel', 'feeling', 'there', 'after', 'before',
+        'please', 'help', 'tell', 'know', 'is', 'am', 'are', 'was', 'were', 'the', 'and'
+    ]);
+    const terms = raw
+        .map(term => term.trim())
+        .filter(term => term.length >= 3 && !stop.has(term));
+    return [...new Set(terms)].slice(0, 12);
+}
+
+function extractPreviewSearchTerms(search = '') {
+    const query = String(search || '').trim().toLowerCase();
+    if (!query) return [];
+    const words = query
+        .match(/[a-z0-9]+/g)
+        ?.filter(word => word.length >= 3 && !['the', 'and', 'for', 'with', 'what', 'when', 'who'].includes(word)) || [];
+    return [...new Set([query, ...extractSearchTerms(query, ''), ...words])].slice(0, 12);
+}
+
+function makeTextQuery(fields, terms) {
+    if (!terms.length) return null;
+    return {
+        $or: fields.flatMap(field =>
+            terms.map(term => ({ [field]: { $regex: escapeRegExp(term), $options: 'i' } }))
+        )
+    };
+}
+
+function normalizeDoc(collection, doc = {}) {
+    const title = doc.title || doc.sectionTitle || doc.documentTitle || doc.name || doc.food || doc.sign || doc.question || doc.topic || `Week ${doc.week}`;
+    const stableId = doc.recordId || doc.chunkId || doc.datasetId || doc.knowledgeId || doc.id || (doc._id ? String(doc._id) : '');
+    const text = [
+        labelled('Summary', doc.summary),
+        labelled('Baby development', doc.babyDevelopment),
+        labelled('Mother changes', doc.motherChanges),
+        labelled('Common symptoms', doc.symptomsCommon),
+        labelled('Weekly tips', doc.tips),
+        labelled('Danger alerts', doc.dangerAlerts),
+        labelled('Description', doc.description),
+        labelled('Normal/common', doc.normal),
+        labelled('Self care tips', doc.selfCareTips),
+        labelled('Warning signs', doc.warningSigns || doc.warning),
+        labelled('When to see a doctor', doc.whenToSeeDoctor),
+        labelled('Benefits', doc.benefits || doc.benefit),
+        labelled('Recommended', doc.recommended),
+        labelled('Avoid during pregnancy', doc.avoidDuringPregnancy),
+        labelled('Caution', doc.caution),
+        labelled('Action', doc.action),
+        labelled('Answer', doc.answer),
+        labelled('WHO recommendation', doc.recommendation),
+        labelled('Care function', doc.careFunction),
+        labelled('Interventions', doc.interventions),
+        labelled('Implementation notes', doc.implementationNotes),
+        labelled('Contact weeks', doc.contactWeeks),
+        labelled('Dataset', doc.dataset),
+        labelled('Dataset use', doc.pregnancyUse),
+        labelled('Source organization', doc.sourceOrganization),
+        labelled('Risk level', doc.riskLevel),
+        labelled('Age', doc.age),
+        labelled('Systolic BP', doc.systolicBP),
+        labelled('Diastolic BP', doc.diastolicBP),
+        labelled('Blood sugar', doc.bloodSugar),
+        labelled('Body temperature', doc.bodyTemp),
+        labelled('Heart rate', doc.heartRate),
+        labelled('Data type', doc.dataType),
+        labelled('Data element ID', doc.dataElementId),
+        labelled('Workbook sheet', doc.sheetName),
+        labelled('Document', doc.documentTitle),
+        labelled('Section', doc.sectionTitle),
+        labelled('Pregnancy page use', doc.pregnancyUse),
+        labelled('Article', doc.content || doc.advice),
+        labelled('Record description', doc.description)
+    ].filter(Boolean).join(' ');
+
+    return {
+        id: stableId,
+        collection,
+        title,
+        text,
+        source: doc.source || '',
+        week: doc.week || null,
+        trimester: doc.trimester || null,
+        category: doc.category || '',
+        severity: doc.severity || '',
+        action: doc.action || '',
+        dataset: doc.dataset || '',
+        sourceOrganization: doc.sourceOrganization || '',
+        sheetName: doc.sheetName || '',
+        dataType: doc.dataType || '',
+        riskLevel: doc.riskLevel || '',
+        fileType: doc.fileType || '',
+        documentTitle: doc.documentTitle || '',
+        sectionTitle: doc.sectionTitle || '',
+        pageStart: doc.pageStart || null,
+        pageEnd: doc.pageEnd || null,
+        schemaVersion: doc.schemaVersion || null
+    };
+}
+
+function formatWeekGuideDocument(doc = {}) {
+    const trimesterNumber = Number.parseInt(doc.trimester, 10);
+    return {
+        ...doc,
+        trimester: Number.isInteger(trimesterNumber) ? trimesterNumber : doc.trimester,
+        motherChanges: toList(doc.motherChanges),
+        symptomsCommon: toList(doc.symptomsCommon),
+        tips: toList(doc.tips),
+        dangerAlerts: toList(doc.dangerAlerts)
+    };
+}
+
+function trimesterFromWeek(weekNumber) {
+    if (weekNumber <= 13) return 1;
+    if (weekNumber <= 27) return 2;
+    return 3;
+}
+
+function trimesterLabel(trimester) {
+    if (Number(trimester) === 1) return 'First trimester';
+    if (Number(trimester) === 2) return 'Second trimester';
+    return 'Third trimester';
+}
+
+function uniqueCompactList(items = [], limit = 4) {
+    const seen = new Set();
+    return items
+        .flatMap(item => toList(item))
+        .map(item => compactText(item, 220))
+        .filter(Boolean)
+        .filter(item => {
+            const key = item.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        })
+        .slice(0, limit);
+}
+
+function sourceSummary(doc = {}, collection = '') {
+    return {
+        collection,
+        title: doc.title || doc.food || doc.sign || doc.name || doc.question || doc.dataset || collection,
+        source: doc.source || '',
+        week: doc.week || null,
+        sourceSystem: doc.sourceSystem || '',
+        schemaVersion: doc.schemaVersion || ''
+    };
+}
+
+function datasetRecordLine(doc = {}, collection = '') {
+    if (!doc || typeof doc !== 'object') return '';
+    if (collection === 'nutrition') {
+        const benefits = uniqueCompactList(doc.benefits, 3).join('; ');
+        return [
+            doc.food,
+            benefits ? `Benefits: ${benefits}` : '',
+            doc.type ? `Type: ${doc.type}` : '',
+            doc.source ? `Source: ${doc.source}` : ''
+        ].filter(Boolean).join(' | ');
+    }
+    if (collection === 'danger_signs') {
+        return [
+            doc.sign || doc.title,
+            doc.description,
+            doc.action ? `Action: ${doc.action}` : '',
+            doc.source ? `Source: ${doc.source}` : ''
+        ].filter(Boolean).join(' | ');
+    }
+    if (collection === 'symptoms') {
+        return [
+            doc.name || doc.title,
+            doc.description,
+            toList(doc.selfCareTips).length ? `Self care: ${toList(doc.selfCareTips).join('; ')}` : '',
+            toList(doc.warningSigns).length ? `Warnings: ${toList(doc.warningSigns).join('; ')}` : '',
+            doc.source ? `Source: ${doc.source}` : ''
+        ].filter(Boolean).join(' | ');
+    }
+    if (collection === 'faqs') {
+        return [
+            doc.question,
+            doc.answer,
+            doc.source ? `Source: ${doc.source}` : ''
+        ].filter(Boolean).join(' | ');
+    }
+    if (collection === 'articles') {
+        return [
+            doc.title,
+            doc.content,
+            doc.source ? `Source: ${doc.source}` : ''
+        ].filter(Boolean).join(' | ');
+    }
+    if (collection === 'who_guidelines') {
+        return [
+            doc.title || doc.dataset,
+            doc.recommendation || doc.summary || doc.content,
+            doc.source ? `Source: ${doc.source}` : ''
+        ].filter(Boolean).join(' | ');
+    }
+    if (collection === 'pregnancy_weeks') {
+        return [
+            doc.title,
+            doc.description,
+            doc.babyDevelopment ? `Baby development: ${doc.babyDevelopment}` : '',
+            toList(doc.motherChanges).length ? `Mother changes: ${toList(doc.motherChanges).join('; ')}` : '',
+            toList(doc.tips).length ? `Tips: ${toList(doc.tips).join('; ')}` : '',
+            doc.source ? `Source: ${doc.source}` : ''
+        ].filter(Boolean).join(' | ');
+    }
+    return compactText(doc.title || doc.summary || doc.description || doc.content || '', 500);
+}
+
+function topicRecordLines(docs = [], collection = '', matcher = () => true, limit = 3) {
+    return uniqueCompactList(
+        docs
+            .filter(doc => matcher(doc))
+            .map(doc => datasetRecordLine(doc, collection)),
+        limit
+    );
+}
+
+async function ensurePregnancyKnowledgeBase(db) {
+    if (seedPromise) return seedPromise;
+
+    seedPromise = (async () => {
+        return {
+            databaseOnly: true,
+            message: 'MongoDB is the only pregnancy knowledge source. Backend dataset imports are disabled.'
+        };
+    })().catch(error => {
+        seedPromise = null;
+        throw error;
+    });
+
+    return seedPromise;
+}
+
+async function getPregnancyDatasetStatus(db) {
+    await ensurePregnancyKnowledgeBase(db);
+
+    const collections = {};
+    for (const collectionName of PREGNANCY_EXPLORER_COLLECTIONS) {
+        try {
+            const collection = db.collection(collectionName);
+            const [total, jsonSeeded, builtInSeeded, downloadedSeeded] = await Promise.all([
+                collection.countDocuments({}),
+                collection.countDocuments({
+                    sourceSystem: JSON_DATASET_SOURCE_SYSTEM,
+                    schemaVersion: JSON_DATASET_SCHEMA_VERSION
+                }),
+                collection.countDocuments({
+                    sourceSystem: SEED_SOURCE_SYSTEM,
+                    schemaVersion: SEED_SCHEMA_VERSION
+                }),
+                collection.countDocuments({
+                    sourceSystem: DOWNLOADED_SOURCE_SYSTEM
+                })
+            ]);
+            collections[collectionName] = {
+                total,
+                jsonDataset: jsonSeeded,
+                builtInSeed: builtInSeeded,
+                downloadedDataset: downloadedSeeded,
+                layer: collectionExplorerMeta[collectionName]?.layer || 'dataset',
+                label: collectionExplorerMeta[collectionName]?.label || collectionName
+            };
+        } catch (error) {
+            // If collection doesn't exist, just set zeros
+            collections[collectionName] = {
+                total: 0,
+                jsonDataset: 0,
+                builtInSeed: 0,
+                downloadedDataset: 0,
+                layer: collectionExplorerMeta[collectionName]?.layer || 'dataset',
+                label: collectionExplorerMeta[collectionName]?.label || collectionName
+            };
+        }
+    }
+
+    const datasetRecordTotal = RAG_COLLECTIONS
+        .reduce((sum, name) => sum + (collections[name]?.total || 0), 0);
+    const personalRecordTotal = PERSONAL_COLLECTIONS
+        .reduce((sum, name) => sum + (collections[name]?.total || 0), 0);
+
+    return {
+        source: 'llm-only',
+        database: process.env.MONGODB_DB_NAME || 'mamasafe',
+        runtimeDataset: false,
+        databaseOnly: DATABASE_ONLY_DATASETS,
+        datasetRecordTotal,
+        personalRecordTotal,
+        jsonDataset: {
+            sourceSystem: JSON_DATASET_SOURCE_SYSTEM,
+            schemaVersion: JSON_DATASET_SCHEMA_VERSION,
+            storage: 'MongoDB only',
+            file: null
+        },
+        downloadedDatasets: {
+            sourceSystem: DOWNLOADED_SOURCE_SYSTEM,
+            storage: 'MongoDB only',
+            manifest: null,
+            collections: DOWNLOADED_COLLECTIONS
+        },
+        collections
+    };
+}
+
+function getPregnancyCollectionQuery(collectionName, search = '') {
+    const query = String(search || '').trim();
+    if (!query) return {};
+
+    const numericWeek = Number.parseInt(query, 10);
+    if (collectionName === 'pregnancy_weeks' && Number.isInteger(numericWeek)) {
+        return { week: numericWeek };
+    }
+
+    if (collectionFields[collectionName]) {
+        return makeTextQuery(collectionFields[collectionName], extractPreviewSearchTerms(query)) || {};
+    }
+
+    if (collectionName === 'pregnancies' && Number.isInteger(numericWeek)) {
+        return {
+            $or: [
+                { currentWeek: numericWeek },
+                { pregnancyWeek: numericWeek },
+                { week: numericWeek }
+            ]
+        };
+    }
+
+    if (collectionName === 'reminders') {
+        const safe = escapeRegExp(query);
+        return {
+            $or: [
+                { title: { $regex: safe, $options: 'i' } },
+                { text: { $regex: safe, $options: 'i' } },
+                { type: { $regex: safe, $options: 'i' } },
+                { status: { $regex: safe, $options: 'i' } }
+            ]
+        };
+    }
+
+    if (collectionName === 'chat_sessions') {
+        const safe = escapeRegExp(query);
+        return {
+            $or: [
+                { source: { $regex: safe, $options: 'i' } },
+                { symptoms: { $regex: safe, $options: 'i' } },
+                { 'messages.content': { $regex: safe, $options: 'i' } }
+            ]
+        };
+    }
+
+    return {};
+}
+
+async function getPregnancyCollectionPreview(db, collectionName, { search = '', limit = 6 } = {}) {
+    if (!PREGNANCY_EXPLORER_COLLECTIONS.includes(collectionName)) {
+        throw new Error(`Unsupported pregnancy collection: ${collectionName}`);
+    }
+
+    if (RAG_COLLECTIONS.includes(collectionName)) {
+        await ensurePregnancyKnowledgeBase(db);
+    }
+
+    const collection = db.collection(collectionName);
+    const safeLimit = Math.max(1, Math.min(Number.parseInt(limit, 10) || 6, 20));
+    const query = getPregnancyCollectionQuery(collectionName, search);
+    const sort = collectionName === 'pregnancy_weeks'
+        ? { week: 1, schemaVersion: -1 }
+        : collectionName === 'who_document_chunks'
+            ? { documentId: 1, chunkIndex: 1 }
+            : { createdAt: -1, seededAt: -1 };
+
+    const [total, matched, docs] = await Promise.all([
+        collection.countDocuments({}),
+        collection.countDocuments(query),
+        collection.find(query).sort(sort).limit(safeLimit).toArray()
+    ]);
+
+    const records = docs.map(doc => (
+        PERSONAL_COLLECTIONS.includes(collectionName)
+            ? buildPersonalPreview(collectionName, doc)
+            : buildGenericPreview(collectionName, doc)
+    ));
+
+    return {
+        collection: collectionName,
+        label: collectionExplorerMeta[collectionName]?.label || collectionName,
+        layer: collectionExplorerMeta[collectionName]?.layer || 'dataset',
+        description: collectionExplorerMeta[collectionName]?.description || '',
+        total,
+        matched,
+        limit: safeLimit,
+        search: String(search || ''),
+        records
+    };
+}
+
+async function findMatchingDocs(db, collectionName, terms, limit = 5) {
+    const fields = collectionFields[collectionName] || [];
+    const query = makeTextQuery(fields, terms);
+    if (!query) return [];
+
+    const collection = db.collection(collectionName);
+    const searchPhrase = terms.join(' ');
+
+    try {
+        const textResults = await collection
+            .find(
+                { $text: { $search: searchPhrase } },
+                { projection: { score: { $meta: 'textScore' } } }
+            )
+            .sort({ score: { $meta: 'textScore' }, schemaVersion: -1, updatedAt: -1, seededAt: -1 })
+            .limit(limit)
+            .toArray();
+
+        if (textResults.length) {
+            return textResults;
+        }
+    } catch {
+        // Some local fallbacks or collections may not have a text index yet.
+    }
+
+    return collection
+        .find(query)
+        .sort({ schemaVersion: -1, updatedAt: -1, seededAt: -1 })
+        .limit(limit)
+        .toArray();
+}
+
+function scoreRetrievedMatch(item, terms = [], urgentQuestion = false) {
+    const haystack = [
+        item.collection,
+        item.title,
+        item.text,
+        item.category,
+        item.dataset,
+        item.sourceOrganization,
+        item.riskLevel,
+        item.sheetName,
+        item.documentTitle
+    ].join(' ').toLowerCase();
+    const joinedTerms = terms.join(' ').toLowerCase();
+    let score = 0;
+
+    terms.forEach(term => {
+        const normalized = String(term || '').toLowerCase().trim();
+        if (!normalized) return;
+        if (haystack.includes(normalized)) score += normalized.includes(' ') ? 8 : 4;
+        normalized.split(/\s+/).forEach(word => {
+            if (word.length >= 3 && haystack.includes(word)) score += 1;
+        });
+    });
+
+    if (urgentQuestion && item.collection === 'danger_signs') score += 80;
+    if (DOWNLOADED_COLLECTIONS.includes(item.collection)) score += 8;
+    if (/expanded maternal|maternal health risk|blood pressure|systolic|diastolic|blood sugar|glucose|bmi|diabetes|risk record/.test(joinedTerms)
+        && item.collection === 'maternal_health_risk_records') {
+        score += 45;
+    }
+    if (/who|anc|antenatal|quick check|data element|data dictionary/.test(joinedTerms)
+        && item.collection === 'who_anc_data_elements') {
+        score += 35;
+    }
+    if (/dataset|source|downloaded/.test(joinedTerms)
+        && item.collection === 'pregnancy_source_datasets') {
+        score += 30;
+    }
+
+    return score;
+}
+
+async function retrievePregnancyContext(db, { question, week, symptoms }) {
+    await ensurePregnancyKnowledgeBase(db);
+
+    const terms = extractSearchTerms(question, symptoms);
+    const weekNumber = Number.parseInt(week, 10);
+    const results = [];
+    const urgentQuestion = detectUrgentQuestion(question, symptoms);
+
+    if (Number.isInteger(weekNumber) && weekNumber >= 1 && weekNumber <= 42) {
+        const exactWeek = await db.collection('pregnancy_weeks')
+            .find({ week: weekNumber })
+            .sort({ schemaVersion: -1, updatedAt: -1, seededAt: -1 })
+            .limit(1)
+            .toArray();
+        exactWeek.forEach(doc => results.push(normalizeDoc('pregnancy_weeks', doc)));
+    }
+
+    const collectionMatches = await Promise.all(RAG_COLLECTIONS.map(async (collectionName) => {
+        const docs = await findMatchingDocs(db, collectionName, terms, collectionName === 'danger_signs' ? 6 : 5);
+        return docs.map(doc => normalizeDoc(collectionName, doc));
+    }));
+    collectionMatches.flat().forEach(item => results.push(item));
+
+    const seen = new Set();
+    const joinedTerms = terms.join(' ').toLowerCase();
+    const ranked = results.filter(item => {
+        const key = `${item.collection}:${item.title}:${item.week || ''}:${item.schemaVersion || ''}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return item.text;
+    }).map((item, index) => ({
+        item,
+        index,
+        score: scoreRetrievedMatch(item, terms, urgentQuestion)
+    })).sort((a, b) => b.score - a.score || a.index - b.index);
+    const selected = ranked.slice(0, 12).map(entry => entry.item);
+
+    const includeCollectionWhenRequested = (collectionName, requested) => {
+        if (!requested || selected.some(item => item.collection === collectionName)) return;
+        const candidate = ranked.find(entry => entry.item.collection === collectionName);
+        if (!candidate) return;
+        if (selected.length >= 12) selected.pop();
+        selected.push(candidate.item);
+    };
+
+    includeCollectionWhenRequested(
+        'maternal_health_risk_records',
+        /expanded maternal|maternal health risk|blood pressure|systolic|diastolic|blood sugar|glucose|bmi|diabetes|risk record/.test(joinedTerms)
+    );
+    includeCollectionWhenRequested(
+        'maternal_mortality_indicators',
+        /maternal mortality|maternal death|mortality ratio|lifetime risk|population risk|country risk/.test(joinedTerms)
+    );
+    includeCollectionWhenRequested(
+        'health_pregnancy_indicators',
+        /pregnant women|women health|female health|antenatal|prenatal|postnatal|postpartum|skilled birth|birth attendant|fertility|contraceptive|family planning|anemia|anaemia|neonatal|newborn|stillbirth|breastfeeding|caesarean|cesarean|public health|health indicator|world bank|global health observatory|gho/.test(joinedTerms)
+    );
+    includeCollectionWhenRequested(
+        'who_anc_data_elements',
+        /who|anc|antenatal|quick check|data element|data dictionary/.test(joinedTerms)
+    );
+    includeCollectionWhenRequested(
+        'pregnancy_source_datasets',
+        /dataset|source|downloaded/.test(joinedTerms)
+    );
+
+    return selected;
+}
+
+function formatContext(matches) {
+    if (!matches.length) {
+        return 'No direct MongoDB context was found for this exact question. Give general safety guidance and ask the user to contact a clinician for personalized medical advice.';
+    }
+
+    return matches.map((item, index) => {
+        const weekLabel = item.week ? ` (week ${item.week})` : '';
+        const flags = [item.category, item.severity].filter(Boolean).join(', ');
+        const flagLabel = flags ? ` [${flags}]` : '';
+        return `[${index + 1}] ${item.collection}: ${item.title}${weekLabel}${flagLabel}\n${item.text}\nSource: ${item.source}`;
+    }).join('\n\n');
+}
+
+function buildRagTrace({ question, week, symptoms, matches, context = '', model, groqUsed, safetyOverride, groqError = '' }) {
+    return {
+        pipeline: safetyOverride
+            ? ['search_mongodb_dataset', 'danger_signs_override', 'return_safety_answer_with_sources']
+            : ['search_mongodb_dataset', 'build_dataset_answer_from_records', 'return_dataset_answer_with_sources'],
+        dataset: {
+            source: 'mongodb',
+            database: process.env.MONGODB_DB_NAME || 'mamasafe',
+            collections: RAG_COLLECTIONS,
+            runtimeDataset: true
+        },
+        query: {
+            searchTerms: extractSearchTerms(question, symptoms),
+            week: week || null,
+            symptoms: symptoms || ''
+        },
+        retrieval: {
+            collectionsSearched: RAG_COLLECTIONS,
+            matchesReturned: matches.length,
+            collectionsMatched: [...new Set(matches.map(match => match.collection))],
+            contextCharacters: context.length
+        },
+        generation: {
+            provider: safetyOverride ? 'mongodb-safety-override' : 'mongodb-dataset-answer',
+            model,
+            groqUsed: Boolean(groqUsed),
+            groqError: groqError || ''
+        }
+    };
+}
+
+function detectUrgentQuestion(question = '', symptoms = '') {
+    const text = `${question} ${symptoms}`.toLowerCase();
+    return /\b(bleeding|vaginal bleeding|spotting with pain|fluid leaking|water broke|waters broke|chest pain|trouble breathing|shortness of breath|fast heartbeat|severe headache|vision changes|blurred vision|worst headache|severe belly pain|severe abdominal pain|baby not moving|reduced movement|movement less|movement stopped|severe swelling|sudden swelling|one leg swollen|red swollen|faint|fainting|seizure|self-harm|harm myself|suicide)\b|headache.*vision|swelling.*headache|swelling.*vision|baby.*not moving|movement.*less/.test(text);
+}
+
+function getDangerMatches(matches = []) {
+    return matches.filter(item => item.collection === 'danger_signs');
+}
+
+function buildSafetyOverrideAnswer({ week, symptoms, matches }) {
+    const dangerMatches = getDangerMatches(matches);
+    const matchedLines = dangerMatches.length
+        ? dangerMatches.slice(0, 4).map(item => `- ${item.title}: ${item.action || item.text}`).join('\n')
+        : '- Your wording matches an urgent pregnancy warning-sign rule in the safety checker.';
+
+    return [
+        'Safety override from MongoDB danger_signs',
+        '',
+        'This may involve an urgent pregnancy warning sign. Please contact your health care provider, maternity unit, local urgent care, or emergency services now if this is happening.',
+        '',
+        'MongoDB safety records matched:',
+        matchedLines,
+        '',
+        'Next steps:',
+        '- Tell the care team that you are pregnant.',
+        week ? `- Tell them your current week: ${week}.` : '- Tell them how far along you are if you know.',
+        symptoms ? `- Mention these symptoms: ${symptoms}.` : '- Describe exactly what changed, when it started, and how severe it is.',
+        '',
+        'This app is educational support and cannot diagnose or rule out an emergency.'
+    ].filter(Boolean).join('\n');
+}
+
+function shortenDatasetText(value = '', limit = 360) {
+    const text = String(value || '').replace(/\s+/g, ' ').trim();
+    if (text.length <= limit) return text;
+    return `${text.slice(0, limit - 1).trim()}...`;
+}
+
+function collectionDisplayName(collection = '') {
+    return ({
+        pregnancy_weeks: 'week guide',
+        symptoms: 'symptom record',
+        danger_signs: 'danger-sign record',
+        nutrition: 'nutrition record',
+        faqs: 'FAQ record',
+        articles: 'article record',
+        who_guidelines: 'WHO guideline',
+        who_document_chunks: 'downloaded document chunk',
+        pregnancy_source_datasets: 'downloaded source dataset',
+        maternal_health_risk_records: 'maternal risk dataset record',
+        maternal_mortality_indicators: 'maternal mortality indicator',
+        health_pregnancy_indicators: 'pregnancy and women-health indicator',
+        who_anc_data_elements: 'WHO ANC data dictionary element',
+        mn_survey_records: 'MN survey dataset record'
+    })[collection] || collection || 'dataset record';
+}
+
+function pickMatchesByCollection(matches = [], collectionName, limit = 2) {
+    return matches
+        .filter(match => match.collection === collectionName)
+        .slice(0, limit);
+}
+
+function formatDatasetBullets(records = [], limit = 340) {
+    return records
+        .map(item => `- ${item.title} (${collectionDisplayName(item.collection)}): ${shortenDatasetText(item.text, limit)}`)
+        .join('\n');
+}
+
+function toFiniteNumber(value, fallback = null) {
+    const numeric = Number(value);
+    return Number.isFinite(numeric) ? numeric : fallback;
+}
+
+function toBinaryMetric(value, fallback = null) {
+    if (value === undefined || value === null || value === '') return fallback;
+    const normalized = String(value).trim().toLowerCase();
+    if (['1', 'yes', 'true', 'y'].includes(normalized)) return 1;
+    if (['0', 'no', 'false', 'n'].includes(normalized)) return 0;
+    const numeric = Number(normalized);
+    return Number.isFinite(numeric) ? (numeric > 0 ? 1 : 0) : fallback;
+}
+
+const MATERNAL_RISK_FEATURES = [
+    'age',
+    'systolicBP',
+    'diastolicBP',
+    'bloodSugar',
+    'bodyTemp',
+    'heartRate',
+    'bmi',
+    'previousComplications',
+    'preexistingDiabetes',
+    'gestationalDiabetes',
+    'mentalHealth'
+];
+
+const TENSORFLOW_RISK_LABELS = ['low risk', 'mid risk', 'high risk'];
+
+function normalizeVitalsInput(input = {}) {
+    const metrics = {
+        age: toFiniteNumber(input.age),
+        systolicBP: toFiniteNumber(input.systolicBP ?? input.systolic ?? input.sys),
+        diastolicBP: toFiniteNumber(input.diastolicBP ?? input.diastolic ?? input.dia),
+        bloodSugar: toFiniteNumber(input.bloodSugar ?? input.glucose ?? input.bs),
+        bodyTemp: toFiniteNumber(input.bodyTemp ?? input.temp ?? input.temperature),
+        heartRate: toFiniteNumber(input.heartRate ?? input.hr),
+        bmi: toFiniteNumber(input.bmi, null),
+        previousComplications: toBinaryMetric(input.previousComplications ?? input.previous ?? input.complications, null),
+        preexistingDiabetes: toBinaryMetric(input.preexistingDiabetes ?? input.preexisting ?? input.diabetes, null),
+        gestationalDiabetes: toBinaryMetric(input.gestationalDiabetes ?? input.gestational, null),
+        mentalHealth: toBinaryMetric(input.mentalHealth ?? input.mentalHealthConcern ?? input.mental, null)
+    };
+
+    const required = ['age', 'systolicBP', 'diastolicBP', 'bloodSugar', 'bodyTemp', 'heartRate'];
+    const missing = required.filter(key => metrics[key] === null);
+    if (missing.length) {
+        throw new Error(`Missing or invalid vitals: ${missing.join(', ')}`);
+    }
+
+    return metrics;
+}
+
+function calculateMaternalRisk(metrics = {}) {
+    let riskLevel = 'low risk';
+    let riskClass = 'low';
+    let score = 0;
+    const rationales = [];
+
+    const highFlags = [
+        {
+            active: metrics.systolicBP >= 140 || metrics.diastolicBP >= 90,
+            text: 'High blood pressure flag: systolic at or above 140 or diastolic at or above 90.'
+        },
+        {
+            active: metrics.bloodSugar >= 11,
+            text: 'High blood sugar flag: glucose at or above 11.0 mmol/L.'
+        },
+        {
+            active: metrics.bodyTemp >= 100.4,
+            text: 'Fever flag: body temperature at or above 100.4 F.'
+        },
+        {
+            active: metrics.heartRate >= 120 || metrics.heartRate < 50,
+            text: 'Heart-rate flag: pulse is very high or unusually low.'
+        },
+        {
+            active: metrics.previousComplications === 1,
+            text: 'Previous pregnancy complications flag from the expanded maternal-risk dataset.'
+        },
+        {
+            active: metrics.preexistingDiabetes === 1 && metrics.bloodSugar >= 7.8,
+            text: 'Preexisting diabetes with elevated glucose flag from the expanded dataset.'
+        },
+        {
+            active: metrics.gestationalDiabetes === 1 && metrics.bloodSugar >= 7.8,
+            text: 'Gestational diabetes with elevated glucose flag from the expanded dataset.'
+        },
+        {
+            active: Number.isFinite(metrics.bmi) && (metrics.bmi >= 40 || metrics.bmi < 16),
+            text: 'BMI extreme flag from the expanded maternal-risk dataset.'
+        }
+    ];
+    const midFlags = [
+        {
+            active: (metrics.systolicBP >= 130 && metrics.systolicBP < 140)
+                || (metrics.diastolicBP >= 85 && metrics.diastolicBP < 90),
+            text: 'Borderline blood pressure flag from the maternal-risk vitals screen.'
+        },
+        {
+            active: metrics.bloodSugar >= 7.8 && metrics.bloodSugar < 11,
+            text: 'Elevated blood sugar flag that may need clinician review.'
+        },
+        {
+            active: metrics.age > 35,
+            text: 'Advanced maternal age flag: age above 35.'
+        },
+        {
+            active: metrics.bodyTemp >= 99.5 && metrics.bodyTemp < 100.4,
+            text: 'Mild temperature elevation flag.'
+        },
+        {
+            active: metrics.heartRate >= 100 && metrics.heartRate < 120,
+            text: 'Elevated heart-rate flag.'
+        },
+        {
+            active: Number.isFinite(metrics.bmi)
+                && ((metrics.bmi >= 30 && metrics.bmi < 40) || (metrics.bmi >= 16 && metrics.bmi < 18.5)),
+            text: 'BMI risk flag from the expanded maternal-risk dataset.'
+        },
+        {
+            active: metrics.preexistingDiabetes === 1 && metrics.bloodSugar < 7.8,
+            text: 'Preexisting diabetes flag from the expanded maternal-risk dataset.'
+        },
+        {
+            active: metrics.gestationalDiabetes === 1 && metrics.bloodSugar < 7.8,
+            text: 'Gestational diabetes flag from the expanded maternal-risk dataset.'
+        },
+        {
+            active: metrics.mentalHealth === 1,
+            text: 'Mental-health support flag from the expanded maternal-risk dataset.'
+        }
+    ];
+
+    highFlags.forEach(flag => {
+        if (flag.active) {
+            score += 3;
+            rationales.push(flag.text);
+        }
+    });
+    midFlags.forEach(flag => {
+        if (flag.active) {
+            score += 1;
+            rationales.push(flag.text);
+        }
+    });
+
+    if (highFlags.some(flag => flag.active)) {
+        riskLevel = 'high risk';
+        riskClass = 'high';
+    } else if (midFlags.some(flag => flag.active)) {
+        riskLevel = 'mid risk';
+        riskClass = 'mid';
+    } else {
+        rationales.push('No maternal-risk vital sign or expanded dataset flag was triggered from the submitted values.');
+    }
+
+    return {
+        riskLevel,
+        riskClass,
+        score,
+        rationales,
+        sourceDatasetId: 'maternal-risk-expanded-2026',
+        method: 'Rule-based threshold screen plus nearest MongoDB expanded maternal risk records. Educational only; not a diagnosis.'
+    };
+}
+
+function clampNumber(value, min, max) {
+    return Math.min(max, Math.max(min, Number(value) || 0));
+}
+
+function normalizeRiskLevelLabel(value = '') {
+    const label = String(value || '').toLowerCase();
+    if (label.includes('high')) return 'high risk';
+    if (label.includes('mid') || label.includes('medium')) return 'mid risk';
+    return 'low risk';
+}
+
+function probabilityKeyForRiskLevel(value = '') {
+    const normalized = normalizeRiskLevelLabel(value);
+    if (normalized === 'high risk') return 'highRisk';
+    if (normalized === 'mid risk') return 'midRisk';
+    return 'lowRisk';
+}
+
+function riskClassForRiskLevel(value = '') {
+    const normalized = normalizeRiskLevelLabel(value);
+    if (normalized === 'high risk') return 'high';
+    if (normalized === 'mid risk') return 'mid';
+    return 'low';
+}
+
+function riskLabelFromDistribution(distribution = {}) {
+    const entries = [
+        ['high risk', Number(distribution.highRisk) || 0],
+        ['mid risk', Number(distribution.midRisk) || 0],
+        ['low risk', Number(distribution.lowRisk) || 0]
+    ];
+    entries.sort((a, b) => b[1] - a[1]);
+    return entries[0][0];
+}
+
+function normalizeRiskDistribution(raw = {}) {
+    const total = Math.max(
+        (Number(raw.highRisk) || 0) + (Number(raw.midRisk) || 0) + (Number(raw.lowRisk) || 0),
+        0.001
+    );
+    const highRisk = Number(((Number(raw.highRisk) || 0) / total).toFixed(4));
+    const midRisk = Number(((Number(raw.midRisk) || 0) / total).toFixed(4));
+    const lowRisk = Number(Math.max(0, 1 - highRisk - midRisk).toFixed(4));
+    return { highRisk, midRisk, lowRisk };
+}
+
+function buildSimilarRecordBias(similarRecords = []) {
+    const weighted = similarRecords.reduce((acc, record, index) => {
+        const key = probabilityKeyForRiskLevel(record.riskLevel);
+        const distance = Number(record.distance);
+        const distanceWeight = Number.isFinite(distance) ? clampNumber(1 / (1 + distance), 0.05, 1) : 0.2;
+        const rankWeight = 1 / (index + 1);
+        acc[key] += distanceWeight * rankWeight;
+        return acc;
+    }, { highRisk: 0, midRisk: 0, lowRisk: 0 });
+
+    const total = weighted.highRisk + weighted.midRisk + weighted.lowRisk;
+    return total > 0 ? normalizeRiskDistribution(weighted) : null;
+}
+
+function blendRiskDistributions(primary = {}, secondary = null, primaryWeight = 0.78) {
+    if (!secondary) return normalizeRiskDistribution(primary);
+    const secondaryWeight = 1 - primaryWeight;
+    return normalizeRiskDistribution({
+        highRisk: (primary.highRisk * primaryWeight) + (secondary.highRisk * secondaryWeight),
+        midRisk: (primary.midRisk * primaryWeight) + (secondary.midRisk * secondaryWeight),
+        lowRisk: (primary.lowRisk * primaryWeight) + (secondary.lowRisk * secondaryWeight)
+    });
+}
+
+function buildRiskProbabilityOutput(risk = {}, metrics = {}, similarRecords = []) {
+    const score = clampNumber(risk.score, 0, 18);
+    const nearestDistance = Number(similarRecords[0]?.distance);
+    const datasetCloseness = Number.isFinite(nearestDistance)
+        ? clampNumber(1 - (nearestDistance / 12), 0, 1)
+        : 0.35;
+    let baseDistribution;
+
+    if (risk.riskClass === 'high') {
+        baseDistribution = {
+            highRisk: 0.68 + (score * 0.035) + (datasetCloseness * 0.08),
+            midRisk: 0.23,
+            lowRisk: 0.09
+        };
+    } else if (risk.riskClass === 'mid') {
+        baseDistribution = {
+            highRisk: 0.16 + (score * 0.025),
+            midRisk: 0.58 + (score * 0.025) + (datasetCloseness * 0.06),
+            lowRisk: 0.24
+        };
+    } else {
+        baseDistribution = {
+            highRisk: 0.07 + (score * 0.015),
+            midRisk: 0.18 + (score * 0.02),
+            lowRisk: 0.69 + (datasetCloseness * 0.08)
+        };
+    }
+
+    const rawDistribution = blendRiskDistributions(baseDistribution, buildSimilarRecordBias(similarRecords));
+    const prediction = normalizeRiskLevelLabel(risk.riskLevel);
+    const confidenceScore = rawDistribution[probabilityKeyForRiskLevel(prediction)];
+
+    return {
+        prediction,
+        confidenceScore,
+        rawDistribution,
+        probabilitySource: 'mongodb-expanded-maternal-risk-calibration',
+        trainingSignal: {
+            sourceCollection: 'maternal_health_risk_records',
+            savedOutputCollection: 'pregnancy_vital_assessments',
+            features: [
+                'age',
+                'systolicBP',
+                'diastolicBP',
+                'bloodSugar',
+                'bodyTemp',
+                'heartRate',
+                'bmi',
+                'previousComplications',
+                'preexistingDiabetes',
+                'gestationalDiabetes',
+                'mentalHealth'
+            ],
+            nearestRecordsUsed: similarRecords.length,
+            nearestDistance: Number.isFinite(nearestDistance) ? nearestDistance : null,
+            datasetCloseness: Number(datasetCloseness.toFixed(4)),
+            method: 'Dataset-calibrated probability screen based on expanded maternal-risk thresholds and nearest MongoDB records.'
+        }
+    };
+}
+
+function normalizeTensorflowPrediction(input = null) {
+    if (!input || typeof input !== 'object') return null;
+    const raw = input.rawDistribution || input.distribution || input.probabilities || {};
+    const rawDistribution = normalizeRiskDistribution({
+        highRisk: raw.highRisk ?? raw.high ?? input.highRisk,
+        midRisk: raw.midRisk ?? raw.mid ?? raw.medium ?? input.midRisk,
+        lowRisk: raw.lowRisk ?? raw.low ?? input.lowRisk
+    });
+    const prediction = normalizeRiskLevelLabel(input.prediction || input.riskLevel || riskLabelFromDistribution(rawDistribution));
+    const confidenceScore = Number.isFinite(Number(input.confidenceScore))
+        ? clampNumber(Number(input.confidenceScore), 0, 1)
+        : rawDistribution[probabilityKeyForRiskLevel(prediction)];
+
+    return {
+        model: input.model || 'tensorflowjs-maternal-risk-classifier',
+        runtime: input.runtime || 'browser',
+        sourceCollection: input.sourceCollection || 'maternal_health_risk_records',
+        trainedRecords: Number.isFinite(Number(input.trainedRecords)) ? Number(input.trainedRecords) : null,
+        epochs: Number.isFinite(Number(input.epochs)) ? Number(input.epochs) : null,
+        accuracy: Number.isFinite(Number(input.accuracy)) ? Number(input.accuracy) : null,
+        prediction,
+        riskLevel: prediction,
+        riskClass: riskClassForRiskLevel(prediction),
+        confidenceScore,
+        rawDistribution
+    };
+}
+
+const SYMPTOM_RISK_RULES = [
+    {
+        key: 'bleeding',
+        label: 'bleeding',
+        riskClass: 'high',
+        score: 96,
+        pattern: /\b(bleeding|vaginal bleeding|heavy bleeding|blood clots?|spotting with pain)\b/i,
+        reason: 'Bleeding during pregnancy can be a danger sign and should be checked urgently.',
+        suggestions: [
+            'Go to a hospital, maternity unit, emergency department, or call emergency services now if bleeding is heavy, painful, or ongoing.',
+            'Use a pad to track the amount and color of bleeding; do not insert anything into the vagina.',
+            'Write down pregnancy week, when it started, pain level, and any dizziness or fainting.'
+        ]
+    },
+    {
+        key: 'fluid leaking',
+        label: 'fluid leaking',
+        riskClass: 'high',
+        score: 94,
+        pattern: /\b(fluid leaking|leaking fluid|water broke|waters broke|gush of fluid|amniotic fluid)\b/i,
+        reason: 'Fluid leaking may mean the membranes have ruptured and needs urgent maternity assessment.',
+        suggestions: [
+            'Contact your maternity unit or go to urgent care now, especially before 37 weeks or with fever, pain, bleeding, or reduced movement.',
+            'Note the color, smell, amount, time it started, and whether contractions are happening.',
+            'Avoid intercourse or putting anything in the vagina until assessed.'
+        ]
+    },
+    {
+        key: 'breathing or chest pain',
+        label: 'chest pain or trouble breathing',
+        riskClass: 'high',
+        score: 95,
+        pattern: /\b(chest pain|trouble breathing|difficulty breathing|shortness of breath|cannot breathe|can't breathe|breathless)\b/i,
+        reason: 'Chest pain or trouble breathing can be an emergency warning sign in pregnancy.',
+        suggestions: [
+            'Seek emergency care now or call emergency services if breathing is difficult, chest pain is present, or symptoms are sudden.',
+            'Sit upright, avoid exertion, and do not drive yourself if you feel faint or short of breath.',
+            'Tell care staff your pregnancy week and any blood pressure, pulse, swelling, or pain symptoms.'
+        ]
+    },
+    {
+        key: 'severe headache or vision changes',
+        label: 'severe headache or vision changes',
+        riskClass: 'high',
+        score: 93,
+        pattern: /\b(severe headache|worst headache|vision changes?|blurred vision|seeing spots|flashing lights)\b/i,
+        reason: 'Severe headache or vision changes can be warning signs of high blood pressure or preeclampsia.',
+        suggestions: [
+            'Contact your maternity unit, clinician, or emergency care now, especially after 20 weeks.',
+            'Check blood pressure if possible, but do not delay seeking help if symptoms are severe.',
+            'Report swelling of face or hands, chest pain, belly pain, nausea, or reduced baby movement.'
+        ]
+    },
+    {
+        key: 'reduced baby movement',
+        label: 'reduced baby movement',
+        riskClass: 'high',
+        score: 92,
+        pattern: /\b(reduced baby movement|less movement|no movement|baby not moving|decreased fetal movement|kicks? stopped)\b/i,
+        reason: 'Reduced baby movement needs same-day maternity assessment.',
+        suggestions: [
+            'Contact your maternity unit or clinician now if baby movement is reduced, absent, or clearly different.',
+            'Do not wait until tomorrow and do not rely on home devices to reassure yourself.',
+            'Note the last normal movement pattern and pregnancy week.'
+        ]
+    },
+    {
+        key: 'fainting or seizure',
+        label: 'fainting, seizure, or loss of consciousness',
+        riskClass: 'high',
+        score: 97,
+        pattern: /\b(fainting|fainted|passed out|loss of consciousness|seizure|convulsion|convulsions)\b/i,
+        reason: 'Fainting, seizure, or loss of consciousness is an urgent warning sign.',
+        suggestions: [
+            'Call emergency services or go to emergency care now.',
+            'Do not drive yourself; ask someone to stay with you.',
+            'Tell care staff about pregnancy week, medicines, blood pressure, diabetes, fever, or bleeding.'
+        ]
+    },
+    {
+        key: 'severe belly pain',
+        label: 'severe belly pain',
+        riskClass: 'high',
+        score: 90,
+        pattern: /\b(severe (belly|abdominal|stomach) pain|sharp belly pain|severe cramps?|severe pelvic pain)\b/i,
+        reason: 'Severe belly or pelvic pain in pregnancy needs urgent assessment.',
+        suggestions: [
+            'Seek urgent maternity or emergency care now if pain is severe, persistent, one-sided, or with bleeding, fever, fainting, or contractions.',
+            'Rest on your side while arranging care and avoid heavy activity.',
+            'Record when pain started, where it is, and whether it comes in waves.'
+        ]
+    },
+    {
+        key: 'self harm',
+        label: 'self-harm thoughts',
+        riskClass: 'high',
+        score: 98,
+        pattern: /\b(self harm|hurt myself|kill myself|suicidal|not safe with myself|want to die)\b/i,
+        reason: 'Thoughts of self-harm need immediate support.',
+        suggestions: [
+            'Call emergency services or a crisis line now, or go to the nearest emergency department.',
+            'Stay with a trusted person and remove anything you could use to harm yourself.',
+            'Tell your clinician or maternity team that you are pregnant and need urgent mental health support.'
+        ]
+    },
+    {
+        key: 'headache',
+        label: 'headache',
+        riskClass: 'mid',
+        score: 68,
+        pattern: /\b(headache|head ache)\b/i,
+        reason: 'Headache can be common, but in pregnancy it needs follow-up if new, persistent, severe, or linked with blood pressure symptoms.',
+        suggestions: [
+            'Rest, drink water, and check blood pressure if you can.',
+            'Contact your clinician today if headache is new, persistent, worsening, or after 20 weeks.',
+            'Seek urgent care now if headache is severe or with vision changes, swelling, chest pain, or belly pain.'
+        ]
+    },
+    {
+        key: 'weakness or exhaustion',
+        label: 'weakness or exhaustion',
+        riskClass: 'mid',
+        score: 64,
+        pattern: /\b(too weak|very weak|weak|exhausted|too tired|extreme fatigue|fatigue|dizzy|dizziness|dizy|deezy|lightheaded|light headed)\b/i,
+        reason: 'Weakness, exhaustion, or dizziness may come from dehydration, anemia, infection, blood pressure, or blood sugar changes.',
+        suggestions: [
+            'Rest, drink fluids, and eat a small protein or iron-rich snack if you can.',
+            'Contact your clinician if weakness is strong, new, persistent, or linked with dizziness, fever, vomiting, bleeding, or fainting.',
+            'Seek urgent care now if you faint, cannot stand, have chest pain, trouble breathing, or heavy bleeding.'
+        ]
+    },
+    {
+        key: 'vomiting or dehydration',
+        label: 'vomiting or dehydration',
+        riskClass: 'mid',
+        score: 70,
+        pattern: /\b(vomiting|vomit|cannot keep fluids|can't keep fluids|dehydrated|dehydration|not drinking|cannot drink|can't drink)\b/i,
+        reason: 'Vomiting or dehydration can become risky if fluids cannot stay down.',
+        suggestions: [
+            'Sip fluids often and try small bland foods if tolerated.',
+            'Call your clinician if vomiting continues, urine is very dark, or you cannot drink for several hours.',
+            'Seek urgent care if you cannot keep fluids down, feel confused, faint, feverish, or severely weak.'
+        ]
+    },
+    {
+        key: 'high fever',
+        label: 'high fever',
+        riskClass: 'high',
+        score: 88,
+        pattern: /\b(high fever|very high fever|fever is high|temperature (?:is )?(?:high|very high)|fever (?:of|over|above) ?(?:38|39|40|100\.4|101|102|103|104))\b/i,
+        reason: 'High fever during pregnancy can signal infection or another problem that needs urgent clinical advice.',
+        suggestions: [
+            'Contact your clinician, maternity unit, or urgent care now, especially if fever is persistent, high, or you feel very unwell.',
+            'Check and write down your temperature, drink fluids if you can, and note any pain, cough, burning urination, weakness, or reduced baby movement.',
+            'Seek emergency care now if fever comes with confusion, fainting, shortness of breath, severe pain, stiff neck, bleeding, or reduced baby movement.'
+        ]
+    },
+    {
+        key: 'fever or chills',
+        label: 'fever or chills',
+        riskClass: 'high',
+        score: 82,
+        pattern: /\b(fever|high temperature|chills|too cold|very cold|shivering)\b/i,
+        reason: 'Fever, chills, or feeling very cold during pregnancy can signal infection or another problem that needs urgent clinical advice.',
+        suggestions: [
+            'Contact your clinician, maternity unit, or urgent care today for fever or chills, especially if symptoms are persistent or you feel very unwell.',
+            'Check and write down your temperature if possible, drink fluids if you can, and note any pain, cough, burning urination, weakness, or reduced baby movement.',
+            'Seek emergency care now if fever comes with confusion, fainting, shortness of breath, severe pain, bleeding, or reduced baby movement.'
+        ]
+    },
+    {
+        key: 'swelling',
+        label: 'swelling',
+        riskClass: 'mid',
+        score: 66,
+        pattern: /\b(swelling|swollen|puffy face|face swelling|hands swelling|severe swelling)\b/i,
+        reason: 'Swelling can be common, but sudden or severe swelling can be a warning sign in pregnancy.',
+        suggestions: [
+            'Rest with feet raised and drink water if swelling is mild in feet or ankles.',
+            'Contact your clinician if swelling is sudden, severe, in the face or hands, or linked with headache or vision changes.',
+            'Seek urgent care now if swelling comes with severe headache, vision changes, chest pain, or trouble breathing.'
+        ]
+    },
+    {
+        key: 'contractions or cramps',
+        label: 'contractions or cramps',
+        riskClass: 'mid',
+        score: 63,
+        pattern: /\b(contractions?|cramps?|cramping|pelvic pressure|back pain with pressure)\b/i,
+        reason: 'Contractions, cramps, or pelvic pressure need follow-up if regular, painful, early, or with bleeding/fluid leaking.',
+        suggestions: [
+            'Rest, drink water, and time the cramps or contractions.',
+            'Contact your clinician if they become regular, painful, or happen before 37 weeks.',
+            'Seek urgent care if there is bleeding, fluid leaking, fever, severe pain, or reduced baby movement.'
+        ]
+    },
+    {
+        key: 'burning urination',
+        label: 'burning urination',
+        riskClass: 'mid',
+        score: 58,
+        pattern: /\b(burning urination|pain when urinating|painful urination|uti|urine pain|pee burns)\b/i,
+        reason: 'Urinary symptoms in pregnancy should be checked because infections may need treatment.',
+        suggestions: [
+            'Drink water and contact your clinician for urine testing advice.',
+            'Do not self-treat with leftover medicine.',
+            'Seek urgent care if fever, back pain, chills, vomiting, or severe belly pain appears.'
+        ]
+    },
+    {
+        key: 'weight gain',
+        label: 'weight gain',
+        riskClass: 'low',
+        score: 34,
+        pattern: /\b(gaining weight|weight gain|gained weight|body weight increasing)\b/i,
+        reason: 'Gradual weight gain can be expected in pregnancy, but sudden gain with swelling or headache needs review.',
+        suggestions: [
+            'Track weight weekly rather than many times per day.',
+            'Eat regular balanced meals and continue safe activity if your clinician allows it.',
+            'Contact your clinician if weight gain is sudden or comes with swelling, headache, vision changes, or high blood pressure.'
+        ]
+    },
+    {
+        key: 'nausea',
+        label: 'nausea or morning sickness',
+        riskClass: 'low',
+        score: 38,
+        pattern: /\b(nausea|morning sickness|queasy)\b/i,
+        reason: 'Mild nausea is common in pregnancy, especially early pregnancy.',
+        suggestions: [
+            'Try small frequent meals, bland foods, and small sips of fluid.',
+            'Avoid smells or foods that trigger nausea when possible.',
+            'Contact your clinician if nausea is severe, persistent, or you cannot keep fluids down.'
+        ]
+    },
+    {
+        key: 'heartburn',
+        label: 'heartburn',
+        riskClass: 'low',
+        score: 30,
+        pattern: /\b(heartburn|acid reflux|indigestion)\b/i,
+        reason: 'Heartburn is common in pregnancy and often improves with meal and sleep-position changes.',
+        suggestions: [
+            'Try smaller meals and avoid lying flat soon after eating.',
+            'Raise the upper body for sleep if reflux is worse at night.',
+            'Ask your clinician about safe medicine options if it is frequent or severe.'
+        ]
+    },
+    {
+        key: 'constipation',
+        label: 'constipation',
+        riskClass: 'low',
+        score: 28,
+        pattern: /\b(constipation|constipated|hard stool)\b/i,
+        reason: 'Constipation is common in pregnancy and is usually managed with fluids, fiber, and movement.',
+        suggestions: [
+            'Drink water, include fiber foods, and use gentle movement if allowed.',
+            'Do not start laxatives without checking what is safe in pregnancy.',
+            'Seek care if there is severe pain, vomiting, fever, or bleeding.'
+        ]
+    },
+    {
+        key: 'sleep discomfort',
+        label: 'sleep discomfort',
+        riskClass: 'low',
+        score: 26,
+        pattern: /\b(can't sleep|cannot sleep|sleep problem|insomnia|uncomfortable sleeping|back pain)\b/i,
+        reason: 'Sleep discomfort and back pain can be common as pregnancy changes posture and rest.',
+        suggestions: [
+            'Try side-lying with a pillow between knees and behind the back.',
+            'Use gentle stretching and rest breaks if your clinician says movement is safe.',
+            'Contact your clinician if pain is severe, one-sided, linked with contractions, or with bleeding or fever.'
+        ]
+    }
+];
+
+function symptomDistributionForRisk(riskClass = 'low', score = 30) {
+    const normalizedScore = clampNumber(score / 100, 0, 1);
+    if (riskClass === 'high') {
+        return normalizeRiskDistribution({
+            highRisk: 0.76 + (normalizedScore * 0.2),
+            midRisk: 0.16,
+            lowRisk: 0.04
+        });
+    }
+    if (riskClass === 'mid') {
+        return normalizeRiskDistribution({
+            highRisk: 0.12 + (normalizedScore * 0.16),
+            midRisk: 0.52 + (normalizedScore * 0.24),
+            lowRisk: 0.2
+        });
+    }
+    return normalizeRiskDistribution({
+        highRisk: 0.04 + (normalizedScore * 0.05),
+        midRisk: 0.15 + (normalizedScore * 0.12),
+        lowRisk: 0.7
+    });
+}
+
+function actionLabelForRisk(riskClass = 'low') {
+    if (riskClass === 'high') return 'Go to hospital or urgent maternity care now';
+    if (riskClass === 'mid') return 'Contact your clinician for same-day or prompt advice';
+    return 'Track it and use routine pregnancy self-care';
+}
+
+function extractSymptomMatches(text = '') {
+    const source = String(text || '').toLowerCase();
+    if (!source.trim()) return [];
+
+    const matched = [];
+    for (const rule of SYMPTOM_RISK_RULES) {
+        if (rule.pattern.test(source)) {
+            matched.push(rule);
+        }
+    }
+
+    if (matched.length) {
+        const hasSevereHeadache = matched.some(rule => rule.key === 'severe headache or vision changes');
+        const hasSeverePain = matched.some(rule => rule.key === 'severe belly pain');
+        const hasHighFever = matched.some(rule => rule.key === 'high fever');
+        return matched.filter(rule => {
+            if (hasSevereHeadache && rule.key === 'headache') return false;
+            if (hasSeverePain && rule.key === 'contractions or cramps') return false;
+            if (hasHighFever && rule.key === 'fever or chills') return false;
+            return true;
+        });
+    }
+
+    const cleaned = source
+        .replace(/\b(i am|i'm|im|i feel|i am feeling|feeling|having|have|my|too|very|really)\b/g, ' ')
+        .replace(/[^\w\s-]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    return cleaned
+        ? [{
+            key: 'unknown symptom',
+            label: cleaned.slice(0, 80),
+            riskClass: /\b(severe|heavy|worst|cannot|can't|faint|bleeding|chest|breath)\b/i.test(source) ? 'high' : 'mid',
+            score: /\b(severe|heavy|worst|cannot|can't|faint|bleeding|chest|breath)\b/i.test(source) ? 82 : 52,
+            pattern: null,
+            reason: 'The exact symptom was not in the built-in symptom rules, so MamaSafe rated it conservatively and used MongoDB retrieval for context.',
+            suggestions: [
+                'Track when it started, severity, timing, and anything that makes it better or worse.',
+                'Contact your clinician if it is new, persistent, worsening, or worrying.',
+                'Seek urgent care now if it is severe or linked with bleeding, fluid leaking, fainting, chest pain, trouble breathing, severe belly pain, or reduced baby movement.'
+            ]
+        }]
+        : [];
+}
+
+function textMatchesSymptom(match = {}, symptom = '') {
+    const target = `${match.title || ''} ${match.text || ''} ${match.category || ''} ${match.severity || ''}`.toLowerCase();
+    const words = String(symptom || '')
+        .toLowerCase()
+        .match(/[a-z0-9]+/g) || [];
+    return words.some(word => word.length >= 4 && target.includes(word));
+}
+
+function evidenceForSymptom(matches = [], symptom = '', riskClass = 'low') {
+    const importantCollections = riskClass === 'high'
+        ? new Set(['danger_signs', 'who_document_chunks', 'who_anc_data_elements', 'symptoms'])
+        : new Set(['symptoms', 'who_anc_data_elements', 'who_guidelines', 'faqs', 'articles', 'danger_signs']);
+
+    const ranked = [...(matches || [])]
+        .filter(match => importantCollections.has(match.collection) || textMatchesSymptom(match, symptom))
+        .sort((a, b) => {
+            const aMatch = textMatchesSymptom(a, symptom) ? 1 : 0;
+            const bMatch = textMatchesSymptom(b, symptom) ? 1 : 0;
+            const aDanger = a.collection === 'danger_signs' ? 1 : 0;
+            const bDanger = b.collection === 'danger_signs' ? 1 : 0;
+            return (bMatch + bDanger) - (aMatch + aDanger);
+        })
+        .slice(0, 3);
+
+    return ranked.map(match => ({
+        collection: match.collection,
+        title: match.title,
+        source: match.source || '',
+        severity: match.severity || '',
+        text: shortenDatasetText(match.text || match.content || '', 180)
+    }));
+}
+
+function mergeRiskDistributions(distributions = []) {
+    const usable = distributions.filter(Boolean);
+    if (!usable.length) return symptomDistributionForRisk('low', 0);
+    return normalizeRiskDistribution(usable.reduce((acc, item) => ({
+        highRisk: acc.highRisk + (Number(item.highRisk) || 0),
+        midRisk: acc.midRisk + (Number(item.midRisk) || 0),
+        lowRisk: acc.lowRisk + (Number(item.lowRisk) || 0)
+    }), { highRisk: 0, midRisk: 0, lowRisk: 0 }));
+}
+
+function buildSymptomRiskAnalysis({ symptoms = '', question = '', matches = [] } = {}) {
+    const text = `${symptoms || ''}`.trim();
+    if (!text) {
+        return {
+            symptomsText: '',
+            items: [],
+            overallRiskClass: 'low',
+            overallRiskLevel: 'low risk',
+            confidenceScore: 0,
+            rawDistribution: { highRisk: 0, midRisk: 0, lowRisk: 1 },
+            source: 'no-symptom-entered',
+            accuracyLabel: 'No symptom text entered',
+            adviceSummary: 'Enter symptoms or notes to receive symptom-specific risk guidance.'
+        };
+    }
+
+    const urgentByDataset = detectUrgentQuestion(question, symptoms);
+    const rules = extractSymptomMatches(text);
+    const items = rules.map(rule => {
+        let riskClass = rule.riskClass;
+        let score = rule.score;
+        if (urgentByDataset && riskClass !== 'high' && /\b(bleeding|fluid|chest|breath|vision|faint|severe|movement|headache)\b/i.test(text)) {
+            riskClass = 'high';
+            score = Math.max(score, 86);
+        }
+        const rawDistribution = symptomDistributionForRisk(riskClass, score);
+        const riskLevel = `${riskClass} risk`;
+        const confidenceScore = rawDistribution[probabilityKeyForRiskLevel(riskLevel)];
+        return {
+            symptom: rule.label,
+            key: rule.key,
+            riskClass,
+            riskLevel,
+            score,
+            confidenceScore,
+            rawDistribution,
+            reason: rule.reason,
+            actionLabel: actionLabelForRisk(riskClass),
+            suggestions: rule.suggestions,
+            datasetEvidence: evidenceForSymptom(matches, rule.label, riskClass)
+        };
+    });
+
+    const highest = items.reduce((winner, item) => riskRank(item.riskClass) > riskRank(winner.riskClass) ? item : winner, items[0] || { riskClass: 'low', riskLevel: 'low risk', score: 0 });
+    const rawDistribution = mergeRiskDistributions(items.map(item => item.rawDistribution));
+    const overallRiskLevel = highest.riskLevel || riskLabelFromDistribution(rawDistribution);
+    const confidenceScore = rawDistribution[probabilityKeyForRiskLevel(overallRiskLevel)];
+
+    return {
+        symptomsText: text,
+        model: 'mamasafe-maternal-risk-custom-ai',
+        modelLabel: 'Maternal Risk TensorFlow.js Model',
+        source: matches.length ? 'tensorflowjs-mongodb-symptom-safety-rules' : 'symptom-safety-rules-pending-mongodb-evidence',
+        probabilitySource: matches.length ? 'MongoDB symptom evidence + safety rules' : 'pregnancy symptom safety rules',
+        overallRiskClass: riskClassForRiskLevel(overallRiskLevel),
+        overallRiskLevel,
+        riskClass: riskClassForRiskLevel(overallRiskLevel),
+        riskLevel: overallRiskLevel,
+        prediction: overallRiskLevel,
+        confidenceScore,
+        rawDistribution,
+        accuracy: confidenceScore,
+        accuracyLabel: `${Math.round(confidenceScore * 100)}% symptom risk confidence`,
+        overrideReason: highest.riskClass === 'high'
+            ? `${highest.symptom} matched a pregnancy warning-sign pattern.`
+            : highest.riskClass === 'mid'
+                ? `${highest.symptom} needs follow-up because it can become concerning in pregnancy.`
+                : `${highest.symptom} looks low risk from the entered words, unless it becomes sudden, severe, or linked with danger signs.`,
+        actionLabel: actionLabelForRisk(riskClassForRiskLevel(overallRiskLevel)),
+        adviceSummary: highest.suggestions?.[0] || 'Track the symptom and contact your clinician if it worsens or worries you.',
+        items
+    };
+}
+
+function buildLocalRiskAssessmentFromSymptoms(symptomAnalysis = null) {
+    if (!symptomAnalysis || !symptomAnalysis.items?.length) return null;
+    return {
+        model: getAiModelMetadata().model,
+        provider: 'mamasafe-safety-model',
+        aiGenerated: false,
+        groqUsed: false,
+        riskClass: symptomAnalysis.overallRiskClass,
+        riskLevel: symptomAnalysis.overallRiskLevel,
+        rating: symptomAnalysis.overallRiskLevel,
+        prediction: symptomAnalysis.overallRiskLevel,
+        confidenceScore: symptomAnalysis.confidenceScore,
+        rawDistribution: symptomAnalysis.rawDistribution,
+        urgent: symptomAnalysis.overallRiskClass === 'high',
+        symptomDescription: symptomAnalysis.adviceSummary,
+        whatToDo: [
+            symptomAnalysis.adviceSummary,
+            symptomAnalysis.overallRiskClass === 'high'
+                ? 'Seek urgent maternity care or emergency services now if this symptom is happening.'
+                : symptomAnalysis.overallRiskClass === 'mid'
+                    ? 'Contact your clinician for prompt advice and monitor if symptoms worsen.'
+                    : 'Track the symptom and use routine pregnancy self-care unless it becomes severe, sudden, or worrying.'
+        ].filter(Boolean),
+        reasons: [
+            symptomAnalysis.overrideReason,
+            'MamaSafe rated the entered symptom text using pregnancy safety rules and MongoDB maternal-risk context.'
+        ].filter(Boolean),
+        symptomAnalysis,
+        source: symptomAnalysis.source || 'mongodb-symptom-safety-rules'
+    };
+}
+
+function buildContextualSymptomAnalysis(symptomAnalysis = null, { metrics = {}, risk = {}, probability = {}, symptoms = '', week = '' } = {}) {
+    const items = Array.isArray(symptomAnalysis?.items) ? [...symptomAnalysis.items] : [];
+    const contextItems = [];
+    const addContextItem = ({ symptom, riskClass = 'mid', score = 62, reason, actionLabel, suggestions = [] }) => {
+        const confidenceScore = riskClass === 'high' ? 0.86 : riskClass === 'mid' ? 0.68 : 0.55;
+        const rawDistribution = buildSymptomRiskDistribution(riskClass, confidenceScore);
+        contextItems.push({
+            symptom,
+            riskClass,
+            riskLevel: `${riskClass} risk`,
+            score,
+            confidenceScore,
+            rawDistribution,
+            reason,
+            actionLabel,
+            suggestions: suggestions.length ? suggestions : [actionLabel],
+            datasetEvidence: []
+        });
+    };
+
+    if (metrics.previousComplications === 1) {
+        addContextItem({
+            symptom: 'previous pregnancy complications',
+            riskClass: 'high',
+            score: 88,
+            reason: 'Previous pregnancy complications increase the need for clinician review even when current vital signs look stable.',
+            actionLabel: 'Contact your antenatal clinician for individualized follow-up and keep urgent care available if symptoms worsen.',
+            suggestions: [
+                'Tell the care team about the previous complication history.',
+                'Keep written notes of current symptoms, week, blood pressure, glucose, and movement if applicable.'
+            ]
+        });
+    }
+    if (metrics.gestationalDiabetes === 1) {
+        addContextItem({
+            symptom: 'gestational diabetes history',
+            riskClass: metrics.bloodSugar >= 7.8 ? 'high' : 'mid',
+            score: metrics.bloodSugar >= 7.8 ? 86 : 68,
+            reason: metrics.bloodSugar >= 7.8
+                ? 'Gestational diabetes with elevated blood sugar can raise pregnancy risk and should be reviewed promptly.'
+                : 'Gestational diabetes history needs regular glucose tracking and antenatal follow-up.',
+            actionLabel: metrics.bloodSugar >= 7.8
+                ? 'Contact your clinician soon for glucose guidance and seek urgent care if you feel very unwell.'
+                : 'Keep glucose checks, meals, medications if prescribed, and antenatal appointments on schedule.'
+        });
+    }
+    if (metrics.preexistingDiabetes === 1) {
+        addContextItem({
+            symptom: 'preexisting diabetes history',
+            riskClass: metrics.bloodSugar >= 7.8 ? 'high' : 'mid',
+            score: metrics.bloodSugar >= 7.8 ? 86 : 70,
+            reason: 'Preexisting diabetes can raise pregnancy risk and needs regular clinician-guided monitoring.',
+            actionLabel: 'Follow your diabetes and antenatal care plan, and contact your clinician if glucose readings are high or symptoms change.'
+        });
+    }
+    if (metrics.mentalHealth === 1) {
+        addContextItem({
+            symptom: 'mental health support flag',
+            riskClass: 'mid',
+            score: 64,
+            reason: 'A mental health flag means support planning is part of the pregnancy risk picture, even if physical symptoms are mild.',
+            actionLabel: 'Reach out to your clinician, counsellor, or trusted support person if mood, anxiety, sleep, or safety concerns are present.',
+            suggestions: [
+                'Ask for mental health support at the next antenatal contact.',
+                'Seek urgent help now if there are thoughts of self-harm or feeling unsafe.'
+            ]
+        });
+    }
+    if (metrics.systolicBP >= 140 || metrics.diastolicBP >= 90) {
+        addContextItem({
+            symptom: 'high blood pressure reading',
+            riskClass: 'high',
+            score: 90,
+            reason: 'Blood pressure at or above 140/90 in pregnancy can be a warning pattern and needs clinical review.',
+            actionLabel: 'Contact maternity care urgently, especially if headache, vision changes, swelling, chest pain, or belly pain is present.'
+        });
+    } else if ((metrics.systolicBP >= 130 && metrics.systolicBP < 140) || (metrics.diastolicBP >= 85 && metrics.diastolicBP < 90)) {
+        addContextItem({
+            symptom: 'borderline blood pressure reading',
+            riskClass: 'mid',
+            score: 62,
+            reason: 'Borderline blood pressure should be tracked because pregnancy blood pressure can change quickly.',
+            actionLabel: 'Recheck blood pressure when rested and share repeated high readings with your clinician.'
+        });
+    }
+    if (metrics.bodyTemp >= 100.4) {
+        addContextItem({
+            symptom: 'fever',
+            riskClass: 'high',
+            score: 84,
+            reason: 'Fever in pregnancy can indicate infection and should not be ignored.',
+            actionLabel: 'Contact your clinician or urgent care today, especially if fever is persistent or with pain, weakness, or reduced movement.'
+        });
+    }
+    if (metrics.heartRate >= 120 || metrics.heartRate < 50) {
+        addContextItem({
+            symptom: 'abnormal heart rate',
+            riskClass: 'high',
+            score: 84,
+            reason: 'A very high or unusually low heart rate can be concerning in pregnancy.',
+            actionLabel: 'Seek urgent advice, especially if there is chest pain, trouble breathing, fainting, or severe weakness.'
+        });
+    }
+
+    const combinedItems = [...items, ...contextItems];
+    if (!combinedItems.length && risk?.riskClass && risk.riskClass !== 'low') {
+        addContextItem({
+            symptom: 'maternal risk context',
+            riskClass: risk.riskClass,
+            score: risk.riskClass === 'high' ? 82 : 62,
+            reason: Array.isArray(risk.rationales) && risk.rationales.length
+                ? risk.rationales[0]
+                : 'The maternal vitals and history section raised the overall pregnancy risk.',
+            actionLabel: risk.riskClass === 'high'
+                ? 'Contact maternity care urgently for guidance.'
+                : 'Contact your clinician for follow-up advice and keep tracking symptoms and readings.'
+        });
+    }
+
+    const finalItems = combinedItems.length ? combinedItems : contextItems;
+    if (!finalItems.length) return symptomAnalysis;
+
+    const highest = finalItems.reduce((winner, item) => riskRank(item.riskClass) > riskRank(winner.riskClass) ? item : winner, finalItems[0]);
+    const rawDistribution = mergeRiskDistributions(finalItems.map(item => item.rawDistribution).filter(Boolean));
+    const probabilityRiskClass = riskClassForRiskLevel(probability.prediction || risk.riskLevel || highest.riskLevel);
+    const overallRiskClass = riskRank(probabilityRiskClass) > riskRank(highest.riskClass) ? probabilityRiskClass : highest.riskClass;
+    const overallRiskLevel = `${overallRiskClass} risk`;
+    const confidenceScore = Math.max(
+        Number(probability.confidenceScore) || 0,
+        Number(rawDistribution[probabilityKeyForRiskLevel(overallRiskLevel)]) || 0,
+        Number(highest.confidenceScore) || 0.55
+    );
+
+    return {
+        ...(symptomAnalysis || {}),
+        symptomsText: symptoms || symptomAnalysis?.symptomsText || '',
+        week: week || symptomAnalysis?.week || '',
+        items: finalItems,
+        contextItems,
+        overallRiskClass,
+        overallRiskLevel,
+        riskClass: overallRiskClass,
+        riskLevel: overallRiskLevel,
+        prediction: overallRiskLevel,
+        confidenceScore,
+        rawDistribution: rawDistribution.highRisk || rawDistribution.midRisk || rawDistribution.lowRisk
+            ? rawDistribution
+            : buildSymptomRiskDistribution(overallRiskClass, confidenceScore),
+        accuracy: confidenceScore,
+        accuracyLabel: `${Math.round(confidenceScore * 100)}% full maternal-context confidence`,
+        actionLabel: highest.actionLabel || actionLabelForRisk(overallRiskClass),
+        adviceSummary: highest.reason || symptomAnalysis?.adviceSummary || 'MamaSafe reviewed the entered symptom text together with maternal vitals and history.',
+        overrideReason: highest.reason || symptomAnalysis?.overrideReason || '',
+        source: 'full-maternal-context+risk-symptom-analysis',
+        probabilitySource: 'symptoms + vitals + pregnancy history + TensorFlow/MongoDB risk context'
+    };
+}
+
+function getSymptomRiskOverride(symptoms = '', question = '', symptomAnalysis = null) {
+    const text = `${symptoms || ''} ${question || ''}`.toLowerCase();
+    const symptomText = String(symptoms || '').toLowerCase();
+    if (!text.trim()) return null;
+
+    const analysis = symptomAnalysis || buildSymptomRiskAnalysis({ symptoms, question });
+    if (!analysis.items?.length || analysis.overallRiskClass === 'low') {
+        return null;
+    }
+
+    return {
+        riskClass: analysis.overallRiskClass,
+        riskLevel: analysis.overallRiskLevel,
+        reason: analysis.overrideReason || 'Pregnancy symptom analysis changed the displayed risk level.',
+        rawDistribution: analysis.rawDistribution,
+        confidenceScore: analysis.confidenceScore,
+        symptomAnalysis: analysis
+    };
+}
+
+function riskRank(riskClass = 'low') {
+    const normalized = String(riskClass || '').toLowerCase();
+    if (normalized.includes('high')) return 3;
+    if (normalized.includes('mid') || normalized.includes('medium')) return 2;
+    return 1;
+}
+
+function applySymptomRiskOverride(baseRisk = {}, symptoms = '', question = '', symptomAnalysis = null) {
+    const override = getSymptomRiskOverride(symptoms, question, symptomAnalysis);
+    if (!override || riskRank(baseRisk.riskClass) >= riskRank(override.riskClass)) {
+        return { risk: baseRisk, override: null };
+    }
+
+    return {
+        override,
+        risk: {
+            ...baseRisk,
+            riskLevel: override.riskLevel,
+            riskClass: override.riskClass,
+            score: Math.max(Number(baseRisk.score) || 0, override.riskClass === 'high' ? 9 : 5),
+            rationales: [
+                override.reason,
+                ...(baseRisk.rationales || [])
+            ],
+            method: `${baseRisk.method || 'Maternal risk screen'} Symptom-aware transformer safety override applied.`
+        }
+    };
+}
+
+function applySymptomOverrideToProbability(probability = {}, override = null) {
+    if (!override) return probability;
+    const overrideDistribution = override.rawDistribution || (override.riskClass === 'high'
+        ? { highRisk: 0.82, midRisk: 0.13, lowRisk: 0.05 }
+        : { highRisk: 0.18, midRisk: 0.64, lowRisk: 0.18 });
+
+    return {
+        ...probability,
+        prediction: override.riskLevel,
+        confidenceScore: override.confidenceScore ?? overrideDistribution[probabilityKeyForRiskLevel(override.riskLevel)],
+        rawDistribution: overrideDistribution,
+        probabilitySource: `${probability.probabilitySource || 'risk-model'}+symptom-risk-override`,
+        trainingSignal: {
+            ...(probability.trainingSignal || {}),
+            symptomRiskOverride: override
+        }
+    };
+}
+
+function buildTensorflowProbabilityOutput(tfjsPrediction = {}, similarRecords = []) {
+    const runtime = tfjsPrediction.runtime || 'browser';
+    const browserRuntime = runtime === 'browser';
+    return {
+        prediction: tfjsPrediction.prediction,
+        confidenceScore: tfjsPrediction.confidenceScore,
+        rawDistribution: tfjsPrediction.rawDistribution,
+        probabilitySource: browserRuntime
+            ? 'tensorflowjs-browser-trained-from-mongodb'
+            : 'tensorflowjs-backend-saved-model',
+        trainingSignal: {
+            sourceCollection: tfjsPrediction.sourceCollection || 'maternal_health_risk_records',
+            savedOutputCollection: 'pregnancy_vital_assessments',
+            model: tfjsPrediction.model || 'tensorflowjs-maternal-risk-classifier',
+            brain: 'TensorFlow.js',
+            runtime,
+            backend: tfjsPrediction.backend || '',
+            features: MATERNAL_RISK_FEATURES,
+            trainedRecords: tfjsPrediction.trainedRecords,
+            epochs: tfjsPrediction.epochs,
+            accuracy: tfjsPrediction.accuracy,
+            nearestRecordsUsed: similarRecords.length,
+            trainedAt: tfjsPrediction.trainedAt || '',
+            method: browserRuntime
+                ? 'TensorFlow.js classifier trained in the browser from MongoDB maternal_health_risk_records.'
+                : 'Saved backend TensorFlow.js model trained from MongoDB maternal_health_risk_records.'
+        }
+    };
+}
+
+function maternalRiskDistance(metrics = {}, record = {}) {
+    const values = [
+        Math.abs((record.age || 0) - metrics.age) / 10,
+        Math.abs((record.systolicBP || 0) - metrics.systolicBP) / 20,
+        Math.abs((record.diastolicBP || 0) - metrics.diastolicBP) / 15,
+        Math.abs((record.bloodSugar || 0) - metrics.bloodSugar) / 3,
+        Math.abs((record.bodyTemp || 0) - metrics.bodyTemp),
+        Math.abs((record.heartRate || 0) - metrics.heartRate) / 20
+    ];
+
+    if (Number.isFinite(metrics.bmi) && Number.isFinite(record.bmi)) {
+        values.push(Math.abs(record.bmi - metrics.bmi) / 8);
+    }
+
+    ['previousComplications', 'preexistingDiabetes', 'gestationalDiabetes', 'mentalHealth'].forEach(field => {
+        if (metrics[field] !== null && metrics[field] !== undefined && record[field] !== null && record[field] !== undefined) {
+            values.push(Number(record[field]) === Number(metrics[field]) ? 0 : 1.15);
+        }
+    });
+
+    return values.reduce((sum, value) => sum + value, 0);
+}
+
+function formatMaternalRiskRecord(record = {}, metrics = {}) {
+    const distance = maternalRiskDistance(metrics, record);
+    return {
+        id: record.recordId || (record._id ? String(record._id) : ''),
+        title: record.title || 'Maternal health risk sample',
+        summary: record.summary || '',
+        riskLevel: record.riskLevel || '',
+        distance: Number(distance.toFixed(2)),
+        measurements: {
+            age: record.age,
+            systolicBP: record.systolicBP,
+            diastolicBP: record.diastolicBP,
+            bloodSugar: record.bloodSugar,
+            bodyTemp: record.bodyTemp,
+            heartRate: record.heartRate,
+            bmi: record.bmi,
+            previousComplications: record.previousComplications,
+            preexistingDiabetes: record.preexistingDiabetes,
+            gestationalDiabetes: record.gestationalDiabetes,
+            mentalHealth: record.mentalHealth
+        },
+        source: record.source || 'MongoDB:maternal_health_risk_records',
+        sourceOrganization: record.sourceOrganization || 'User-provided pregnancy risk dataset'
+    };
+}
+
+async function findSimilarMaternalRiskRecords(db, metrics = {}, riskLevel = 'low risk') {
+    await ensurePregnancyKnowledgeBase(db);
+    const collection = db.collection('maternal_health_risk_records');
+    let docs = await collection
+        .find({ riskLevel })
+        .limit(180)
+        .toArray();
+
+    if (!docs.length) {
+        docs = await collection.find({}).limit(220).toArray();
+    }
+
+    return docs
+        .map(record => ({ record, distance: maternalRiskDistance(metrics, record) }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 5)
+        .map(entry => formatMaternalRiskRecord(entry.record, metrics));
+}
+
+function getGuidelineMatchesForEvaluation(matches = []) {
+    const guidelineCollections = new Set([
+        'danger_signs',
+        'symptoms',
+        'faqs',
+        'articles',
+        'who_guidelines',
+        'who_document_chunks',
+        'who_anc_data_elements',
+        'pregnancy_source_datasets'
+    ]);
+
+    return matches
+        .filter(match => guidelineCollections.has(match.collection))
+        .slice(0, 8)
+        .map(match => ({
+            id: match.id,
+            collection: match.collection,
+            title: match.title,
+            text: shortenDatasetText(match.text, 420),
+            category: match.category,
+            severity: match.severity,
+            dataset: match.dataset,
+            sourceOrganization: match.sourceOrganization,
+            pageStart: match.pageStart,
+            source: match.source
+        }));
+}
+
+function buildAssessmentKey(user = {}, metrics = {}, symptoms = '', week = '') {
+    const userId = user.id || user.userId || user.email || 'guest-user';
+    const day = new Date().toISOString().slice(0, 10);
+    const raw = [
+        userId,
+        day,
+        week || '',
+        metrics.age,
+        metrics.systolicBP,
+        metrics.diastolicBP,
+        metrics.bloodSugar,
+        metrics.bodyTemp,
+        metrics.heartRate,
+        metrics.bmi ?? '',
+        metrics.previousComplications ?? '',
+        metrics.preexistingDiabetes ?? '',
+        metrics.gestationalDiabetes ?? '',
+        metrics.mentalHealth ?? '',
+        String(symptoms || '').trim().toLowerCase()
+    ].join('|');
+    return crypto.createHash('sha1').update(raw).digest('hex').slice(0, 20);
+}
+
+async function savePregnancyVitalAssessment(db, { user = {}, metrics, symptoms = '', week = '', risk, probability = {}, similarRecords = [], guidelineMatches = [], symptomAnalysis = null }) {
+    const collection = db.collection('pregnancy_vital_assessments');
+    const now = new Date();
+    const assessmentKey = buildAssessmentKey(user, metrics, symptoms, week);
+    const userId = user.id || user.userId || user.email || 'guest-user';
+    const summary = [
+        `Risk level ${risk.riskLevel}`,
+        `BP ${metrics.systolicBP}/${metrics.diastolicBP}`,
+        `blood sugar ${metrics.bloodSugar}`,
+        `temperature ${metrics.bodyTemp}`,
+        `heart rate ${metrics.heartRate}`,
+        Number.isFinite(metrics.bmi) ? `BMI ${metrics.bmi}` : '',
+        metrics.previousComplications !== null ? `previous complications ${metrics.previousComplications ? 'yes' : 'no'}` : '',
+        metrics.preexistingDiabetes !== null ? `preexisting diabetes ${metrics.preexistingDiabetes ? 'yes' : 'no'}` : '',
+        metrics.gestationalDiabetes !== null ? `gestational diabetes ${metrics.gestationalDiabetes ? 'yes' : 'no'}` : '',
+        metrics.mentalHealth !== null ? `mental health flag ${metrics.mentalHealth ? 'yes' : 'no'}` : ''
+    ].filter(Boolean).join('; ');
+    const doc = {
+        assessmentKey,
+        userId,
+        source: 'pregnancy-clinical-intelligence',
+        week: week || null,
+        symptoms: symptoms || '',
+        metrics,
+        riskLevel: risk.riskLevel,
+        riskClass: risk.riskClass,
+        score: risk.score,
+        rationales: risk.rationales,
+        prediction: probability.prediction || risk.riskLevel,
+        confidenceScore: probability.confidenceScore ?? null,
+        rawDistribution: probability.rawDistribution || null,
+        probabilitySource: probability.probabilitySource || '',
+        trainingSignal: probability.trainingSignal || null,
+        symptomAnalysis,
+        datasetUse: MATERNAL_RISK_TENSORFLOW_DATASET_USE,
+        summary,
+        similarRecordIds: similarRecords.map(record => record.id).filter(Boolean),
+        guidelineSourceIds: guidelineMatches.map(match => match.id || match.title).filter(Boolean).slice(0, 12),
+        updatedAt: now
+    };
+
+    const existing = await collection.findOne({ assessmentKey });
+    if (existing) {
+        await collection.updateOne({ assessmentKey }, { $set: doc });
+        return {
+            id: existing._id ? String(existing._id) : assessmentKey,
+            assessmentKey,
+            inserted: false,
+            collection: 'pregnancy_vital_assessments'
+        };
+    }
+
+    const result = await collection.insertOne({
+        ...doc,
+        createdAt: now
+    });
+    return {
+        id: result.insertedId ? String(result.insertedId) : assessmentKey,
+        assessmentKey,
+        inserted: true,
+        collection: 'pregnancy_vital_assessments'
+    };
+}
+
+async function evaluatePregnancyDecisionSupport(db, { user = {}, week = '', symptoms = '', tfjsPrediction = null, ...input } = {}) {
+    const metrics = normalizeVitalsInput(input);
+    const ruleRisk = calculateMaternalRisk(metrics);
+    const tensorflowPrediction = normalizeTensorflowPrediction(tfjsPrediction);
+    const modelRisk = tensorflowPrediction
+        ? {
+            ...ruleRisk,
+            riskLevel: tensorflowPrediction.riskLevel,
+            riskClass: tensorflowPrediction.riskClass,
+            rationales: [
+                `TensorFlow.js model predicted ${tensorflowPrediction.riskLevel} with ${Math.round(tensorflowPrediction.confidenceScore * 100)}% confidence from MongoDB training records.`,
+                ...ruleRisk.rationales
+            ],
+            method: 'Saved TensorFlow.js maternal-risk model trained from MongoDB maternal-health-risk records, with backend rule checks retained for safety context.'
+        }
+        : ruleRisk;
+    const symptomOverrideQuestion = [
+        `Risk level ${modelRisk.riskLevel}.`,
+        `Blood pressure ${metrics.systolicBP}/${metrics.diastolicBP}.`,
+        `Blood sugar ${metrics.bloodSugar}.`
+    ].join(' ');
+    const preliminarySymptomAnalysis = buildSymptomRiskAnalysis({
+        symptoms,
+        question: symptomOverrideQuestion
+    });
+    const symptomRisk = applySymptomRiskOverride(modelRisk, symptoms, symptomOverrideQuestion, preliminarySymptomAnalysis);
+    const risk = symptomRisk.risk;
+    const similarRecords = await findSimilarMaternalRiskRecords(db, metrics, risk.riskLevel);
+    const baseProbability = tensorflowPrediction
+        ? buildTensorflowProbabilityOutput(tensorflowPrediction, similarRecords)
+        : buildRiskProbabilityOutput(risk, metrics, similarRecords);
+    const probability = applySymptomOverrideToProbability(baseProbability, symptomRisk.override);
+    const guidelineQuestion = [
+        'Pregnancy clinical decision support from CDC WHO ANC datasets.',
+        `Age ${metrics.age}.`,
+        `Blood pressure ${metrics.systolicBP}/${metrics.diastolicBP}.`,
+        `Blood sugar ${metrics.bloodSugar}.`,
+        `Body temperature ${metrics.bodyTemp}.`,
+        `Heart rate ${metrics.heartRate}.`,
+        Number.isFinite(metrics.bmi) ? `BMI ${metrics.bmi}.` : '',
+        metrics.previousComplications !== null ? `Previous complications ${metrics.previousComplications ? 'yes' : 'no'}.` : '',
+        metrics.preexistingDiabetes !== null ? `Preexisting diabetes ${metrics.preexistingDiabetes ? 'yes' : 'no'}.` : '',
+        metrics.gestationalDiabetes !== null ? `Gestational diabetes ${metrics.gestationalDiabetes ? 'yes' : 'no'}.` : '',
+        metrics.mentalHealth !== null ? `Mental health flag ${metrics.mentalHealth ? 'yes' : 'no'}.` : '',
+        `Risk level ${risk.riskLevel}.`,
+        symptoms ? `Symptoms or notes: ${symptoms}.` : '',
+        'Return warning signs, antenatal care guidance, ANC data elements, blood pressure, glucose, fever, referral, and safety guidance.'
+    ].filter(Boolean).join(' ');
+    const matches = await retrievePregnancyContext(db, {
+        question: guidelineQuestion,
+        week,
+        symptoms
+    });
+    const symptomAnalysis = buildContextualSymptomAnalysis(buildSymptomRiskAnalysis({
+        symptoms,
+        question: guidelineQuestion,
+        matches
+    }), {
+        metrics,
+        risk,
+        probability,
+        symptoms,
+        week
+    });
+    const guidelineMatches = getGuidelineMatchesForEvaluation(matches);
+    const safetyOverride = detectUrgentQuestion('', symptoms);
+    const savedAssessment = await savePregnancyVitalAssessment(db, {
+        user,
+        metrics,
+        symptoms,
+        week,
+        risk,
+        probability,
+        similarRecords,
+        guidelineMatches,
+        symptomAnalysis
+    });
+
+    return {
+        model: tensorflowPrediction ? tensorflowPrediction.model || 'mamasafe-maternal-risk-custom-ai' : 'mongodb-hybrid-pregnancy-evaluation',
+        groqUsed: false,
+        tensorflowUsed: Boolean(tensorflowPrediction),
+        tfjsPrediction: tensorflowPrediction,
+        urgent: safetyOverride || risk.riskClass === 'high',
+        safetyOverride,
+        symptomAnalysis,
+        riskAssessment: buildLocalRiskAssessmentFromSymptoms(symptomAnalysis),
+        symptomRiskOverride: symptomRisk.override,
+        metrics,
+        risk,
+        prediction: probability.prediction,
+        confidenceScore: probability.confidenceScore,
+        rawDistribution: probability.rawDistribution,
+        probabilitySource: probability.probabilitySource,
+        trainingSignal: probability.trainingSignal,
+        datasetUse: MATERNAL_RISK_TENSORFLOW_DATASET_USE,
+        similarRecords,
+        matchedGuidelines: guidelineMatches,
+        savedAssessment,
+        retrieval: {
+            collectionsSearched: RAG_COLLECTIONS,
+            collectionsMatched: [...new Set(matches.map(match => match.collection))],
+            matchesReturned: matches.length
+        },
+        sourceStreams: [
+            tensorflowPrediction
+                ? 'Saved TensorFlow.js maternal-risk model trained from MongoDB maternal_health_risk_records'
+                : 'Expanded maternal_health_risk_records for vitals and clinical-flag risk pattern matching',
+            tensorflowPrediction
+                ? 'TensorFlow.js probability distribution displayed by the HTML dashboard'
+                : 'MongoDB-calibrated probability distribution for dashboard analytics',
+            'CDC danger_signs/who_document_chunks for urgent warning signs',
+            'WHO who_guidelines and who_anc_data_elements for antenatal-care context'
+        ],
+        retrievedAt: new Date().toISOString(),
+        disclaimer: 'Educational dataset support only. It cannot diagnose, treat, or rule out pregnancy complications.'
+    };
+}
+
+function getAssessmentDateValue(record = {}) {
+    const value = record.updatedAt || record.createdAt || record.savedAt || record.date;
+    const time = value ? new Date(value).getTime() : 0;
+    return Number.isFinite(time) ? time : 0;
+}
+
+function getAssessmentMetrics(record = {}) {
+    const metrics = record.metrics || record.measurements || record;
+    return {
+        age: toFiniteNumber(metrics.age, null),
+        systolicBP: toFiniteNumber(metrics.systolicBP ?? metrics.systolic, null),
+        diastolicBP: toFiniteNumber(metrics.diastolicBP ?? metrics.diastolic, null),
+        bloodSugar: toFiniteNumber(metrics.bloodSugar ?? metrics.glucose, null),
+        bodyTemp: toFiniteNumber(metrics.bodyTemp ?? metrics.temp, null),
+        heartRate: toFiniteNumber(metrics.heartRate ?? metrics.hr, null),
+        bmi: toFiniteNumber(metrics.bmi, null),
+        previousComplications: toBinaryMetric(metrics.previousComplications, null),
+        preexistingDiabetes: toBinaryMetric(metrics.preexistingDiabetes, null),
+        gestationalDiabetes: toBinaryMetric(metrics.gestationalDiabetes, null),
+        mentalHealth: toBinaryMetric(metrics.mentalHealth, null)
+    };
+}
+
+function buildRiskClassCounts(records = []) {
+    return records.reduce((acc, record) => {
+        const key = probabilityKeyForRiskLevel(record.riskLevel || record.prediction || record.calculatedRiskLevel);
+        if (key === 'highRisk') acc.highRisk += 1;
+        else if (key === 'midRisk') acc.midRisk += 1;
+        else acc.lowRisk += 1;
+        return acc;
+    }, { highRisk: 0, midRisk: 0, lowRisk: 0 });
+}
+
+function buildFeatureRangeSummary(records = []) {
+    return MATERNAL_RISK_FEATURES.reduce((summary, field) => {
+        const values = records
+            .map(record => getAssessmentMetrics(record)[field])
+            .filter(value => Number.isFinite(value));
+        if (!values.length) {
+            summary[field] = { min: null, max: null, avg: null };
+            return summary;
+        }
+        const total = values.reduce((sum, value) => sum + value, 0);
+        summary[field] = {
+            min: Number(Math.min(...values).toFixed(2)),
+            max: Number(Math.max(...values).toFixed(2)),
+            avg: Number((total / values.length).toFixed(2))
+        };
+        return summary;
+    }, {});
+}
+
+function formatRiskTrendRecord(record = {}) {
+    const metrics = getAssessmentMetrics(record);
+    const createdAt = record.createdAt || record.updatedAt || null;
+    return {
+        id: record._id ? String(record._id) : record.assessmentKey || '',
+        assessmentKey: record.assessmentKey || '',
+        createdAt,
+        updatedAt: record.updatedAt || createdAt,
+        label: createdAt ? new Date(createdAt).toISOString().slice(0, 10) : 'assessment',
+        week: record.week || null,
+        symptoms: record.symptoms || '',
+        riskLevel: normalizeRiskLevelLabel(record.riskLevel || record.prediction || record.calculatedRiskLevel),
+        riskClass: record.riskClass || normalizeRiskLevelLabel(record.riskLevel || record.prediction || record.calculatedRiskLevel).split(' ')[0],
+        score: Number(record.score) || 0,
+        confidenceScore: toFiniteNumber(record.confidenceScore, null),
+        rawDistribution: record.rawDistribution || null,
+        metrics
+    };
+}
+
+async function getPregnancyRiskTrends(db, { limit = 15 } = {}) {
+    const safeLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 15, 1), 40);
+    const collection = db.collection('pregnancy_vital_assessments');
+    let records = [];
+
+    try {
+        records = await collection
+            .find({})
+            .sort({ updatedAt: -1, createdAt: -1 })
+            .limit(Math.max(safeLimit, 25))
+            .toArray();
+    } catch {
+        records = await collection.find({}).limit(Math.max(safeLimit, 25)).toArray();
+    }
+
+    const sorted = records
+        .sort((a, b) => getAssessmentDateValue(b) - getAssessmentDateValue(a))
+        .slice(0, safeLimit)
+        .map(formatRiskTrendRecord)
+        .reverse();
+
+    return {
+        collection: 'pregnancy_vital_assessments',
+        count: sorted.length,
+        riskCounts: buildRiskClassCounts(sorted),
+        trends: sorted,
+        refreshedAt: new Date().toISOString()
+    };
+}
+
+function normalizeFeatureForTensorflow(value, range = {}) {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return 0;
+    const min = Number(range.min);
+    const max = Number(range.max);
+    if (!Number.isFinite(min) || !Number.isFinite(max) || min === max) {
+        return clampNumber(numeric, 0, 1);
+    }
+    return Number(clampNumber((numeric - min) / (max - min), 0, 1).toFixed(6));
+}
+
+function buildTensorflowFeatureVector(metrics = {}, featureRanges = {}) {
+    return MATERNAL_RISK_FEATURES.map(feature => normalizeFeatureForTensorflow(metrics[feature], featureRanges[feature]));
+}
+
+function buildTensorflowTrainingSample(record = {}, featureRanges = {}) {
+    const metrics = getAssessmentMetrics(record);
+    const hasRequiredVitals = ['age', 'systolicBP', 'diastolicBP', 'bloodSugar', 'bodyTemp', 'heartRate']
+        .every(feature => Number.isFinite(metrics[feature]));
+    if (!hasRequiredVitals) return null;
+
+    const riskLevel = normalizeRiskLevelLabel(record.riskLevel || record.prediction || record.calculatedRiskLevel);
+    const labelIndex = TENSORFLOW_RISK_LABELS.indexOf(riskLevel);
+    if (labelIndex < 0) return null;
+
+    return {
+        id: record.recordId || (record._id ? String(record._id) : ''),
+        features: buildTensorflowFeatureVector(metrics, featureRanges),
+        labelIndex,
+        label: riskLevel,
+        riskClass: riskClassForRiskLevel(riskLevel)
+    };
+}
+
+async function loadLocalMaternalRiskRecords(limit = 1600) {
+    return [];
+}
+
+async function getPregnancyTensorflowTrainingData(db, { limit = 1600 } = {}) {
+    const safeLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 1600, 100), 5000);
+    let records = [];
+    let totalRecords = 0;
+    let sourceCollection = 'maternal_health_risk_records';
+    let storageSource = 'MongoDB';
+    let fallbackReason = '';
+
+    if (db && typeof db.collection === 'function') {
+        try {
+            await ensurePregnancyKnowledgeBase(db);
+            const collection = db.collection('maternal_health_risk_records');
+            records = await collection.find({}).limit(safeLimit).toArray();
+            totalRecords = await collection.countDocuments({}).catch(() => records.length);
+        } catch (error) {
+            fallbackReason = error.message;
+        }
+    } else {
+        fallbackReason = 'MongoDB is not connected yet.';
+    }
+
+    if (!records.length) {
+        fallbackReason = fallbackReason || 'No MongoDB maternal risk records were available. Local file fallback is disabled.';
+    }
+
+    const featureRanges = buildFeatureRangeSummary(records);
+    const samples = records
+        .map(record => buildTensorflowTrainingSample(record, featureRanges))
+        .filter(Boolean);
+
+    return {
+        model: 'tensorflowjs-maternal-risk-classifier',
+        architecture: {
+            storage: storageSource,
+            brain: 'TensorFlow.js',
+            ui: 'HTML Dashboard'
+        },
+        sourceCollection,
+        outputCollection: 'pregnancy_vital_assessments',
+        totalRecords,
+        recordsSampled: records.length,
+        trainingSamples: samples.length,
+        featureNames: MATERNAL_RISK_FEATURES,
+        labelNames: TENSORFLOW_RISK_LABELS,
+        featureRanges,
+        classCounts: buildRiskClassCounts(records),
+        samples,
+        tensorflowDependency: '@tensorflow/tfjs',
+        runtime: 'browser',
+        fallbackUsed: storageSource !== 'MongoDB',
+        fallbackReason,
+        method: storageSource === 'MongoDB'
+            ? 'MongoDB stores historical maternal-risk rows; the saved TensorFlow.js maternal-risk classifier estimates risk probabilities and the dashboard saves each assessment back to MongoDB.'
+            : 'MongoDB is the required maternal-risk source. Local file fallback is disabled.',
+        retrievedAt: new Date().toISOString()
+    };
+}
+
+async function getPregnancyRiskTrainingSummary(db) {
+    await ensurePregnancyKnowledgeBase(db);
+    const collection = db.collection('maternal_health_risk_records');
+    let records = await collection.find({}).limit(5000).toArray();
+    let totalRecords = records.length;
+    try {
+        totalRecords = await collection.countDocuments({});
+    } catch {
+        totalRecords = records.length;
+    }
+
+    return {
+        model: 'mongodb-calibrated-maternal-risk-screen',
+        sourceCollection: 'maternal_health_risk_records',
+        outputCollection: 'pregnancy_vital_assessments',
+        totalRecords,
+        recordsSampled: records.length,
+        classCounts: buildRiskClassCounts(records),
+        featureRanges: buildFeatureRangeSummary(records),
+        features: MATERNAL_RISK_FEATURES,
+        trainedInBrowser: true,
+        groqUsed: false,
+        tensorflowDependency: '@tensorflow/tfjs',
+        method: 'MongoDB stores expanded maternal-risk records. The pregnancy dashboard can train a TensorFlow.js classifier from these records without duplicating dataset importers.',
+        retrievedAt: new Date().toISOString()
+    };
+}
+
+function buildDatasetOnlyAnswer({ question, week, symptoms, matches, urgent }) {
+    if (urgent) {
+        return buildSafetyOverrideAnswer({ question, week, symptoms, matches });
+    }
+
+    if (!matches.length) {
+        return [
+            'Dataset-only pregnancy answer',
+            '',
+            'I searched the MongoDB pregnancy dataset, but I could not find a close matching record for this question.',
+            '',
+            'What you can do next:',
+            '- Try asking with a specific week, symptom, food, warning sign, or appointment topic.',
+            '- Contact a qualified clinician for personalized pregnancy advice.',
+            '',
+            'This answer uses dataset records only. No Groq AI generation was used.'
+        ].join('\n');
+    }
+
+    const weekMatches = pickMatchesByCollection(matches, 'pregnancy_weeks', 2);
+    const symptomMatches = pickMatchesByCollection(matches, 'symptoms', 3);
+    const dangerMatches = pickMatchesByCollection(matches, 'danger_signs', 3);
+    const faqMatches = pickMatchesByCollection(matches, 'faqs', 2);
+    const nutritionMatches = pickMatchesByCollection(matches, 'nutrition', 2);
+    const maternalRiskMatches = pickMatchesByCollection(matches, 'maternal_health_risk_records', 3);
+    const healthIndicatorMatches = pickMatchesByCollection(matches, 'health_pregnancy_indicators', 3);
+    const whoDataElementMatches = pickMatchesByCollection(matches, 'who_anc_data_elements', 3);
+    const sourceDatasetMatches = pickMatchesByCollection(matches, 'pregnancy_source_datasets', 3);
+    const whoMatches = [
+        ...pickMatchesByCollection(matches, 'who_guidelines', 2),
+        ...pickMatchesByCollection(matches, 'who_document_chunks', 2)
+    ].slice(0, 3);
+    const articleMatches = pickMatchesByCollection(matches, 'articles', 2);
+    const usedCollections = [...new Set(matches.map(match => match.collection))].join(', ');
+
+    const sections = [
+        'Dataset-only pregnancy answer',
+        '',
+        week
+            ? `I searched the MongoDB pregnancy dataset for week ${week}${symptoms ? ` and symptoms/notes: ${symptoms}` : ''}.`
+            : `I searched the MongoDB pregnancy dataset${symptoms ? ` for symptoms/notes: ${symptoms}` : ''}.`,
+        `Records matched: ${matches.length}. Collections used: ${usedCollections}.`,
+        '',
+        'Important: this answer is built only from stored dataset records and sources. No Groq AI wording was used.'
+    ];
+
+    if (faqMatches.length) {
+        sections.push('', 'Direct dataset answers:', formatDatasetBullets(faqMatches, 300));
+    }
+
+    if (weekMatches.length) {
+        sections.push('', 'Week context from pregnancy_weeks:', formatDatasetBullets(weekMatches, 360));
+    }
+
+    if (symptomMatches.length) {
+        sections.push('', 'Symptom guidance from symptoms:', formatDatasetBullets(symptomMatches, 380));
+    }
+
+    if (nutritionMatches.length) {
+        sections.push('', 'Nutrition records:', formatDatasetBullets(nutritionMatches, 300));
+    }
+
+    if (maternalRiskMatches.length) {
+        sections.push('', 'Maternal risk dataset records:', formatDatasetBullets(maternalRiskMatches, 320));
+    }
+
+    if (healthIndicatorMatches.length) {
+        sections.push('', 'Pregnancy and women-health indicators:', formatDatasetBullets(healthIndicatorMatches, 320));
+    }
+
+    if (whoMatches.length) {
+        sections.push('', 'WHO guidance stored in MongoDB:', formatDatasetBullets(whoMatches, 340));
+    }
+
+    if (whoDataElementMatches.length) {
+        sections.push('', 'WHO ANC data dictionary elements:', formatDatasetBullets(whoDataElementMatches, 320));
+    }
+
+    if (articleMatches.length) {
+        sections.push('', 'Related article records:', formatDatasetBullets(articleMatches, 300));
+    }
+
+    if (sourceDatasetMatches.length) {
+        sections.push('', 'Downloaded source datasets involved:', formatDatasetBullets(sourceDatasetMatches, 260));
+    }
+
+    if (dangerMatches.length) {
+        sections.push(
+            '',
+            'Safety records also matched:',
+            formatDatasetBullets(dangerMatches, 320),
+            '',
+            'If any warning sign feels severe, sudden, or worrying, contact your healthcare provider or emergency services.'
+        );
+    }
+
+    sections.push(
+        '',
+        'Next steps:',
+        '- Use the matched records above as educational guidance.',
+        '- Track the symptom, week, timing, and severity.',
+        '- Ask a qualified clinician for advice specific to this pregnancy.',
+        '',
+        'This app is educational support and cannot diagnose or rule out a medical problem.'
+    );
+
+    return sections.filter(Boolean).join('\n');
+}
+
+async function answerPregnancyQuestion(db, { question, week, symptoms }) {
+    if (!question || !String(question).trim()) {
+        throw new Error('Question is required');
+    }
+
+    const matches = await retrievePregnancyContext(db, { question, week, symptoms });
+    const urgent = detectUrgentQuestion(question, symptoms);
+    const safetyOverride = urgent;
+
+    if (safetyOverride) {
+        return {
+            answer: buildSafetyOverrideAnswer({ question, week, symptoms, matches }),
+            matches,
+            urgent: true,
+            safetyOverride: true,
+            model: 'mongodb-safety-override',
+            rag: buildRagTrace({
+                question,
+                week,
+                symptoms,
+                matches,
+                model: 'mongodb-safety-override',
+                groqUsed: false,
+                safetyOverride: true
+            }),
+            retrievedAt: new Date().toISOString()
+        };
+    }
+
+    const context = formatContext(matches);
+    const model = 'mongodb-dataset-answer';
+
+    return {
+        answer: buildDatasetOnlyAnswer({ question, week, symptoms, matches, urgent }),
+        matches,
+        urgent,
+        safetyOverride: false,
+        model,
+        rag: buildRagTrace({
+            question,
+            week,
+            symptoms,
+            matches,
+            context,
+            model,
+            groqUsed: false,
+            safetyOverride: false
+        }),
+        retrievedAt: new Date().toISOString()
+    };
+}
+
+async function getPregnancyWeekGuide(db, week) {
+    const weekNumber = Number.parseInt(week, 10);
+    if (!Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 42) {
+        throw new Error('Week must be between 1 and 42');
+    }
+
+    await ensurePregnancyKnowledgeBase(db);
+
+    let exact = null;
+    try {
+        exact = await db.collection('pregnancy_weeks')
+            .find({ week: weekNumber })
+            .sort({ schemaVersion: -1, seededAt: -1 })
+            .limit(1)
+            .toArray();
+    } catch (error) {
+        console.log('pregnancy_weeks collection not found, using fallback');
+    }
+
+    if (exact && exact[0]) return formatWeekGuideDocument(exact[0]);
+
+    const trimester = weekNumber <= 13 ? 1 : weekNumber <= 27 ? 2 : 3;
+    return {
+        week: weekNumber,
+        title: `Week ${weekNumber} pregnancy guide`,
+        trimester,
+        babyDevelopment: trimester === 1
+            ? 'Core systems are forming. Your clinician can personalize what to expect.'
+            : trimester === 2
+                ? 'This is a period of rapid fetal growth and development.'
+                : 'The baby continues growing and preparing for birth.',
+        motherChanges: trimester === 1
+            ? ['Fatigue', 'Nausea', 'Breast tenderness may happen']
+            : trimester === 2
+                ? ['Body changes', 'Movement awareness', 'Posture needs may increase']
+                : ['Pressure', 'Sleep disruption', 'Swelling', 'Contractions may become more noticeable'],
+        symptomsCommon: trimester === 1 ? ['Nausea', 'Fatigue'] : trimester === 2 ? ['Back discomfort', 'Heartburn'] : ['Pelvic pressure', 'Sleep changes'],
+        tips: ['Keep prenatal appointments', 'Track new or worsening symptoms', 'Ask your clinician about questions specific to your pregnancy'],
+        dangerAlerts: ['Heavy bleeding', 'Fluid leaking', 'Severe headache', 'Reduced baby movement later in pregnancy'],
+        source: 'fallback-week-guide',
+        schemaVersion: SEED_SCHEMA_VERSION
+    };
+}
+
+async function getPregnancyWeekPlanner(db, week) {
+    const weekNumber = Number.parseInt(week, 10);
+    if (!Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 42) {
+        throw new Error('Week must be between 1 and 42');
+    }
+
+    await ensurePregnancyKnowledgeBase(db);
+
+    let weekDocs = [];
+    let nutritionDocs = [];
+    let dangerDocs = [];
+    let symptomDocs = [];
+    let articleDocs = [];
+    let faqDocs = [];
+    let whoDocs = [];
+
+    try {
+        const trimester = trimesterFromWeek(weekNumber);
+        weekDocs = await db.collection('pregnancy_weeks')
+            .find({ trimester })
+            .sort({ week: 1, schemaVersion: -1, seededAt: -1 })
+            .toArray();
+    } catch (error) {
+        console.log('pregnancy_weeks collection not found, skipping');
+    }
+
+    try {
+        [nutritionDocs, dangerDocs, symptomDocs, articleDocs, faqDocs, whoDocs] = await Promise.all([
+            (async () => {
+                try {
+                    return await db.collection('nutrition')
+                        .find({
+                            food: { $exists: true },
+                            recommended: { $ne: false },
+                            avoidDuringPregnancy: { $ne: true },
+                            type: { $ne: 'daily-nutrition-log' },
+                            sourceSystem: { $ne: 'mamasafe-nutrition-tracker' }
+                        })
+                        .sort({ sourceSystem: 1, food: 1 })
+                        .limit(5)
+                        .toArray();
+                } catch {
+                    return [];
+                }
+            })(),
+            (async () => {
+                try {
+                    return await db.collection('danger_signs')
+                        .find({
+                            $or: [
+                                { severity: /critical|urgent/i },
+                                { category: /urgent|emergency/i },
+                                { keywords: /bleeding|fluid|movement|headache|breathing|pain/i }
+                            ]
+                        })
+                        .limit(5)
+                        .toArray();
+                } catch {
+                    return [];
+                }
+            })(),
+            (async () => {
+                try {
+                    return await db.collection('symptoms')
+                        .find({ commonInWeeks: weekNumber })
+                        .limit(4)
+                        .toArray();
+                } catch {
+                    return [];
+                }
+            })(),
+            (async () => {
+                try {
+                    return await db.collection('articles')
+                        .find({
+                            $or: [
+                                { category: /nutrition|pregnancy weeks|antenatal care|safety|symptoms/i },
+                                { keywords: /nutrition|healthy eating|physical activity|exercise|movement|sleep|week|antenatal|warning/i }
+                            ]
+                        })
+                        .limit(6)
+                        .toArray();
+                } catch {
+                    return [];
+                }
+            })(),
+            (async () => {
+                try {
+                    return await db.collection('faqs')
+                        .find({
+                            $or: [
+                                { category: /nutrition|antenatal care|safety|symptoms/i },
+                                { tags: /exercise|physical activity|sleep|nutrition|food|appointment|antenatal|warning/i },
+                                { keywords: /exercise|physical activity|sleep|nutrition|food|appointment|antenatal|warning/i }
+                            ]
+                        })
+                        .limit(10)
+                        .toArray();
+                } catch {
+                    return [];
+                }
+            })(),
+            (async () => {
+                try {
+                    return await db.collection('who_guidelines')
+                        .find({
+                            $or: [
+                                { title: /healthy eating|physical activity|antenatal|nutrition/i },
+                                { recommendation: /healthy eating|physical activity|antenatal|nutrition/i },
+                                { keywords: /healthy eating|physical activity|antenatal|nutrition/i }
+                            ]
+                        })
+                        .limit(3)
+                        .toArray();
+                } catch {
+                    return [];
+                }
+            })()
+        ]);
+    } catch (error) {
+        console.log('Error loading planner data collections, using fallback:', error.message);
+    }
+
+    const exactWeekDoc = weekDocs.find(doc => Number(doc.week) === weekNumber);
+    const nearestPrior = [...weekDocs].reverse().find(doc => Number(doc.week) <= weekNumber);
+    const nearestAny = weekDocs
+        .slice()
+        .sort((a, b) => Math.abs(Number(a.week) - weekNumber) - Math.abs(Number(b.week) - weekNumber))[0];
+    const weekDoc = formatWeekGuideDocument(exactWeekDoc || nearestPrior || nearestAny || {});
+    const datasetWeek = Number(weekDoc.week) || null;
+
+    const exactWeekLine = datasetWeek === weekNumber
+        ? datasetRecordLine(weekDoc, 'pregnancy_weeks')
+        : '';
+    const movementMatcher = doc => /exercise|physical activity|walking|activity|movement/i.test([
+        doc.question,
+        doc.answer,
+        doc.title,
+        doc.content,
+        doc.recommendation,
+        toList(doc.keywords).join(' '),
+        toList(doc.tags).join(' ')
+    ].filter(Boolean).join(' '));
+    const sleepMatcher = doc => /sleep|position|side|rest/i.test([
+        doc.question,
+        doc.answer,
+        doc.title,
+        doc.content,
+        doc.description,
+        toList(doc.keywords).join(' '),
+        toList(doc.tags).join(' ')
+    ].filter(Boolean).join(' '));
+    const careMatcher = doc => /appointment|antenatal|prenatal|visit|screening|contact|clinician|provider/i.test([
+        doc.question,
+        doc.answer,
+        doc.title,
+        doc.content,
+        doc.description,
+        toList(doc.keywords).join(' '),
+        toList(doc.tags).join(' ')
+    ].filter(Boolean).join(' '));
+
+    const movementItems = uniqueCompactList([
+        topicRecordLines(faqDocs, 'faqs', movementMatcher, 2),
+        topicRecordLines(whoDocs, 'who_guidelines', movementMatcher, 2),
+        topicRecordLines(articleDocs, 'articles', movementMatcher, 1),
+        exactWeekLine && /movement|activity|walk|exercise|physical/i.test(exactWeekLine) ? exactWeekLine : ''
+    ], 3);
+
+    const foodItems = topicRecordLines(nutritionDocs, 'nutrition', () => true, 4);
+
+    const sleepItems = uniqueCompactList([
+        topicRecordLines(faqDocs, 'faqs', sleepMatcher, 2),
+        topicRecordLines(symptomDocs, 'symptoms', sleepMatcher, 2),
+        exactWeekLine && /sleep|position|rest/i.test(exactWeekLine) ? exactWeekLine : ''
+    ], 3);
+
+    const careItems = uniqueCompactList([
+        datasetWeek === weekNumber ? exactWeekLine : '',
+        topicRecordLines(faqDocs, 'faqs', careMatcher, 2),
+        topicRecordLines(articleDocs, 'articles', careMatcher, 2)
+    ], 4);
+
+    const safetyItems = topicRecordLines(dangerDocs, 'danger_signs', () => true, 5);
+    const noExactWeek = datasetWeek !== weekNumber
+        ? `No exact pregnancy_weeks dataset record was found for week ${weekNumber}. Topic cards below use matching MongoDB records from other pregnancy dataset collections.`
+        : '';
+
+    const sections = [
+        {
+            key: 'movement',
+            label: 'Exercises',
+            detail: 'Exercise and physical-activity dataset records',
+            items: movementItems.length ? movementItems : [`No exercise-specific dataset record found for week ${weekNumber}.`]
+        },
+        {
+            key: 'food',
+            label: 'Foods to eat',
+            detail: 'Food records from nutrition dataset',
+            items: foodItems.length ? foodItems : [`No recommended-food dataset record found for week ${weekNumber}.`]
+        },
+        {
+            key: 'sleep',
+            label: 'Sleep position',
+            detail: 'Sleep and rest dataset records',
+            items: sleepItems.length ? sleepItems : [`No sleep-position dataset record found for week ${weekNumber}.`]
+        },
+        {
+            key: 'care',
+            label: 'Care reminders',
+            detail: 'Week and antenatal-care dataset records',
+            items: careItems.length ? careItems : [`No appointment or antenatal-care dataset record found for week ${weekNumber}.`]
+        },
+        {
+            key: 'safety',
+            label: 'Call urgently for',
+            detail: 'Danger-sign records from MongoDB',
+            urgent: true,
+            items: safetyItems.length ? safetyItems : [`No danger-sign dataset record found for week ${weekNumber}.`]
+        }
+    ];
+
+    return {
+        week: weekNumber,
+        trimester,
+        trimesterLabel: trimesterLabel(trimester),
+        title: `Week ${weekNumber} ${trimesterLabel(trimester).toLowerCase()} plan`,
+        subtitle: datasetWeek === weekNumber
+            ? `Built from the exact week ${weekNumber} pregnancy_weeks dataset record.`
+            : `Built from topic-matched MongoDB dataset records. ${noExactWeek}`,
+        babySizeCue: '',
+        datasetWeek,
+        sections,
+        sources: [
+            weekDoc.week ? sourceSummary(weekDoc, 'pregnancy_weeks') : null,
+            ...nutritionDocs.slice(0, 3).map(doc => sourceSummary(doc, 'nutrition')),
+            ...dangerDocs.slice(0, 3).map(doc => sourceSummary(doc, 'danger_signs')),
+            ...symptomDocs.slice(0, 2).map(doc => sourceSummary(doc, 'symptoms')),
+            ...faqDocs.slice(0, 3).map(doc => sourceSummary(doc, 'faqs')),
+            ...articleDocs.slice(0, 2).map(doc => sourceSummary(doc, 'articles')),
+            ...whoDocs.slice(0, 2).map(doc => sourceSummary(doc, 'who_guidelines'))
+        ].filter(Boolean),
+        generatedFrom: 'mongodb-pregnancy-dataset'
+    };
+}
+
+async function getWhoPregnancyDataset(db) {
+    await ensurePregnancyKnowledgeBase(db);
+    return db.collection('who_guidelines')
+        .find({
+            sourceSystem: SEED_SOURCE_SYSTEM,
+            schemaVersion: SEED_SCHEMA_VERSION
+        })
+        .sort({ category: 1, title: 1 })
+        .toArray();
+}
+
+async function getPregnancyPdfDatasets(db, { chunkLimit = 20 } = {}) {
+    const chunks = await db.collection('who_document_chunks')
+        .find({ sourceSystem: 'mamasafe-pdf-dataset' })
+        .sort({ documentId: 1, chunkIndex: 1 })
+        .limit(chunkLimit)
+        .toArray();
+
+    const documents = new Map();
+    for (const chunk of chunks) {
+        if (!documents.has(chunk.documentId)) {
+            documents.set(chunk.documentId, {
+                documentId: chunk.documentId,
+                title: chunk.documentTitle,
+                dataset: chunk.dataset,
+                sourceOrganization: chunk.sourceOrganization,
+                sourceFile: chunk.sourceFile,
+                source: chunk.source,
+                category: chunk.category,
+                totalPages: chunk.totalPages,
+                sampleChunkCount: 0
+            });
+        }
+        documents.get(chunk.documentId).sampleChunkCount += 1;
+    }
+
+    return {
+        documents: [...documents.values()],
+        chunks
+    };
+}
+
+async function recordPregnancyChatSession(db, { user = {}, question, answer, week, symptoms, matches = [], urgent = false }) {
+    if (!db || !question || !answer) return null;
+
+    const now = new Date();
+    const userId = user.id || user.userId || user.email || 'guest-user';
+
+    try {
+        return await db.collection('chat_sessions').insertOne({
+            userId,
+            source: 'pregnancy-rag',
+            pregnancyWeek: week || null,
+            symptoms: symptoms || '',
+            messages: [
+                {
+                    role: 'user',
+                    content: question,
+                    createdAt: now
+                },
+                {
+                    role: 'assistant',
+                    content: answer,
+                    urgent,
+                    contextSources: matches.map(match => ({
+                        collection: match.collection,
+                        title: match.title,
+                        source: match.source,
+                        severity: match.severity || ''
+                    })),
+                    createdAt: now
+                }
+            ],
+            createdAt: now
+        });
+    } catch (error) {
+        console.warn('Could not save pregnancy chat session:', error.message);
+        return null;
+    }
+}
+
+module.exports = {
+    analyzePregnancySymptoms: buildSymptomRiskAnalysis,
+    answerPregnancyQuestion,
+    evaluatePregnancyDecisionSupport,
+    getPregnancyRiskTrends,
+    getPregnancyRiskTrainingSummary,
+    getPregnancyTensorflowTrainingData,
+    getPregnancyWeekGuide,
+    getPregnancyWeekPlanner,
+    ensurePregnancyKnowledgeBase,
+    retrievePregnancyContext,
+    getPregnancyDatasetStatus,
+    getPregnancyCollectionPreview,
+    getWhoPregnancyDataset,
+    getPregnancyPdfDatasets,
+    recordPregnancyChatSession,
+    detectUrgentQuestion
+};

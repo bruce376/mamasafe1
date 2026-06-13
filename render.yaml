@@ -2,11 +2,7 @@ services:
   - type: web
     name: mamasafe-backend
     runtime: node
-<<<<<<< HEAD
     rootDir: mamasafe/backend
-=======
-    rootDir: backend
->>>>>>> bf31cb0e50b8df9c8c026ba3cbd60d08781c019b
     plan: free
     buildCommand: npm install
     startCommand: npm start
@@ -21,11 +17,7 @@ services:
       - key: MONGODB_DB_NAME
         value: mamacare
       - key: CORS_ORIGINS
-<<<<<<< HEAD
         value: https://mamasafe-95d58.web.app,https://mamasafe-95d58.firebaseapp.com
-=======
-        value: https://mamasafe1.onrender.com,https://mamasafe-95d58.web.app,https://mamasafe-95d58.firebaseapp.com
->>>>>>> bf31cb0e50b8df9c8c026ba3cbd60d08781c019b
       - key: PUBLIC_BACKEND_URL
         sync: false
       - key: MONGODB_URI

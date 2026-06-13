@@ -3,7 +3,6 @@
     "rules": "firestore.rules"
   },
   "hosting": {
-<<<<<<< HEAD
     "public": "mamasafe/frontend",
     "headers": [
       {
@@ -20,9 +19,6 @@
         ]
       }
     ],
-=======
-    "public": "frontend",
->>>>>>> bf31cb0e50b8df9c8c026ba3cbd60d08781c019b
     "ignore": [
       "firebase.json",
       "**/.*",

@@ -44,8 +44,21 @@
             timerId: null,
             saved: false,
             saving: false
-        }
+        },
+        currentLanguage: 'en'
     };
+
+    async function initLanguage() {
+        // Keep only local state sync on this page.
+        const savedLanguage = localStorage.getItem('mamasafe_language');
+        if (savedLanguage && ['en', 'fr', 'sw', 'rw'].includes(savedLanguage)) {
+            state.currentLanguage = savedLanguage;
+        } else {
+            state.currentLanguage = 'en';
+            localStorage.setItem('mamasafe_language', 'en');
+        }
+    }
+
 
     function getBackendOrigin() {
         if (window.MAMASAFE_API_BASE) {
@@ -413,7 +426,7 @@
 
     function renderSources(matches = []) {
         if (!matches.length) {
-            return '<p class="pregnancy-rag-muted">No specific MongoDB records were returned.</p>';
+            return '';
         }
 
         return `
@@ -536,14 +549,7 @@
         updateTensorflowStatus(modelText, state.tfLastPrediction ? 'Prediction ready' : 'Ready for score');
 
         if (!target) return;
-        target.innerHTML = `
-            <div class="pregnancy-tf-summary-grid">
-                <span><strong>${escapeHTML(total || samples || 0)}</strong> MongoDB records</span>
-                <span><strong>${escapeHTML(samples)}</strong> samples used</span>
-                <span><strong>${escapeHTML(features.length)}</strong> vitals fields</span>
-            </div>
-            <p>${escapeHTML(training.method || 'MongoDB maternal-risk records are ready for the TensorFlow.js model.')}</p>
-        `;
+        target.innerHTML = '';
     }
 
     async function loadTensorFlowScript() {
@@ -577,7 +583,7 @@
 
         const target = document.getElementById('pregnancyTensorflowTrainingSummary');
         if (target) {
-            target.textContent = 'Loading TensorFlow.js training dataset from MongoDB...';
+            target.textContent = 'Loading TensorFlow.js training dataset...';
         }
 
         state.tfTrainingPromise = (async () => {
@@ -646,7 +652,7 @@
             ]);
             const samples = (training.samples || []).filter(sample => Array.isArray(sample.features) && Number.isInteger(sample.labelIndex));
             if (samples.length < 10) {
-                throw new Error('Not enough MongoDB training samples for TensorFlow.js.');
+                throw new Error('Not enough training samples for TensorFlow.js.');
             }
 
             updateTensorflowStatus('Training TensorFlow.js', 'Learning patterns');
@@ -866,7 +872,7 @@
     }
 
     function getUnifiedAiStructureLabel() {
-        return 'Maternal-risk TensorFlow.js + MongoDB';
+        return 'Maternal-risk AI';
     }
 
     function renderRiskProbabilityBars(distribution = {}, prediction = '', confidenceScore = null) {
@@ -1286,89 +1292,7 @@
     }
 
     function renderCoreSymptomAnalysis(evaluation = {}) {
-        const assessment = evaluation.riskAssessment || getAssessmentAiRisk(evaluation) || null;
-        const symptoms = assessment?.symptoms || [];
-        
-        if (!assessment && !symptoms.length) return '';
-
-        const overallTone = riskLabelClass(assessment?.riskClass || assessment?.riskLevel);
-        const primaryItem = symptoms.reduce((winner, item) => {
-            if (!winner) return item;
-            const itemRank = riskRankValue(item.riskClass || item.riskLevel);
-            const winnerRank = riskRankValue(winner.riskClass || winner.riskLevel);
-            return itemRank > winnerRank ? item : winner;
-        }, null) || {};
-        
-        const distribution = assessment?.rawDistribution || {};
-        const scoreValue = Math.round(Number(assessment?.confidenceScore || 0) * 100);
-        const uniqueList = (values = [], limit = 4) => {
-            const seen = new Set();
-            return values
-                .flatMap(value => Array.isArray(value) ? value : [value])
-                .map(value => String(value || '').trim())
-                .filter(Boolean)
-                .filter(value => {
-                    const key = value.toLowerCase();
-                    if (seen.has(key)) return false;
-                    seen.add(key);
-                    return true;
-                })
-                .slice(0, limit);
-        };
-        const description = assessment?.symptomDescription || 'Groq AI (Llama 3.3 70B) analyzed your symptoms and provided this guidance.';
-        const actionItems = uniqueList([assessment?.whatToDo, primaryItem.whatToDo], 3);
-        const actionLabel = actionItems[0] || 'Track the symptom and contact a clinician if it persists, worsens, or worries you.';
-        const reasonItems = uniqueList([assessment?.reasons], 3);
-
-        return `
-            <section class="pregnancy-symptom-analysis ${overallTone}" aria-label="Symptom-specific model analysis">
-                <div class="pregnancy-symptom-analysis-head">
-                    <div>
-                        <span>Symptom level</span>
-                        <strong>${escapeHTML(assessment?.riskLevel || 'risk pending')}</strong>
-                    </div>
-                    <div>
-                        <span>Score</span>
-                        <strong>${escapeHTML(scoreValue)}/100</strong>
-                    </div>
-                    <div>
-                        <span>Immediate action</span>
-                        <strong>${escapeHTML(actionLabel)}</strong>
-                    </div>
-                </div>
-                <p><strong>Symptom description:</strong> ${escapeHTML(description)}</p>
-                ${Object.keys(distribution).length ? renderSymptomDistributionRows(distribution) : ''}
-                <div class="pregnancy-symptom-analysis-list">
-                    ${symptoms.map(item => `
-                        <article class="pregnancy-symptom-card ${riskLabelClass(item.riskClass || item.riskLevel)}">
-                            <div class="pregnancy-symptom-card-head">
-                                <div>
-                                    <span>Symptom analyzed</span>
-                                    <strong>${escapeHTML(item.name || 'entered symptom')}</strong>
-                                </div>
-                                <div>
-                                    <span>Model structure</span>
-                                    <strong>Groq AI (Llama 3.3 70B)</strong>
-                                </div>
-                            </div>
-                            ${item.description ? `<p><strong>What this means:</strong> ${escapeHTML(item.description)}</p>` : ''}
-                            ${item.whatToDo?.length ? `
-                                <strong class="pregnancy-symptom-action">What to do</strong>
-                                <ul class="pregnancy-symptom-suggestions">
-                                    ${item.whatToDo.map(tip => `<li>${escapeHTML(tip)}</li>`).join('')}
-                                </ul>
-                            ` : ''}
-                            ${item.redFlags?.length ? `
-                                <strong class="pregnancy-symptom-action">Red flags</strong>
-                                <ul class="pregnancy-symptom-suggestions">
-                                    ${item.redFlags.map(reason => `<li>${escapeHTML(reason)}</li>`).join('')}
-                                </ul>
-                            ` : ''}
-                        </article>
-                    `).join('')}
-                </div>
-            </section>
-        `;
+        return '';
     }
 
     function renderTensorflowPredictionCard(evaluation = {}) {
@@ -1389,11 +1313,7 @@
                     </div>
                     <dl>
                         <div><dt>Confidence</dt><dd>${formatPercent(finalConfidence)}</dd></div>
-                        <div><dt>AI model</dt><dd>${escapeHTML(aiModel.label)}</dd></div>
-                        <div><dt>Model ID</dt><dd>${escapeHTML(aiModel.model)}</dd></div>
-                        <div><dt>Engine</dt><dd>${getUnifiedAiStructureLabel()}</dd></div>
                     </dl>
-                    <p>The saved TensorFlow.js model was unavailable for this run, so MongoDB maternal-risk records and safety checks supported the result.</p>
                 </section>
             `;
         }
@@ -1406,14 +1326,7 @@
                 </div>
                 <dl>
                     <div><dt>Confidence</dt><dd>${formatPercent(finalConfidence)}</dd></div>
-                    <div><dt>AI model</dt><dd>${escapeHTML(aiModel.label)}</dd></div>
-                    <div><dt>Model ID</dt><dd>${escapeHTML(aiModel.model)}</dd></div>
-                    <div><dt>Engine</dt><dd>TensorFlow.js maternal vitals classifier</dd></div>
-                    <div><dt>Accuracy</dt><dd>${formatPercent(tfjs.accuracy || 0)}</dd></div>
                 </dl>
-                <p>${symptomOverride
-                    ? `The TensorFlow.js model returned ${escapeHTML(tfjs.prediction)}, and the displayed risk was raised because a danger symptom matched pregnancy safety rules.`
-                    : 'The saved TensorFlow.js maternal-risk model estimates the numeric risk, while MongoDB records store the inputs, result, confidence, and care context.'}</p>
             </section>
         `;
     }
@@ -1432,11 +1345,6 @@
 
         return `
             <section class="pregnancy-tf-result transformer-guidance ${aiRisk.urgent ? 'high' : 'ready'}">
-                <div>
-                    <span>Model guidance</span>
-                    <strong>${escapeHTML(aiModel.label)}</strong>
-                </div>
-                <small>Model ID: ${escapeHTML(aiModel.model)}${aiRisk.groqUsed === false ? ' · TensorFlow + safety checks' : ''}</small>
                 <p>${escapeHTML(summary).replace(/\n/g, '<br>')}</p>
             </section>
         `;
@@ -1444,15 +1352,7 @@
 
     function renderCustomAiPredictionCard(prediction = null) {
         if (!prediction || !prediction.prediction) {
-            return `
-                <section class="pregnancy-tf-result fallback">
-                    <div>
-                        <span>Custom AI model</span>
-                        <strong>Not available</strong>
-                    </div>
-                    <p>The saved backend model did not return a prediction for this run.</p>
-                </section>
-            `;
+            return '';
         }
 
         const details = prediction.details || prediction;
@@ -1464,11 +1364,7 @@
                 </div>
                 <dl>
                     <div><dt>Confidence</dt><dd>${formatPercent(prediction.confidenceScore ?? details.confidenceScore)}</dd></div>
-                    <div><dt>Runtime</dt><dd>${escapeHTML(prediction.runtime || details.runtime || 'TensorFlow.js vitals classifier')}</dd></div>
-                    <div><dt>Backend</dt><dd>${escapeHTML(prediction.backend || details.backend || 'cpu')}</dd></div>
-                    <div><dt>Trained</dt><dd>${escapeHTML((prediction.trainedAt || details.trainedAt || '').slice(0, 10) || 'saved')}</dd></div>
                 </dl>
-                <p>This prediction comes from the saved maternal-risk TensorFlow.js model and is saved with MongoDB maternal-risk context.</p>
             </section>
         `;
     }
@@ -1483,7 +1379,7 @@
         if (!trends.length) {
             target.innerHTML = `
                 <strong>No saved assessments yet.</strong>
-                <p class="pregnancy-rag-muted">Run the maternal vitals screen to save a MongoDB assessment and build the live trend feed.</p>
+                <p class="pregnancy-rag-muted">Run the maternal vitals screen to save an assessment and build the live trend feed.</p>
             `;
             return;
         }
@@ -1531,7 +1427,7 @@
         if (!trends.length) {
             target.innerHTML = `
                 <strong>No saved assessments yet.</strong>
-                <p class="pregnancy-rag-muted">Run the maternal vitals screen to save a MongoDB assessment and build the live trend feed.</p>
+                <p class="pregnancy-rag-muted">Run the maternal vitals screen to save an assessment and build the live trend feed.</p>
             `;
             return;
         }
@@ -1592,11 +1488,11 @@
         const target = document.getElementById('pregnancyRiskTrendPanel');
         if (!target) return;
         if (showLoading) {
-            target.innerHTML = '<strong>Loading live MongoDB trends...</strong><p>Reading saved pregnancy_vital_assessments.</p>';
+            target.innerHTML = '<strong>Loading live trends...</strong><p>Reading saved pregnancy_vital_assessments.</p>';
         }
 
         try {
-            // Llama-only mode (no RAG/MongoDB): keep the UI responsive without dataset calls.
+            // Llama-only mode (no RAG): keep the UI responsive without dataset calls.
             target.innerHTML = `
                 <strong>Risk trends disabled (Llama-only mode).</strong>
                 <p class="pregnancy-rag-muted">This page is configured to use Llama memory only, without RAG datasets.</p>
@@ -1636,7 +1532,7 @@
                 <div><span>Glucose range</span><strong>${escapeHTML(glucoseRange)}</strong></div>
                 <div><span>BMI range</span><strong>${escapeHTML(bmiRange)}</strong></div>
             </div>
-            <p class="pregnancy-rag-muted">${escapeHTML(summary.method || 'MongoDB dataset calibration ready.')}</p>
+            <p class="pregnancy-rag-muted">${escapeHTML(summary.method || 'Dataset calibration ready.')}</p>
         `;
     }
 
@@ -1659,7 +1555,7 @@
 
         target.innerHTML = `
             <div class="pregnancy-risk-training-grid">
-                <div class="source"><span>Source records</span><strong>${escapeHTML(summary.totalRecords ?? 0)}</strong><em>expanded MongoDB</em></div>
+                <div class="source"><span>Source records</span><strong>${escapeHTML(summary.totalRecords ?? 0)}</strong><em>expanded dataset</em></div>
                 <div class="high"><span>High risk</span><strong>${escapeHTML(counts.highRisk || 0)}</strong><em>training class</em></div>
                 <div class="mid"><span>Mid risk</span><strong>${escapeHTML(counts.midRisk || 0)}</strong><em>training class</em></div>
                 <div class="low"><span>Low risk</span><strong>${escapeHTML(counts.lowRisk || 0)}</strong><em>training class</em></div>
@@ -1667,7 +1563,7 @@
                 <div class="range"><span>Glucose range</span><strong>${escapeHTML(glucoseRange)}</strong><em>mmol/L</em></div>
                 <div class="range"><span>BMI range</span><strong>${escapeHTML(bmiRange)}</strong><em>kg/m2</em></div>
             </div>
-            <p class="pregnancy-risk-training-note">${escapeHTML(summary.method || 'MongoDB dataset calibration ready.')}</p>
+            <p class="pregnancy-risk-training-note">${escapeHTML(summary.method || 'Dataset calibration ready.')}</p>
         `;
     }
 
@@ -1725,23 +1621,8 @@
                     <span>Confidence</span>
                     <strong>${formatPercent(confidenceScore)}</strong>
                 </div>
-                <div>
-                    <span>Accuracy</span>
-                    <strong>${formatPercent(accuracy)}</strong>
-                </div>
-                <div>
-                    <span>AI model</span>
-                    <strong>${escapeHTML(aiModel.displayName || 'Groq AI')}</strong>
-                </div>
-                <div>
-                    <span>Provider</span>
-                    <strong>${escapeHTML(aiModel.providerLabel || 'Groq')}</strong>
-                </div>
             </div>
             ${renderRiskProbabilityBars(rawDistribution || riskDistribution(riskClass, confidenceScore), displayRiskLevel, confidenceScore)}
-            <p class="pregnancy-ai-structure-note">
-                <strong>Groq AI (Llama 3.3 70B)</strong> delivers this risk result. MongoDB stores your vitals and assessment for follow-up; pregnancy safety checks keep warning symptoms a high priority.
-            </p>
             ${data.urgent ? '<div class="pregnancy-rag-urgent">High-risk or warning-sign pattern matched. Contact a qualified clinician urgently if these symptoms are happening now.</div>' : ''}
             ${riskAssessment.symptomDescription ? `<p class="pregnancy-decision-symptom-desc">${escapeHTML(riskAssessment.symptomDescription)}</p>` : ''}
             ${renderCoreSymptomAnalysis({ symptomAnalysis })}
@@ -1796,7 +1677,6 @@
     }
 
     function buildPregnancyDecisionPayload() {
-        const bloodPressure = parseDecisionBloodPressure();
         const diabetesType = document.getElementById('pregnancyDecisionDiabetes')?.value || 'none';
         const bodyWeight = numberOrDefault(document.getElementById('pregnancyDecisionWeight')?.value, 63);
         const preexistingDiabetes = diabetesType === 'preexisting' ? 1 : 0;
@@ -1805,20 +1685,21 @@
 
         return {
             age: document.getElementById('pregnancyDecisionAge')?.value,
-            systolic: bloodPressure.systolic,
-            diastolic: bloodPressure.diastolic,
+            systolic: 120, // default value
+            diastolic: 80, // default value
             glucose,
-            temp: document.getElementById('pregnancyDecisionTemp')?.value,
-            heartRate: document.getElementById('pregnancyDecisionHeartRate')?.value,
+            temp: 98.6, // default value
+            heartRate: 70, // default value
             bodyWeight,
             bmi: estimateBmiFromWeight(bodyWeight),
             previousComplications: document.getElementById('pregnancyDecisionPreviousComplications')?.value,
             diabetes: diabetesType === 'none' ? 0 : 1,
             preexistingDiabetes,
             gestationalDiabetes,
-            mentalHealth: document.getElementById('pregnancyDecisionMentalHealth')?.value,
+            mentalHealth: 0, // default value
             week: document.getElementById('pregnancyDecisionWeek')?.value,
-            symptoms: document.getElementById('pregnancyDecisionSymptoms')?.value.trim() || ''
+            symptoms: document.getElementById('pregnancyDecisionSymptoms')?.value.trim() || '',
+            language: state.currentLanguage
         };
     }
 
@@ -1836,24 +1717,13 @@
         const target = document.getElementById('pregnancyTelemetryStatus');
         if (!target) return;
         const payload = buildPregnancyDecisionPayload();
-        const systolic = Number(payload.systolic);
-        const diastolic = Number(payload.diastolic);
-        const pulse = Number(payload.heartRate);
         const weight = Number(payload.bodyWeight);
         const diabetesType = document.getElementById('pregnancyDecisionDiabetes')?.value || 'none';
 
-        const bpTone = systolic >= 140 || diastolic >= 90
-            ? 'elevated'
-            : systolic >= 130 || diastolic >= 85 ? 'borderline' : 'nominal';
-        const pulseTone = pulse >= 120 || pulse <= 45
-            ? 'elevated'
-            : pulse >= 100 || pulse < 60 ? 'borderline' : 'nominal';
         const weightTone = weight < 40 || weight > 140 ? 'borderline' : 'nominal';
         const diabetesTone = diabetesType === 'none' ? 'nominal' : 'borderline';
 
         target.innerHTML = [
-            telemetryTone('Blood pressure', `${systolic || '--'}/${diastolic || '--'}`, bpTone, bpTone),
-            telemetryTone('Pulse', pulse ? `${pulse} bpm` : '--', pulseTone, pulseTone),
             telemetryTone('Body weight', weight ? `${weight} kg` : '--', weightTone, weightTone === 'nominal' ? 'tracked' : weightTone),
             telemetryTone('Diabetes', diabetesType === 'none' ? 'No diabetes' : diabetesType === 'preexisting' ? 'Before pregnancy' : 'Gestational', diabetesTone, diabetesTone === 'nominal' ? 'clear' : 'flagged')
         ].join('');
@@ -1940,7 +1810,7 @@
         const renderedAnswer = escapeHTML(firstLines || answer || 'No model answer returned.').replace(/\n/g, '<br>');
         const aiModel = getAssessmentAiModel(data.evaluation || {}, data);
         const modelName = aiModel.label;
-        const retrievalModel = data.retrievalModel || 'MongoDB pregnancy retrieval + TensorFlow symptom safety';
+        const retrievalModel = data.retrievalModel || 'Pregnancy retrieval + Symptom safety';
         const datasetUse = data.datasetUse || {};
         const trainedAt = data.trainedAt ? String(data.trainedAt).slice(0, 10) : '';
         const transformer = data.transformer || {};
@@ -1951,15 +1821,6 @@
                 : 'Retrieval rerank: off';
 
         return `
-            <div class="pregnancy-tool-model-result">
-                <span>AI engine</span>
-                <strong>${getUnifiedAiStructureLabel()}</strong>
-                <em>Reasoning model: ${escapeHTML(modelName)}</em>
-                ${trainedAt ? `<em>Trained ${escapeHTML(trainedAt)}</em>` : ''}
-                <em>${escapeHTML(transformerLabel)}</em>
-                <em>Dataset retrieval: ${escapeHTML(retrievalModel)}</em>
-                ${datasetUse.description ? `<em>${escapeHTML(datasetUse.description)}</em>` : ''}
-            </div>
             ${renderCoreSymptomAnalysis({
                 riskAssessment: data.riskAssessment || null,
                 symptomAnalysis: data.riskAssessment?.symptomAnalysis || data.symptomAnalysis || data.symptomRisk || null
@@ -2591,7 +2452,7 @@
             return;
         }
 
-        setAnswer('<strong>Asking unified pregnancy AI...</strong><p>Searching the model trained from all imported MongoDB pregnancy datasets.</p>', 'loading');
+        setAnswer('<strong>Asking unified pregnancy AI...</strong><p>Searching the model trained from all imported pregnancy datasets.</p>', 'loading');
 
         try {
             const response = await fetchPregnancyRag('/api/pregnancy-rag/ask', {
@@ -2600,7 +2461,8 @@
                 body: JSON.stringify({
                     question,
                     week: weekEl?.value || '',
-                    symptoms: symptomsEl?.value.trim() || ''
+                    symptoms: symptomsEl?.value.trim() || '',
+                    language: state.currentLanguage
                 })
             });
             const data = await readJson(response);
@@ -2610,9 +2472,9 @@
             renderAnswer(data);
         } catch (error) {
             setAnswer(`
-                <strong>Pregnancy RAG request failed.</strong>
+                <strong>Pregnancy AI request failed.</strong>
                 <p>${escapeHTML(error.message)}</p>
-                <p class="pregnancy-rag-muted">Check that the Render backend has been redeployed with the RAG routes, or run the local backend on port 5000 while opening this page from your computer.</p>
+                <p class="pregnancy-rag-muted">Check that the backend is running on port 3000 while opening this page from your computer.</p>
             `, 'error');
         }
     }
@@ -2656,11 +2518,22 @@
             document.getElementById('pregnancyDecisionForm')?.addEventListener('submit', evaluatePregnancyDecision);
         }
 
+        initLanguage();
         loadPregnancyDatasetStatus();
         loadPregnancyTensorflowTrainingData().catch(() => {});
         initializePregnancySupportTools();
         initializePregnancyWeekTracker();
     }
+
+    // Backwards-compatibility: older pages/scripts may call generateWeekButtons()
+    // If present, delegate to our current week tracker init.
+    window.generateWeekButtons = window.generateWeekButtons || function () {
+        try {
+            initializePregnancyWeekTracker();
+        } catch {
+            // no-op
+        }
+    };
 
     document.addEventListener('DOMContentLoaded', initializePregnancyRagPage);
 
@@ -2670,6 +2543,8 @@
     window.pregnancyDecisionUseExample = pregnancyDecisionUseExample;
     window.checkPregnancySymptoms = checkPregnancySymptoms;
     window.startPregnancyKickSession = startPregnancyKickSession;
+    window.changeLanguage = changeLanguage;
+    window.initLanguage = initLanguage;
     window.countPregnancyKick = countPregnancyKick;
     window.savePregnancyKickSession = savePregnancyKickSession;
     window.savePregnancyNutrition = savePregnancyNutrition;

@@ -1,25 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "mamasafe",
-  "version": "1.0.0",
-  "description": "Mamasafe Full-Stack Application",
-  "main": "index.js",
-  "scripts": {
-    "start": "start.bat",
-    "start:backend": "cd mamasafe/backend && npm start",
-    "start:frontend": "cd mamasafe/frontend && npm start",
-    "dev": "start.bat",
-    "install:all": "install-all.bat"
-  },
-  "keywords": [
-    "mamasafe",
-    "maternal",
-    "health",
-    "fullstack"
-  ],
-  "author": "",
-  "license": "ISC"
-=======
   "name": "mamacare",
   "version": "1.0.0",
   "description": "",
@@ -58,5 +37,4 @@
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0"
   }
->>>>>>> bf31cb0e50b8df9c8c026ba3cbd60d08781c019b
 }

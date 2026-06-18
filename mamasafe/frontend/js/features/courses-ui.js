@@ -481,10 +481,10 @@ class CoursesAdvancedUI {
 
     getStageCourseIds(stage) {
         const map = {
-            planning: ['nutrition', 'mental-health', 'exercise-guidance', 'childbirth'],
-            pregnancy: ['childbirth', 'nutrition', 'exercise-guidance', 'warning-signs', 'mental-health'],
-            postpartum: ['mental-health', 'nutrition', 'sleep-science', 'exercise-guidance'],
-            baby: ['sleep-science', 'nutrition', 'mental-health', 'warning-signs']
+            planning: ['nutrition'],
+            pregnancy: ['nutrition'],
+            postpartum: ['nutrition'],
+            baby: ['nutrition']
         };
 
         return map[stage] || [];
@@ -1101,7 +1101,8 @@ window.finishTopic = function(courseId, topicId) {
 window.continueCourse = function(courseId) {
     const course = window.courseManager.getCourseById(courseId);
     const progress = window.courseManager.getCourseProgress(courseId);
-    const next = course.topics.find(t => !progress.completedTopics.includes(t.id)) || course.topics[0];
+    const completedTopics = progress?.completedTopics || [];
+    const next = course.topics.find(t => !completedTopics.includes(t.id)) || course.topics[0];
     startTopicNotes(courseId, next.id);
 };
 
@@ -1254,17 +1255,17 @@ window.refreshDailyTip = function() {
     const tipEl = document.getElementById('dailyTip');
     if (!tipEl) return;
     const tips = [
-        "Hydration is the foundation of prenatal wellness. Aim for 3 liters of structured water daily.",
-        "Magnesium-rich foods support healthy neural development and ease muscle tension.",
-        "Consistent sleep cycles synchronize your biology with your baby's growth rhythm.",
-        "Mindful breathing for 10 minutes daily reduces cortisol and enhances fetal oxygenation."
+        "Pair iron-rich plant foods with vitamin C to improve absorption.",
+        "Choose pasteurized dairy and fully cooked proteins during pregnancy.",
+        "Protein at breakfast can help steady energy and nausea.",
+        "Low-mercury cooked fish can support DHA intake for fetal brain and eye development."
     ];
     tipEl.textContent = tips[Math.floor(Math.random() * tips.length)];
 };
 
 window.unlockAllStarterCourses = function() {
     if (!window.courseManager) return;
-    const starterIds = ['childbirth', 'nutrition', 'exercise-guidance', 'warning-signs'];
+    const starterIds = ['nutrition'];
     let count = 0;
     starterIds.forEach(id => {
         if (window.courseManager.enrollInCourse(id)) count++;

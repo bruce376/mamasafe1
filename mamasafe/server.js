@@ -20,10 +20,10 @@ const {
 
 const { getAiModelMetadata } = require('./backend/config/aiModel');
 const { registerPregnancyToolRoutes } = require('./backend/services/pregnancyTools');
-const { chatWithGroq } = require('./backend/services/groqService');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
+
 
 const mongoConfig = {
     uri: process.env.MONGODB_URI || 'mongodb+srv://ug2424887_db_user:ninjastorm@cluster0.ofrzq1d.mongodb.net/mamacare?retryWrites=true&w=majority&appName=Cluster0',
@@ -57,8 +57,8 @@ app.use(compression());
 app.use(morgan('combined'));
 app.use(express.json());
 
-// Frontend
-app.use(express.static(path.join(__dirname, 'frontend')));
+// Frontend intentionally NOT served here to allow running frontend separately on port 3000.
+
 
 // Explicit static mounts
 app.use('/assets', express.static(path.join(__dirname, 'frontend', 'assets')));
@@ -158,65 +158,6 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', connected: !!db, timestamp: new Date().toISOString() });
 });
 
-app.post('/api/translate-ui', async (req, res) => {
-    try {
-        const { texts, language } = req.body || {};
-        const targetLang = String(language || '').trim();
-        if (!targetLang) return res.status(400).json({ success: false, error: 'language is required' });
-        if (!Array.isArray(texts)) return res.status(400).json({ success: false, error: 'texts must be an array' });
-
-        const allTexts = texts
-            .map(t => (t === null || t === undefined ? '' : String(t)))
-            .filter(t => t.length > 0);
-
-        if (targetLang === 'en') {
-            const translations = {};
-            allTexts.forEach(t => (translations[t] = t));
-            return res.json({ success: true, translations });
-        }
-
-        const prompt = `You are a strict translation engine.`;
-
-        const raw = await chatWithGroq(
-            'Return only JSON.',
-            prompt,
-            { temperature: 0.2, maxTokens: 1200 }
-        );
-
-        // Fail-soft: identity mapping if parsing fails
-        const tryParse = (s) => {
-            if (!s) return null;
-            const trimmed = String(s).trim();
-            if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
-                try { return JSON.parse(trimmed); } catch {}
-            }
-            const m = trimmed.match(/\{[\s\S]*\}/);
-            if (m?.[0]) {
-                try { return JSON.parse(m[0]); } catch {}
-            }
-            return null;
-        };
-
-        const parsed = tryParse(raw);
-        const translations = parsed?.translations && typeof parsed.translations === 'object' ? parsed.translations : null;
-
-        if (!translations) {
-            const fallback = {};
-            allTexts.forEach(t => (fallback[t] = t));
-            return res.json({ success: false, error: 'translate failed', translations: fallback, targetLang });
-        }
-
-        return res.json({ success: true, translations });
-    } catch (error) {
-        const { texts, language } = req.body || {};
-        const targetLang = String(language || '');
-        const allTexts = Array.isArray(texts) ? texts.map(t => String(t)).filter(Boolean) : [];
-        const fallback = {};
-        allTexts.forEach(t => (fallback[t] = t));
-        return res.json({ success: false, error: error.message, translations: fallback, targetLang });
-    }
-});
-
 // Pregnancy Data API
 app.post('/api/pregnancy', checkDBConnection, async (req, res) => {
     try {
@@ -308,10 +249,11 @@ app.get('/api/pregnancy-rag/who-dataset', checkDBConnection, async (req, res) =>
     }
 });
 
-// Serve SPA
-app.get(/.*/, (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
-});
+// Serve SPA (disabled when running frontend separately)
+// app.get(/.*/, (req, res) => {
+//     res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+// });
+
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

@@ -1,4 +1,5 @@
 (function () {
+    if (typeof window === 'undefined') return;
     const localHosts = new Set(['localhost', '127.0.0.1', '0.0.0.0']);
     const renderBackendOrigin = 'https://mamasafe1.onrender.com';
     const isLocal = localHosts.has(window.location.hostname);

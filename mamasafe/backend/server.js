@@ -25,7 +25,9 @@ if (rootEnv.MONGODB_URI && process.env.MONGODB_PREFER_BACKEND_ENV !== 'true') {
 if (rootEnv.MONGODB_DB_NAME && process.env.MONGODB_PREFER_BACKEND_ENV !== 'true') {
     process.env.MONGODB_DB_NAME = rootEnv.MONGODB_DB_NAME;
 }
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
+const FRONTEND_PORT = process.env.FRONTEND_PORT || 3000;
+
 app.set('trust proxy', 1);
 const defaultCorsOrigins = [
     'null',
@@ -394,6 +396,7 @@ function scheduleMongoReconnect(reason = 'connection monitor event') {
 
 // Middleware
 app.use(helmet({
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
@@ -1657,7 +1660,7 @@ app.post('/api/admin-panel/notifications', requireAdmin, checkDBConnection, asyn
 // Health Chatbot Service - Llama 3.3 70B via Groq
 const { processHealthQuery, checkEmergencyKeywords, generateHealthSuggestions } = require('./services/healthChatbot');
 const { processImageWithGroq } = require('./services/groqChatbot');
-const { assessPregnancyRiskWithGroq } = require('./services/groqService');
+const { assessPregnancyRiskWithGroq, chatWithGroq } = require('./services/groqService');
 const {
     analyzePregnancySymptoms,
     answerPregnancyQuestion,
@@ -1690,6 +1693,7 @@ const {
 const {
     runMamasafeAiPipeline
 } = require('./services/mamasafeAiPipeline');
+
 const {
     getAiModelMetadata
 } = require('./config/aiModel');
@@ -2586,19 +2590,62 @@ app.post('/api/pregnancy-rag/evaluate', checkDBConnection, async (req, res) => {
             bodyTemp,
             heartRate,
             bmi,
+            bodyWeight,
+            weightKg,
             previousComplications,
             preexistingDiabetes,
             gestationalDiabetes,
             mentalHealth,
             week,
-            symptoms
+            symptoms,
+            language
         } = req.body || {};
 
+        const toNumberOrDefault = (value, fallback) => {
+            const numeric = Number(value);
+            return Number.isFinite(numeric) ? numeric : fallback;
+        };
+
+        const assessmentInputs = {
+            age: toNumberOrDefault(age, 25),
+            bodyWeightKg: toNumberOrDefault(bodyWeight ?? weightKg, 63),
+            previousComplications: toNumberOrDefault(previousComplications, 0),
+            week: toNumberOrDefault(week, 24),
+            symptomsOrNotes: String(symptoms || '').trim()
+        };
+        const optionalVitals = {
+            systolicBP: systolicBP ?? systolic,
+            diastolicBP: diastolicBP ?? diastolic,
+            bloodSugar: bloodSugar ?? glucose,
+            bodyTemp: bodyTemp ?? temp,
+            heartRate,
+            bmi,
+            preexistingDiabetes,
+            gestationalDiabetes,
+            mentalHealth
+        };
+        Object.keys(optionalVitals).forEach(key => {
+            if (optionalVitals[key] === undefined || optionalVitals[key] === null || optionalVitals[key] === '') {
+                delete optionalVitals[key];
+            }
+        });
+
+        // Prepare vitals object. The first five fields are the required maternal
+        // vitals risk screen; the remaining fields are optional legacy context.
+        const vitals = {
+            ...assessmentInputs,
+            ...optionalVitals
+        };
+
         const riskResult = await assessPregnancyRiskWithGroq({
-            question: symptoms ? `Pregnancy assessment with symptoms: ${symptoms}` : 'Pregnancy risk assessment',
-            week: week || 24,
-            symptoms: symptoms || '',
-            symptomAnalysis: null
+            question: assessmentInputs.symptomsOrNotes
+                ? `Pregnancy risk rate assessment using age, body weight kg, previous complications, pregnancy week, and symptoms or notes: ${assessmentInputs.symptomsOrNotes}`
+                : 'Pregnancy risk rate assessment using age, body weight kg, previous complications, pregnancy week, and symptoms or notes.',
+            week: assessmentInputs.week,
+            symptoms: assessmentInputs.symptomsOrNotes,
+            symptomAnalysis: null,
+            vitals,
+            language: language || 'en'
         });
 
         // Try to save to MongoDB, but don't fail the request if it doesn't work
@@ -2612,19 +2659,13 @@ app.post('/api/pregnancy-rag/evaluate', checkDBConnection, async (req, res) => {
             await db.collection('pregnancy_vital_assessments').insertOne({
                 userId: user.id,
                 userEmail: user.email,
-                age: age || 25,
-                systolicBP: systolicBP || systolic || 120,
-                diastolicBP: diastolicBP || diastolic || 80,
-                bloodSugar: bloodSugar || glucose || 7.5,
-                bodyTemp: bodyTemp || temp || 98.6,
-                heartRate: heartRate || 72,
-                bmi: bmi || 23,
-                previousComplications: previousComplications || 0,
-                preexistingDiabetes: preexistingDiabetes || 0,
-                gestationalDiabetes: gestationalDiabetes || 0,
-                mentalHealth: mentalHealth || 0,
-                week: week || 24,
-                symptoms: symptoms || '',
+                age: assessmentInputs.age,
+                bodyWeightKg: assessmentInputs.bodyWeightKg,
+                previousComplications: assessmentInputs.previousComplications,
+                week: assessmentInputs.week,
+                symptoms: assessmentInputs.symptomsOrNotes,
+                ...optionalVitals,
+                assessmentInputMode: 'age-bodyWeight-previousComplications-week-symptoms',
                 riskAssessment: riskResult,
                 createdAt: now,
                 updatedAt: now
@@ -2655,6 +2696,8 @@ app.post('/api/pregnancy-rag/evaluate', checkDBConnection, async (req, res) => {
         });
     }
 });
+
+// Translation endpoint removed
 
 app.get('/api/pregnancy-rag/analytics/trends', checkDBConnection, handlePregnancyRiskTrends);
 app.get('/api/analytics/trends', checkDBConnection, handlePregnancyRiskTrends);
@@ -2817,6 +2860,111 @@ app.get('/api/model/evaluate-accuracy', async (req, res) => {
                 : 'Accuracy evaluation loop failure',
             details: error.message
         });
+    }
+});
+
+function parseJsonObjectFromText(text = '') {
+    const value = String(text || '').trim();
+    if (!value) return null;
+    try {
+        return JSON.parse(value);
+    } catch {
+        const fenced = value.match(/```(?:json)?\s*([\s\S]*?)```/i);
+        if (fenced?.[1]) {
+            try {
+                return JSON.parse(fenced[1].trim());
+            } catch {
+                return null;
+            }
+        }
+        const start = value.indexOf('{');
+        const end = value.lastIndexOf('}');
+        if (start >= 0 && end > start) {
+            try {
+                return JSON.parse(value.slice(start, end + 1));
+            } catch {
+                return null;
+            }
+        }
+        return null;
+    }
+}
+
+function toShortStringList(value, fallback = []) {
+    const list = Array.isArray(value)
+        ? value
+        : typeof value === 'string'
+            ? value.split(/\n|;|\|/g)
+            : [];
+    const cleaned = list
+        .map(item => String(item || '').replace(/^[-*•]\s*/, '').trim())
+        .filter(Boolean)
+        .slice(0, 5);
+    return cleaned.length ? cleaned : fallback;
+}
+
+async function buildAiPregnancyWeekGuide(db, week) {
+    const weekNumber = Number.parseInt(week, 10);
+    if (!Number.isInteger(weekNumber) || weekNumber < 1 || weekNumber > 42) {
+        throw new Error('Week must be between 1 and 42');
+    }
+
+    const baseGuide = await getPregnancyWeekGuide(db, weekNumber).catch(() => null);
+    const systemPrompt = [
+        'You are MamaSafe pregnancy week-guide AI using Llama 3.3 70B via Groq.',
+        'Create concise, week-specific pregnancy education for the selected week only.',
+        'Do not diagnose, prescribe, or replace clinician advice.',
+        'Return only valid JSON. No markdown. No extra text.'
+    ].join('\n');
+    const userPrompt = [
+        `Selected pregnancy week: ${weekNumber}`,
+        '',
+        'Use this existing MamaSafe dataset guide as context when helpful:',
+        JSON.stringify(baseGuide || {}, null, 2),
+        '',
+        'Return JSON with this schema:',
+        JSON.stringify({
+            title: 'Week 24 AI care snapshot',
+            intro: 'one short week-specific intro',
+            baby: ['3 short bullets for baby development this week'],
+            mother: ['3-5 short bullets for mother changes this week'],
+            care: ['3 short bullets for care focus this week'],
+            questions: ['3 questions to ask your provider this week'],
+            warnings: ['3-5 call sooner warning signs for this week']
+        }, null, 2)
+    ].join('\n');
+
+    const content = await chatWithGroq(systemPrompt, userPrompt, {
+        temperature: 0.2,
+        maxTokens: 1000
+    });
+    const parsed = parseJsonObjectFromText(content);
+    if (!parsed) throw new Error('AI week guide did not return valid JSON.');
+
+    return {
+        week: weekNumber,
+        title: String(parsed.title || `Week ${weekNumber} AI care snapshot`).trim(),
+        intro: String(parsed.intro || baseGuide?.babyDevelopment || '').trim(),
+        baby: toShortStringList(parsed.baby, baseGuide?.babyDevelopment ? [baseGuide.babyDevelopment] : []),
+        mother: toShortStringList(parsed.mother, baseGuide?.motherChanges || []),
+        care: toShortStringList(parsed.care, baseGuide?.tips || []),
+        questions: toShortStringList(parsed.questions, [
+            'What should I focus on this week?',
+            'Which symptoms should make me call sooner?',
+            'When is my next recommended visit?'
+        ]),
+        warnings: toShortStringList(parsed.warnings, baseGuide?.dangerAlerts || []),
+        source: 'groq-llama-week-guide',
+        aiModel: getAiModelMetadata()
+    };
+}
+
+app.get('/api/pregnancy-rag/week-ai/:week', checkDBConnection, async (req, res) => {
+    try {
+        const guide = await buildAiPregnancyWeekGuide(db, req.params.week);
+        res.json({ success: true, guide, groqUsed: true, aiModel: getAiModelMetadata() });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to generate AI pregnancy week guide', details: error.message });
     }
 });
 
@@ -3901,7 +4049,7 @@ async function startServer() {
         console.log(`    Mamasafe Server Running`);
         console.log(`===================================`);
         console.log(`Backend API: http://localhost:${PORT}`);
-        console.log(`Frontend:    http://localhost:${PORT}`);
+        console.log(`Frontend:    http://localhost:${FRONTEND_PORT}`);
         console.log(`Hosted:      https://mamasafe-95d58.web.app`);
         console.log(`MongoDB:     ${db ? (useInMemoryDB ? 'Using in-memory database' : 'Connected to Atlas') : 'Connecting in background...'}`);
         console.log(`===================================`);

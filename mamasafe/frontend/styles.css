@@ -24469,6 +24469,58 @@ body.dark-mode .guest-feature-lock-banner span {
     padding-right: 30px;
 }
 
+#pregnancy .pregnancy-nutrition-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+#pregnancy .pregnancy-nutrition-form > label,
+#pregnancy .pregnancy-nutrition-checkboxes label {
+    color: #2c4658;
+    display: grid;
+    font-weight: 850;
+    gap: 7px;
+}
+
+#pregnancy .pregnancy-nutrition-form input,
+#pregnancy .pregnancy-nutrition-form textarea {
+    border: 1px solid #d5e5ec;
+    border-radius: 8px;
+    background: #fbfdff;
+    color: #203746;
+    font: inherit;
+    padding: 12px 14px;
+    width: 100%;
+}
+
+#pregnancy .pregnancy-nutrition-form > label:last-of-type,
+#pregnancy .pregnancy-nutrition-checkboxes,
+#pregnancy .pregnancy-nutrition-form .pregnancy-rag-submit-row {
+    grid-column: 1 / -1;
+}
+
+#pregnancy .pregnancy-nutrition-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#pregnancy .pregnancy-nutrition-checkboxes label {
+    align-items: center;
+    border: 1px solid #dbeafe;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: row;
+    min-height: 42px;
+    padding: 9px 11px;
+}
+
+#pregnancy .pregnancy-nutrition-checkboxes input {
+    accent-color: #ec4899;
+    width: auto;
+}
+
 #pregnancy .pregnancy-rag-answer {
     margin-top: 18px;
     border: 1px solid #dbe9ef;
@@ -24517,6 +24569,201 @@ body.dark-mode .guest-feature-lock-banner span {
     padding: 6px 10px;
     font-size: 0.82rem;
     font-weight: 850;
+}
+
+#pregnancy .pregnancy-nutrition-summary {
+    align-items: center;
+    background: linear-gradient(135deg, #f0f9ff 0%, #fff7ed 100%);
+    border: 1px solid #dbeafe;
+    border-radius: 8px;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 14px;
+}
+
+#pregnancy .pregnancy-nutrition-summary span,
+#pregnancy .pregnancy-nutrition-card span {
+    color: #1d4ed8;
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 950;
+    text-transform: uppercase;
+}
+
+#pregnancy .pregnancy-nutrition-summary strong {
+    color: #17324d;
+    display: block;
+    font-size: 1.18rem;
+    line-height: 1.2;
+    margin-top: 4px;
+}
+
+#pregnancy .pregnancy-nutrition-summary p {
+    color: #43586b;
+    line-height: 1.45;
+    margin: 6px 0 0;
+}
+
+#pregnancy .pregnancy-nutrition-summary em {
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    color: #ec4899;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-style: normal;
+    font-weight: 950;
+    min-height: 42px;
+    padding: 0 12px;
+}
+
+#pregnancy .pregnancy-nutrition-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 12px;
+}
+
+#pregnancy .pregnancy-nutrition-card {
+    background: #ffffff;
+    border-left: 5px solid #0ea5e9;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(15, 42, 86, 0.06);
+    padding: 11px 12px;
+}
+
+#pregnancy .pregnancy-nutrition-card:nth-child(2) {
+    border-left-color: #22c55e;
+}
+
+#pregnancy .pregnancy-nutrition-card:nth-child(3) {
+    border-left-color: #f59e0b;
+}
+
+#pregnancy .pregnancy-nutrition-card:nth-child(4) {
+    border-left-color: #6366f1;
+}
+
+#pregnancy .pregnancy-nutrition-card.urgent {
+    border-left-color: #be185d;
+    background: #fff1f2;
+}
+
+#pregnancy .pregnancy-nutrition-card strong {
+    color: #17324d;
+    display: block;
+    margin-top: 3px;
+}
+
+#pregnancy .pregnancy-nutrition-card ul {
+    color: #43586b;
+    line-height: 1.45;
+    margin: 8px 0 0;
+    padding-left: 18px;
+}
+
+#pregnancy .pregnancy-nutrition-card li + li {
+    margin-top: 5px;
+}
+
+#pregnancy .pregnancy-nutrition-note {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #536879;
+    font-size: 0.86rem;
+    line-height: 1.45;
+    margin: 12px 0 0;
+    padding: 10px 12px;
+}
+
+#pregnancy .pregnancy-food-analysis-form .pregnancy-rag-form-row {
+    align-items: end;
+}
+
+#pregnancy .food-analysis-result {
+    border-left: 5px solid #64748b;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 8px 20px rgba(15, 42, 86, 0.06);
+    padding: 14px;
+}
+
+#pregnancy .food-analysis-result.ready {
+    border-left-color: #16a34a;
+}
+
+#pregnancy .food-analysis-result.review {
+    border-left-color: #f59e0b;
+}
+
+#pregnancy .food-analysis-result.urgent {
+    border-left-color: #be185d;
+    background: #fff1f2;
+}
+
+#pregnancy .food-analysis-status span {
+    color: #1d4ed8;
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 950;
+    text-transform: uppercase;
+}
+
+#pregnancy .food-analysis-status strong {
+    color: #17324d;
+    display: block;
+    font-size: 1.15rem;
+    line-height: 1.25;
+    margin-top: 4px;
+}
+
+#pregnancy .food-analysis-status p,
+#pregnancy .food-analysis-note {
+    color: #43586b;
+    line-height: 1.45;
+    margin: 8px 0 0;
+}
+
+#pregnancy .food-analysis-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 12px;
+}
+
+#pregnancy .food-analysis-grid section {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    padding: 12px;
+}
+
+#pregnancy .food-analysis-grid h4 {
+    color: #17324d;
+    font-size: 0.95rem;
+    margin: 0 0 8px;
+}
+
+#pregnancy .food-analysis-grid ul {
+    color: #43586b;
+    line-height: 1.45;
+    margin: 0;
+    padding-left: 18px;
+}
+
+#pregnancy .food-analysis-grid li + li {
+    margin-top: 5px;
+}
+
+#pregnancy .food-analysis-note {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.86rem;
+    padding: 10px 12px;
 }
 
 #pregnancy .pregnancy-rag-source-list {
@@ -26151,6 +26398,9 @@ body.dark-mode #pregnancy .pregnancy-tf-result dt {
 body.dark-mode #pregnancy .pregnancy-rag-form input,
 body.dark-mode #pregnancy .pregnancy-rag-form select,
 body.dark-mode #pregnancy .pregnancy-rag-form textarea,
+body.dark-mode #pregnancy .pregnancy-nutrition-form input,
+body.dark-mode #pregnancy .pregnancy-nutrition-form textarea,
+body.dark-mode #pregnancy .pregnancy-nutrition-checkboxes label,
 body.dark-mode #pregnancy .pregnancy-rag-answer {
     border-color: rgba(125, 211, 252, 0.18);
     background: #111827;
@@ -26196,6 +26446,12 @@ body.dark-mode #pregnancy .pregnancy-tool-card,
 body.dark-mode #pregnancy .pregnancy-tool-output,
 body.dark-mode #pregnancy .pregnancy-tool-model-result,
 body.dark-mode #pregnancy .pregnancy-kick-display div,
+body.dark-mode #pregnancy .pregnancy-nutrition-card,
+body.dark-mode #pregnancy .pregnancy-nutrition-summary,
+body.dark-mode #pregnancy .pregnancy-nutrition-note,
+body.dark-mode #pregnancy .food-analysis-result,
+body.dark-mode #pregnancy .food-analysis-grid section,
+body.dark-mode #pregnancy .food-analysis-note,
 body.dark-mode #pregnancy .pregnancy-reminder-item,
 body.dark-mode #pregnancy .pregnancy-reminder-summary,
 body.dark-mode #pregnancy .pregnancy-reminder-note,
@@ -26242,6 +26498,12 @@ body.dark-mode #pregnancy .pregnancy-risk-trend-list p,
 body.dark-mode #pregnancy .pregnancy-week-summary p,
 body.dark-mode #pregnancy .pregnancy-week-card-grid li,
 body.dark-mode #pregnancy .pregnancy-week-warning li,
+body.dark-mode #pregnancy .pregnancy-nutrition-card li,
+body.dark-mode #pregnancy .pregnancy-nutrition-summary p,
+body.dark-mode #pregnancy .pregnancy-nutrition-note,
+body.dark-mode #pregnancy .food-analysis-status p,
+body.dark-mode #pregnancy .food-analysis-grid li,
+body.dark-mode #pregnancy .food-analysis-note,
 body.dark-mode #pregnancy .pregnancy-reminder-intro,
 body.dark-mode #pregnancy .pregnancy-reminder-summary p,
 body.dark-mode #pregnancy .pregnancy-reminder-item p,
@@ -26255,6 +26517,12 @@ body.dark-mode #pregnancy .pregnancy-week-summary h3,
 body.dark-mode #pregnancy .pregnancy-week-card-grid h3,
 body.dark-mode #pregnancy .pregnancy-tool-card-head strong,
 body.dark-mode #pregnancy .pregnancy-tool-form label,
+body.dark-mode #pregnancy .pregnancy-nutrition-form > label,
+body.dark-mode #pregnancy .pregnancy-nutrition-checkboxes label,
+body.dark-mode #pregnancy .pregnancy-nutrition-card strong,
+body.dark-mode #pregnancy .pregnancy-nutrition-summary strong,
+body.dark-mode #pregnancy .food-analysis-status strong,
+body.dark-mode #pregnancy .food-analysis-grid h4,
 body.dark-mode #pregnancy .pregnancy-tool-model-result strong,
 body.dark-mode #pregnancy .pregnancy-reminder-control label,
 body.dark-mode #pregnancy .pregnancy-telemetry-row strong,
@@ -26271,7 +26539,27 @@ body.dark-mode #pregnancy .pregnancy-reminder-summary em {
     border-color: rgba(125, 211, 252, 0.18);
 }
 
+body.dark-mode #pregnancy .pregnancy-nutrition-summary em {
+    background: #111827;
+    border-color: rgba(125, 211, 252, 0.18);
+    color: #f9a8d4;
+}
+
+body.dark-mode #pregnancy .pregnancy-nutrition-summary span,
+body.dark-mode #pregnancy .pregnancy-nutrition-card span,
+body.dark-mode #pregnancy .food-analysis-status span {
+    color: #bae6fd;
+}
+
 body.dark-mode #pregnancy .pregnancy-reminder-item.urgent {
+    background: #221a2a;
+}
+
+body.dark-mode #pregnancy .pregnancy-nutrition-card.urgent {
+    background: #221a2a;
+}
+
+body.dark-mode #pregnancy .food-analysis-result.urgent {
     background: #221a2a;
 }
 
@@ -26311,6 +26599,9 @@ body.dark-mode #pregnancy .pregnancy-risk-trend-card-head strong {
     #pregnancy .pregnancy-decision-records,
     #pregnancy .pregnancy-symptom-analysis-head,
     #pregnancy .pregnancy-symptom-card-head,
+    #pregnancy .pregnancy-nutrition-form,
+    #pregnancy .pregnancy-nutrition-grid,
+    #pregnancy .food-analysis-grid,
     #pregnancy .pregnancy-week-control,
     #pregnancy .pregnancy-week-layout,
     #pregnancy .pregnancy-week-card-grid,
@@ -26364,6 +26655,11 @@ body.dark-mode #pregnancy .pregnancy-risk-trend-card-head strong {
     }
 
     #pregnancy .pregnancy-reminder-summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    #pregnancy .pregnancy-nutrition-summary {
         align-items: flex-start;
         flex-direction: column;
     }

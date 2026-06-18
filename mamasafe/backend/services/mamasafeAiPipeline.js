@@ -1,9 +1,9 @@
 const path = require('path');
 const {
-    SAFETY_NOTE,
     answerWithGroq,
     getAiModelMetadata,
-    isGroqConfigured
+    isGroqConfigured,
+    getSafetyNote
 } = require('./groqService');
 const {
     getAiArchitectureLabel
@@ -36,7 +36,8 @@ function normalizePipelineInput(input = {}) {
         trimester: input.trimester || '',
         limit: input.limit || 5,
         context: input.context || {},
-        chatHistory: Array.isArray(input.chatHistory) ? input.chatHistory : []
+        chatHistory: Array.isArray(input.chatHistory) ? input.chatHistory : [],
+        language: input.language || 'en'
     };
 }
 
@@ -115,12 +116,59 @@ function buildPipelineTrace({ input = {}, groqResult = null, fallbackUsed = fals
 
 async function runMamasafeAiPipeline(db, rawInput = {}) {
     const input = normalizePipelineInput(rawInput);
+
+    // Nutrition-only model mode: restrict chat answers to nutrition dataset guidance.
+    // This affects the /api/ai/ask style endpoint that currently calls Groq.
+    const lower = String(input.message || '').toLowerCase();
+
+    // Allowed signals (nutrition-centric)
+    const nutritionOnlyAllowed = /\b(nutrition|food|foods|eat|eating|diet|meal|snack|hydration|water|protein|carb|carbohydrate|fiber|folate|folic|iron|calcium|vitamin|zinc|iodine|omega|omega-3|omega3|breakfast|lunch|dinner|snacks)\b/.test(lower);
+
+    // Deny signals (non-nutrition topics + safety screening)
+    const nutritionOnlyDenied = /\b(bleeding|vaginal bleeding|spotting|water broke|fluid leaking|danger sign|danger-sign|emergency|urgent|who|antenatal|anc|guideline|blood pressure|bp|systolic|diastolic|glucose|diabetes|bmi|risk level|mortality|exercise|workout|sleep|position|movement|contraction|cramps|pain|headache|vision changes|swelling|fever|fainting|seizure|vomit|vomiting|nausea|heartburn|indigestion)\b/.test(lower);
+
+    // Hard guard: if it's not clearly nutrition OR it contains any denied signals, refuse.
+    const safetyNote = 'MamaSafe provides health education and does not replace advice from a qualified healthcare professional.';
+
+    if (nutritionOnlyDenied || !nutritionOnlyAllowed) {
+        const safeReply = [
+            'Mamasafe nutrition support (dataset-only).',
+            '',
+            'I can only answer nutrition-related pregnancy questions using your stored nutrition datasets.',
+            '',
+            'Try asking something like:',
+            '- “What foods help with nausea in pregnancy?”',
+            '- “What should I eat to increase iron (and folate)?”',
+            '- “Which foods are best for calcium and protein in pregnancy?”',
+            '',
+            'If you have urgent warning signs or severe symptoms, contact a healthcare provider or emergency services.'
+        ].join('\n');
+
+        return {
+            success: true,
+            reply: safeReply,
+            answer: safeReply,
+            model: getAiModelMetadata().model,
+            provider: 'nutrition-only-guard',
+            aiModel: getAiModelMetadata(),
+            emergency: false,
+            urgent: false,
+            riskAssessment: null,
+            symptomAnalysis: null,
+            llamaRiskAssessment: null,
+            safetyNote: safetyNote,
+            pipeline: buildPipelineTrace({ input, groqResult: null, fallbackUsed: true, fallbackError: 'nutrition-only guardrail' , reply: safeReply }),
+            transformerReasoning: null,
+            rag: null,
+            retrievedAt: new Date().toISOString()
+        };
+    }
+
     if (!input.message) {
         const error = new Error('Message is required');
         error.statusCode = 400;
         throw error;
     }
-
     let groqResult = null;
     let fallbackError = '';
     if (isGroqConfigured()) {
@@ -129,7 +177,8 @@ async function runMamasafeAiPipeline(db, rawInput = {}) {
                 question: input.message,
                 week: input.week,
                 symptoms: input.symptoms,
-                emergency: false
+                emergency: false,
+                language: input.language
             });
         } catch (error) {
             fallbackError = `Groq answer fallback: ${error.message}`;
@@ -147,12 +196,12 @@ async function runMamasafeAiPipeline(db, rawInput = {}) {
         reply = [
             'I could not generate a response from the AI.',
             'Use this app as educational support and contact a qualified clinician for advice specific to this pregnancy.',
-            SAFETY_NOTE
+            safetyNote
         ].filter(Boolean).join('\n\n');
     }
 
-    if (!reply.includes(SAFETY_NOTE)) {
-        reply = `${reply}\n\n${SAFETY_NOTE}`;
+    if (!reply.includes(safetyNote)) {
+        reply = `${reply}\n\n${safetyNote}`;
     }
 
     const pipeline = buildPipelineTrace({
@@ -175,7 +224,7 @@ async function runMamasafeAiPipeline(db, rawInput = {}) {
         riskAssessment: null,
         symptomAnalysis: null,
         llamaRiskAssessment: null,
-        safetyNote: SAFETY_NOTE,
+        safetyNote: safetyNote,
         pipeline,
         transformerReasoning: pipeline.steps.find(step => step.name === 'Transformer processes + reasons' || step.step === 'Transformer processes + reasons'),
         rag: null,

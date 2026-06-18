@@ -42,9 +42,20 @@ async function chatWithGroq(systemPrompt, userPrompt, options = {}) {
     return response.choices[0]?.message?.content || '';
 }
 
+function getSafetyNote() {
+    return 'MamaSafe provides health education and does not replace advice from a qualified healthcare professional.';
+}
+
 function buildSystemPrompt({ emergency = false } = {}) {
+    const instruction = 'You MUST respond ONLY in English. Do not use any other language.';
+    const safetyNote = getSafetyNote();
+    
     return [
-        'You are MamaSafe, a pregnancy health education assistant powered by Llama 3.3 70B via Groq.',
+        instruction,
+        'You are MamaSafe (pregnancy nutrition + pregnancy education assistant) for the MamaSafe application ONLY.',
+        'You CAN ONLY answer pregnancy nutrition questions (what to eat, hydration, pregnancy vitamins/minerals like iron/folate/calcium, and pregnancy food guidance).',
+        'You CANNOT answer general conversation or unrelated pregnancy topics like risk screening, exercise, sleep, symptoms diagnosis, or emergency triage.',
+        'If the user asks about ANYTHING NOT nutrition-related, politely decline and redirect to nutrition guidance using the provided datasets/topics.',
         'Use simple, calm language and practical next steps.',
         'Briefly explain the main reason for the guidance when it helps the user act safely.',
         'Do not diagnose, prescribe, or claim certainty.',
@@ -52,7 +63,7 @@ function buildSystemPrompt({ emergency = false } = {}) {
         emergency
             ? 'The user message contains a possible urgent maternal warning sign. Start by advising urgent medical care or emergency services now.'
             : 'For symptoms that are severe, sudden, worsening, or worrying, advise contacting a clinician promptly.',
-        `End every answer with this exact note: "${SAFETY_NOTE}"`
+        `End every answer with this exact note: "${safetyNote}"`
     ].join('\n');
 }
 
@@ -71,10 +82,11 @@ async function answerWithGroq({ question, week, symptoms, emergency = false }) {
         maxTokens: 900
     });
 
+    const safetyNote = getSafetyNote();
     reply = String(reply || '').trim() || 'I could not generate a response from Groq.';
 
-    if (!reply.includes(SAFETY_NOTE)) {
-        reply = `${reply}\n\n${SAFETY_NOTE}`;
+    if (!reply.includes(safetyNote)) {
+        reply = `${reply}\n\n${safetyNote}`;
     }
 
     return {
@@ -82,7 +94,7 @@ async function answerWithGroq({ question, week, symptoms, emergency = false }) {
         model,
         aiModel: getAiModelMetadata(),
         provider: 'groq',
-        safetyNote: SAFETY_NOTE
+        safetyNote: safetyNote
     };
 }
 
@@ -143,7 +155,7 @@ function toStringArray(value, fallback = []) {
     return fallback;
 }
 
-function normalizeGroqRiskAssessment(raw = {}, { model, emergency = false } = {}) {
+function normalizeGroqRiskAssessment(raw = {}, { model, emergency = false, safetyNote } = {}) {
     const riskClass = normalizeRiskClass(raw.riskClass || raw.riskLevel || raw.rating);
     const riskLevel = normalizeRiskLevel(raw.riskLevel || riskClass);
     const symptoms = Array.isArray(raw.symptoms) ? raw.symptoms : [];
@@ -203,15 +215,27 @@ function normalizeGroqRiskAssessment(raw = {}, { model, emergency = false } = {}
             whatToDo: toStringArray(item.whatToDo || item.nextSteps || item.actions),
             redFlags: toStringArray(item.redFlags || item.warningSigns)
         })),
-        safetyNote: SAFETY_NOTE
+        safetyNote: safetyNote
     };
 }
 
-function buildRiskAssessmentPrompt({ question, week, symptoms, symptomAnalysis, emergency }) {
+function buildRiskAssessmentPrompt({ question, week, symptoms, symptomAnalysis, emergency, vitals }) {
     return [
         week ? `Pregnancy week: ${week}` : '',
         symptoms ? `Symptoms or notes: ${symptoms}` : '',
         emergency ? 'Emergency flag: a possible urgent pregnancy warning sign was detected.' : '',
+        '',
+        'Required maternal vitals risk screen inputs:',
+        '- age',
+        '- bodyWeightKg',
+        '- previousComplications',
+        '- week',
+        '- symptomsOrNotes',
+        '',
+        'Use those five inputs as the primary basis for the risk rate assessment. Optional legacy values such as blood pressure, blood sugar, temperature, heart rate, or BMI may add context if present, but do not require them.',
+        '',
+        'Maternal vitals and history payload:',
+        vitals ? JSON.stringify(vitals, null, 2) : '',
         '',
         'Safety baseline from MamaSafe rules:',
         JSON.stringify(symptomAnalysis || {}, null, 2),
@@ -226,14 +250,14 @@ function buildRiskAssessmentPrompt({ question, week, symptoms, symptomAnalysis, 
             confidenceScore: 0.0,
             accuracy: 0.0,
             urgent: false,
-            symptomDescription: 'short pregnancy-safe explanation of the symptom pattern',
-            reasons: ['why this rating was chosen'],
+            symptomDescription: 'short pregnancy-safe explanation based on age, body weight kg, previous complications, week, and symptoms or notes',
+            reasons: ['why this rating was chosen from the required maternal vitals risk screen inputs'],
             whatToDo: ['clear next step'],
             symptoms: [
                 {
                     name: 'symptom name',
                     riskLevel: 'low risk | mid risk | high risk',
-                    description: 'what this symptom can mean in pregnancy',
+                    description: 'what this symptom and vitals can mean in pregnancy',
                     whatToDo: ['what the user should do'],
                     redFlags: ['when to seek urgent care']
                 }
@@ -247,26 +271,33 @@ async function assessPregnancyRiskWithGroq({
     week,
     symptoms,
     symptomAnalysis = null,
-    emergency = false
+    emergency = false,
+    vitals = null
 }) {
+    const instruction = 'You MUST respond ONLY in English. Do not use any other language.';
+    const safetyNote = getSafetyNote();
+    
     const model = getGroqChatModel();
     const content = await chatWithGroq(
         [
-            'You are MamaSafe pregnancy risk assessment AI using Llama 3.3 70B via Groq.',
-            'Use only the provided safety baseline.',
-            'You may raise the risk level if symptoms sound more concerning, but never lower an urgent/high-risk safety baseline.',
+            instruction,
+            'You are MamaSafe pregnancy risk assessment AI using Llama 3.3 70B via Groq for the MamaSafe app only.',
+            'You can only work with pregnancy health, maternal vitals, prenatal care, and pregnancy-related topics.',
+            'Use only the provided safety baseline and maternal vitals and history.',
+            'You may raise the risk level if symptoms or vitals sound more concerning, but never lower an urgent/high-risk safety baseline.',
             'Do not diagnose or prescribe treatment.',
             'Use simple, practical, medically cautious wording.',
-            'Return only JSON. No markdown. No extra text.'
+            'Return only JSON. No markdown. No extra text.',
         ].join('\n'),
         buildRiskAssessmentPrompt({
             question,
             week,
             symptoms,
             symptomAnalysis,
-            emergency
+            emergency,
+            vitals
         }),
-        { temperature: 0.1, maxTokens: 1000 }
+        { temperature: 0.1, maxTokens: 1500 }
     );
 
     const parsed = extractJsonObject(String(content || '').trim());
@@ -275,7 +306,7 @@ async function assessPregnancyRiskWithGroq({
     }
 
     return {
-        ...normalizeGroqRiskAssessment(parsed, { model, emergency }),
+        ...normalizeGroqRiskAssessment(parsed, { model, emergency, safetyNote }),
         raw: parsed
     };
 }

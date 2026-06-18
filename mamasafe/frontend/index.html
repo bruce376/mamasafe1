@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mamasafe - Pregnancy Care, Courses & Baby Names</title>
+    <title>Mamasafe - Pregnancy Care  Courses </title>
     <link rel="icon" type="image/png" href="assets/mamasafe-logo.png">
     <link rel="stylesheet" href="styles.css?v=20260609-pregnancy-tools">
     <base target="_self">
@@ -15,7 +16,6 @@
             <div class="top-bar-content">
                 <span>Mamasafe pregnancy care and learning support for mothers</span>
                 <div class="top-links">
-                    <a href="#">Get Our App</a>
                     <a href="javascript:void(0)" onclick="navigateTo('help-section')">Help Center</a>
                 </div>
             </div>
@@ -34,9 +34,8 @@
                 <nav class="main-nav">
                     <a onclick="navigateTo('pregnancy')" data-page="pregnancy">Pregnancy <span class="account-badge"></span></a>
                     <a onclick="navigateTo('courses')" data-page="courses">Courses <span class="account-badge"></span></a>
-                    <a onclick="navigateTo('names')" data-page="names">Baby Names <span class="account-badge"></span></a>
-                    <a onclick="navigateTo('help-section')" data-page="help-section">Help Section <span class="account-badge"></span></a>
-                </nav>
+
+                    
 
                 <div class="header-actions">
                     <div class="search-box">
@@ -51,11 +50,9 @@
                         <div class="notification-panel" id="notificationPanel" aria-live="polite">
                             <div class="notification-panel-head">
                                 <div>
-                                    <strong>Notifications & Alerts</strong>
-                                    <span>Stay updated on important messages</span>
+                                    <strong>Notifications</strong>
                                 </div>
                                 <div class="notification-panel-actions">
-                                    <button type="button" onclick="enableBrowserNotifications()">Enable alerts</button>
                                     <button type="button" onclick="refreshNotificationsPanel()">Refresh</button>
                                     <button type="button" onclick="clearNotificationsPanel()">Clear</button>
                                 </div>
@@ -64,26 +61,10 @@
                                 <button class="notification-tab active" data-tab="notifications" onclick="switchNotificationTab('notifications')">
                                     <span class="tab-icon">🔔</span> Notifications
                                 </button>
-                                <button class="notification-tab" data-tab="messages" onclick="switchNotificationTab('messages')">
-                                    <span class="tab-icon">💬</span> Messages
-                                </button>
-                                <button class="notification-tab" data-tab="alerts" onclick="switchNotificationTab('alerts')">
-                                    <span class="tab-icon">⚠️</span> Alerts
-                                </button>
                             </div>
                             <div class="notification-tab-content active" id="notifications-tab">
                                 <div class="notification-list" id="notificationList">
                                     <div class="notification-empty">No notifications yet</div>
-                                </div>
-                            </div>
-                            <div class="notification-tab-content" id="messages-tab">
-                                <div class="notification-list" id="messagesList">
-                                    <div class="notification-empty">No messages yet</div>
-                                </div>
-                            </div>
-                            <div class="notification-tab-content" id="alerts-tab">
-                                <div class="notification-list" id="alertsList">
-                                    <div class="notification-empty">No alerts yet</div>
                                 </div>
                             </div>
                         </div>
@@ -107,12 +88,12 @@
                 <div class="home-hero-grid">
                     <div class="home-hero-panel">
                         <span class="home-hero-kicker">Mamasafe command center</span>
-                        <h1>Clear care tools for pregnancy, learning, names, and support.</h1>
+                        <h1>Clear MamaSafe tools for pregnancy nutrition support.</h1>
                         <p>Open the right tracker fast, review daily pregnancy priorities, and keep professional help close without digging through the app.</p>
                         <div class="home-hero-actions">
                             <button class="btn-primary" onclick="homeStartJourney()">Open My Care Space</button>
                             <button class="btn-secondary" onclick="openHomeHealthAI()">Ask Mamasafe AI</button>
-                            <button class="btn-secondary" onclick="navigateTo('help-section')">Get Professional Help</button>
+                           
                         </div>
                         <div class="home-metric-strip">
                             <div><strong>4</strong><span>Care spaces</span></div>
@@ -131,53 +112,26 @@
                         <select id="homeJourneySelect" onchange="homeUpdateJourneyPreview()">
                             <option value="pregnancy">Pregnancy hub</option>
                             <option value="courses">Courses</option>
-                            <option value="names">Baby names</option>
-                            <option value="help-section">Professional help</option>
+                            
                         </select>
                         <div class="home-stage-preview" id="homeStagePreview">
                             Choose an area to see the best next action.
                         </div>
                         <button class="home-wide-btn" type="button" onclick="homeStartJourney()">Continue</button>
                         <div class="home-quick-row">
-                            <button type="button" onclick="navigateTo('names')">Names</button>
+
                             <button type="button" onclick="navigateTo('courses')">Courses</button>
-                            <button type="button" onclick="toggleNotificationsPanel()">Alerts</button>
+                            
                         </div>
                     </aside>
                 </div>
 
                 <div class="home-priority-strip">
-                    <button type="button" onclick="navigateTo('due-date-calculator')"><span>Due Date</span><strong>Calculate pregnancy timing</strong></button>
-                    <button type="button" onclick="navigateTo('baby-kick-counter')"><span>Kick Counter</span><strong>Track baby movement</strong></button>
-                    <button type="button" onclick="navigateTo('contraction-timer')"><span>Contractions</span><strong>Time labor patterns</strong></button>
+                   
                     <button type="button" onclick="navigateTo('courses')"><span>Courses</span><strong>Study guided lessons</strong></button>
                 </div>
 
-                <div class="home-operations-grid">
-                    <article class="home-card home-calculator-card">
-                        <div class="home-card-title">
-                            <span>Quick calculator</span>
-                            <strong>Pregnancy due date</strong>
-                        </div>
-                        <div class="home-form-grid">
-                            <label>First day of last period
-                                <input type="date" id="homeLastPeriod">
-                            </label>
-                            <label>Cycle length
-                                <select id="homeCycleLength">
-                                    <option value="28">28 days</option>
-                                    <option value="21">21 days</option>
-                                    <option value="25">25 days</option>
-                                    <option value="30">30 days</option>
-                                    <option value="35">35 days</option>
-                                </select>
-                            </label>
-                        </div>
-                        <button class="calculate-btn" id="homeCalculateBtn" onclick="calculateHomeDueDate()">Calculate</button>
-                        <div class="home-result-grid" id="homeResult">
-                            <div><span>Estimated date</span><strong id="homeDueDate">--</strong></div>
-                            <div><span>Weeks remaining</span><strong id="homeWeeks">--</strong></div>
-                        </div>
+                
                     </article>
 
                     <article class="home-card">
@@ -202,7 +156,7 @@
                         <p>For severe bleeding, chest pain, trouble breathing, fainting, seizures, or reduced baby movement, seek urgent medical care immediately.</p>
                         <div class="home-alert-actions">
                             <a href="tel:912">Call 912</a>
-                            <button type="button" onclick="navigateTo('help-section')">Find Hospital</button>
+                            
                             <button type="button" onclick="openHomeHealthAI()">Ask Mamasafe AI</button>
                         </div>
                     </article>
@@ -214,31 +168,22 @@
                     <p>Each area opens focused functions, records, guidance, and next-step actions for pregnancy care.</p>
                 </div>
 
-                <div class="home-journey-grid">
+                    <div class="home-journey-grid" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
+
                     <article onclick="navigateTo('pregnancy')">
                         <span class="home-journey-code">PG</span>
                         <h3>Pregnancy</h3>
-                        <p>Weekly growth, symptoms, kicks, appointments, contractions, and pregnancy briefing.</p>
+                        <p>Weekly growth & Nutrutions guidance</p>
                         <strong>Open pregnancy hub</strong>
                     </article>
                     <article onclick="navigateTo('courses')">
                         <span class="home-journey-code">LRN</span>
                         <h3>Courses</h3>
-                        <p>Birth preparation, pregnancy health, breastfeeding basics, safety, and practical care skills.</p>
+                        <p> pregnancy health & Nutrition Recommendations.</p>
                         <strong>Open learning center</strong>
                     </article>
-                    <article onclick="navigateTo('names')">
-                        <span class="home-journey-code">NAM</span>
-                        <h3>Baby Names</h3>
-                        <p>Search names, compare meanings, save favorites, and open AI-powered name details.</p>
-                        <strong>Open name finder</strong>
-                    </article>
-                    <article onclick="navigateTo('help-section')">
-                        <span class="home-journey-code">SOS</span>
-                        <h3>Professional Help</h3>
-                        <p>Hospitals, emergency guidance, ambulance access, help requests, and contacts.</p>
-                        <strong>Open help center</strong>
-                    </article>
+                    
+                    
                 </div>
 
                 <div class="home-tool-belt">
@@ -247,13 +192,9 @@
                         <h2>Everything important, grouped clearly</h2>
                     </div>
                     <div class="home-tool-grid">
-                        <button type="button" onclick="navigateTo('due-date-calculator')"><span>Pregnancy</span>Due Date</button>
-                        <button type="button" onclick="navigateTo('pregnancy-tracker')"><span>Pregnancy</span>Tracker</button>
-                        <button type="button" onclick="navigateTo('baby-kick-counter')"><span>Pregnancy</span>Kick Counter</button>
-                        <button type="button" onclick="navigateTo('contraction-timer')"><span>Pregnancy</span>Contractions</button>
+      
                         <button type="button" onclick="navigateTo('courses')"><span>Learning</span>Courses</button>
-                        <button type="button" onclick="navigateTo('names')"><span>Names</span>Baby Names</button>
-                        <button type="button" onclick="navigateTo('help-section')"><span>Support</span>Help Center</button>
+     
                         <button type="button" onclick="navigateTo('account')"><span>Account</span>Saved Care</button>
                     </div>
                 </div>
@@ -272,7 +213,7 @@
                             <span>Learning</span>
                             <strong>Prepare before the next milestone</strong>
                         </div>
-                        <p class="home-subtle">Use short courses and practical guides for pregnancy preparation, birth planning, breastfeeding basics, safety, and recovery.</p>
+                        <p class="home-subtle">Use short courses and practical guides for Nutrition.</p>
                         <button class="home-wide-btn" type="button" onclick="navigateTo('courses')">Browse Courses</button>
                     </article>
                     <article class="home-card">
@@ -308,16 +249,16 @@
             <div class="auth-shell">
                 <aside class="auth-story-panel">
                     <span class="auth-eyebrow">Mamasafe private dashboard</span>
-                    <h1>Welcome back to your motherhood space.</h1>
-                    <p>Continue tracking pregnancy, courses, saved names, and support requests from one calm place built for mothers and caregivers.</p>
+                    <h1>Welcome back to MamaSafe.</h1>
+                    <p>Continue tracking pregnancy & courses from one calm place built for mothers and caregivers.</p>
                     <div class="auth-insight-grid">
                         <div>
                             <strong>Care timeline</strong>
-                            <span>Pregnancy, learning, names, and support tools</span>
+                            <span>Pregnancy & learning</span>
                         </div>
                         <div>
                             <strong>Saved progress</strong>
-                            <span>Courses, trackers, and favorite names</span>
+                            <span>Courses</span>
                         </div>
                         <div>
                             <strong>AI support</strong>
@@ -337,7 +278,7 @@
                         <p>Sign in to reopen your saved dashboard and personal guidance.</p>
                     </div>
 
-                    <form class="auth-form" onsubmit="handleLogin(event)">
+                    <form class="auth-form" onsubmit="handleFirebaseEmailLogin(event)">
                         <div class="auth-field">
                             <label for="loginEmail">Email address</label>
                             <input type="email" id="loginEmail" placeholder="mama@example.com" autocomplete="email" required>
@@ -360,6 +301,25 @@
                         </div>
 
                         <button type="submit" class="auth-btn">Open My Mamasafe Dashboard</button>
+
+                        <div class="auth-footer" style="margin-top: 16px;">
+                            <button type="button" id="googleLogin" class="auth-btn" style="background:#fff; border:1px solid #e2e8f0; color:#0f172a;">
+                                <span style="display:inline-flex; align-items:center; justify-content:center; gap:12px;">
+                                    <svg class="google-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path fill="#4285f4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                        <path fill="#14b8a6" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                        <path fill="#f59e0b" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                        <path fill="#fb7185" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                    </svg>
+                                    Continue with Google
+                                </span>
+                            </button>
+                        </div>
+
+                        <div class="loading" id="loading">
+                            <div class="spinner"></div>
+                            <p>Connect to Google...</p>
+                        </div>
                     </form>
 
                     <div class="auth-footer">
@@ -377,7 +337,7 @@
                 <aside class="auth-story-panel auth-story-panel-light">
                     <span class="auth-eyebrow">Designed for mothers</span>
                     <h1>Create a profile that follows your care journey.</h1>
-                    <p>Tell Mamasafe where you are now so the app can bring the right trackers, reminders, courses, and AI guidance closer.</p>
+                    <p>Tell Mamasafe where you are now so the app can bring Nutrition Recommendation courses, and AI guidance closer.</p>
                     <div class="auth-stage-list">
                         <div><strong>1</strong><span>Choose your motherhood stage</span></div>
                         <div><strong>2</strong><span>Save your care priorities</span></div>
@@ -392,7 +352,7 @@
                         <p>Set up a private profile for pregnancy tracking, courses, names, and professional support.</p>
                     </div>
 
-                    <form class="auth-form" onsubmit="handleSignup(event)">
+<form class="auth-form" onsubmit="window.handleFirebaseSignup(event)">
                         <div class="form-row">
                             <div class="auth-field">
                                 <label for="firstName">First name</label>
@@ -460,7 +420,7 @@
                             <span class="pregnancy-rag-kicker">Pregnancy Risk Screening</span>
                             <h1>AI-powered maternal vitals assessment.</h1>
                             <div class="pregnancy-rag-actions">
-                                <button type="button" class="pregnancy-rag-primary" onclick="document.getElementById('pregnancyDecisionForm').scrollIntoView({ behavior: 'smooth', block: 'center' })">Analyze vitals</button>
+                                <button type="button" class="pregnancy-rag-primary" onclick="navigateTo('pregnancy-week-tracker')">Analyze vitals</button>
                             </div>
                         </div>
                     </div>
@@ -469,71 +429,34 @@
 
             <div class="pregnancy-rag-main">
                 <div class="container">
-                    <section class="pregnancy-rag-panel pregnancy-decision-panel" aria-labelledby="pregnancyDecisionTitle">
+                    <section class="pregnancy-rag-panel pregnancy-food-analysis-panel" aria-labelledby="pregnancyFoodAnalysisTitle">
                         <div class="pregnancy-rag-panel-head">
-                            <span>Core assessment</span>
-                            <h2 id="pregnancyDecisionTitle">Maternal vitals risk screen</h2>
+                            <span>Food safety and nutrients</span>
+                            <h2 id="pregnancyFoodAnalysisTitle">Food Analysis Tool</h2>
+                            <p>Enter a food to see essential nutrients and whether it is generally helpful, caution-level, or harmful during pregnancy.</p>
                         </div>
-                        <form id="pregnancyDecisionForm" class="pregnancy-rag-form pregnancy-decision-form">
-                            <div class="pregnancy-decision-inputs">
+
+                        <form id="foodAnalysisForm" class="pregnancy-rag-form pregnancy-food-analysis-form">
+                            <div class="pregnancy-rag-form-row">
                                 <label>
-                                    Age
-                                    <input id="pregnancyDecisionAge" type="number" min="10" max="60" value="25" required>
+                                    Food name
+                                    <input id="foodAnalysisInput" type="text" placeholder="Example: salmon, spinach, eggs, raw fish">
                                 </label>
+
                                 <label>
-                                    Blood pressure
-                                    <input id="pregnancyDecisionBloodPressure" type="text" inputmode="numeric" pattern="[0-9]{2,3}[^0-9]+[0-9]{2,3}" value="120/80" placeholder="120/80" required>
-                                </label>
-                                <label>
-                                    Body temp F
-                                    <input id="pregnancyDecisionTemp" type="number" step="0.1" value="98.6" required>
-                                </label>
-                                <label>
-                                    Heart rate
-                                    <input id="pregnancyDecisionHeartRate" type="number" min="30" max="220" value="70" required>
-                                </label>
-                                <label>
-                                    Body weight kg
-                                    <input id="pregnancyDecisionWeight" type="number" min="35" max="200" step="0.1" value="63">
-                                </label>
-                                <label>
-                                    Previous complications
-                                    <select id="pregnancyDecisionPreviousComplications">
-                                        <option value="0" selected>No</option>
-                                        <option value="1">Yes</option>
-                                    </select>
-                                </label>
-                                <label>
-                                    Diabetes history
-                                    <select id="pregnancyDecisionDiabetes">
-                                        <option value="none" selected>No diabetes</option>
-                                        <option value="preexisting">Diabetes before pregnancy</option>
-                                        <option value="gestational">Gestational diabetes</option>
-                                    </select>
-                                </label>
-                                <label>
-                                    Mental health flag
-                                    <select id="pregnancyDecisionMentalHealth">
-                                        <option value="0" selected>No</option>
-                                        <option value="1">Yes</option>
-                                    </select>
-                                </label>
-                                <label>
-                                    Week
-                                    <input id="pregnancyDecisionWeek" type="number" min="1" max="42" value="24">
+                                    Notes
+                                    <input id="foodAnalysisNotes" type="text" placeholder="Example: cooked, raw, soft cheese, nauseous">
                                 </label>
                             </div>
-                            <label>
-                                Symptoms or notes
-                                <textarea id="pregnancyDecisionSymptoms" rows="3" placeholder="Example: headache, swelling, bleeding, reduced movement"></textarea>
-                            </label>
+
                             <div class="pregnancy-rag-submit-row">
-                                <button type="submit" class="pregnancy-rag-primary">Analyze maternal risk</button>
+                                <button type="submit" class="pregnancy-rag-primary">Analyze food</button>
                             </div>
                         </form>
-                        <div id="pregnancyDecisionOutput" class="pregnancy-rag-answer pregnancy-decision-output" aria-live="polite">
-                            <strong>Risk result appears here.</strong>
-                            <p>The dashboard will show the risk level, confidence, probability bars, and the main reasons behind the result.</p>
+
+                        <div id="foodAnalysisOutput" class="pregnancy-rag-answer food-analysis-output" aria-live="polite">
+                            <strong>Food analysis results will appear here.</strong>
+                            <p>Try foods such as salmon, eggs, spinach, deli meat, raw fish, soft cheese, or coffee.</p>
                         </div>
                     </section>
 
@@ -604,72 +527,7 @@
     </section>
 
 
-    <!-- BABY NAMES PAGE -->
-    <section id="names" class="page-section names-page">
-        <div class="names-hero">
-            <div class="container">
-                <div class="names-eyebrow">Baby names</div>
-                <h1>Find a name you love</h1>
-                <p>Search by name, meaning, origin, or style. Save favorites and compare your shortlist without the clutter.</p>
-                <div class="names-hero-metrics" aria-label="Names page highlights">
-                    <div><strong>200+</strong><span>local names</span></div>
-                    <div><strong>AI</strong><span>guided ideas</span></div>
-                    <div><strong>1 tap</strong><span>save favorites</span></div>
-                </div>
-                
-                <div class="names-search-container">
-                    <input type="text" placeholder="Search by name, meaning, or origin..." id="nameSearchInput" class="names-search-input">
-                    <button onclick="searchNames()" class="btn-primary">🔍 Search</button>
-                </div>
 
-                <div class="names-online-controls" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap;">
-                    <label style="display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-gray);">
-                        <input type="checkbox" id="onlineNamesToggle" style="transform: translateY(1px);" checked>
-                        ✨ AI-Powered Search
-                    </label>
-                    <span id="namesOnlineStatus" style="font-size: 13px; color: var(--text-gray);"></span>
-                </div>
-
-                <!-- Favorites Toggle -->
-                <div class="names-view-toggle" style="display: flex; justify-content: center; gap: 16px; margin-top: 16px;">
-                    <button id="showAllNamesBtn" class="btn-primary">All Names</button>
-                    <button id="showFavoritesBtn" class="btn-secondary">My Favorites ❤️</button>
-                </div>
-
-                <div class="name-categories">
-                    <a class="category-pill active" onclick="filterNames('all', this)">All Names</a>
-                    <a class="category-pill" onclick="filterNames('boy', this)">Boy Names</a>
-                    <a class="category-pill" onclick="filterNames('girl', this)">Girl Names</a>
-                    <a class="category-pill" onclick="filterNames('unisex', this)">Unisex</a>
-                    <a class="category-pill" onclick="filterNames('unique', this)">Unique</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <div class="container">
-                <div class="names-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h2 id="namesTitle">Popular Names</h2>
-                    <select class="names-sort-select" style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);" onchange="sortNames(this.value)">
-                        <option value="popular">Most Popular</option>
-                        <option value="az">A-Z</option>
-                        <option value="za">Z-A</option>
-                    </select>
-                </div>
-                <div class="names-container">
-                    <!-- Horizontal Navigation -->
-                    <div class="names-scroll-nav">
-                        <button class="scroll-nav-btn" onclick="scrollNames('left')">← Previous</button>
-                        <button class="scroll-nav-btn" onclick="scrollNames('right')">Next →</button>
-                    </div>
-                    
-                    <div class="names-list" id="namesList">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Name Detail Modal -->
     <div id="nameDetailModal" class="modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modalNameTitle">
@@ -710,17 +568,17 @@
                 <div class="free-hero-inner">
                     <div class="free-hero-copy">
                         <span class="badge-glow">🎁 Free Course Hub</span>
-                        <h1>Build a smarter pregnancy and baby learning path</h1>
-                        <p>Search lessons, unlock starter courses, generate a Llama 3.3 70B path, and keep progress visible from one polished dashboard.</p>
+                        <h1>Pregnancy Nutrition Masterclass</h1>
+                        <p>Study essential nutrients, food safety, trimester meal planning, hydration, cravings, and postpartum recovery from one expanded course.</p>
                         <div class="course-hero-actions">
-                            <button class="btn-primary" onclick="unlockAllStarterCourses()">Unlock Starter Path</button>
-                            <button class="btn-secondary course-hero-secondary" onclick="generateCourseRecommendations()">Build My Path</button>
-                            <button class="btn-secondary course-hero-secondary" onclick="askExpert()">Ask Expert AI</button>
+                            <button class="btn-primary" onclick="unlockAllStarterCourses()">Unlock Nutrition Course</button>
+                            <button class="btn-secondary course-hero-secondary" onclick="generateCourseRecommendations()">Build Nutrition Plan</button>
+                            <button class="btn-secondary course-hero-secondary" onclick="askExpert()">Ask Nutrition AI</button>
                         </div>
                         <div class="courses-hero-stats" aria-label="Learning summary">
                             <div class="course-stat-card">
                                 <span id="statTotalCourses">0</span>
-                                <p>Courses</p>
+                                <p>Course</p>
                             </div>
                             <div class="course-stat-card">
                                 <span id="statEnrolled">0</span>
@@ -740,11 +598,11 @@
                     <div class="free-hero-cards">
                         <div class="feature-card">
                             <h3>AI notes</h3>
-                            <p>Generate deeper topic notes and course answers from the connected Llama 3.3 70B learning engine.</p>
+                            <p>Generate deeper nutrition notes and food-safety answers from the connected Llama 3.3 70B learning engine.</p>
                         </div>
                         <div class="feature-card">
                             <h3>Guided progress</h3>
-                            <p>Filter courses, unlock your starter path, and continue from the next unfinished topic.</p>
+                            <p>Unlock the nutrition course, continue from the next unfinished topic, and keep progress visible.</p>
                         </div>
                     </div>
                 </div>
@@ -756,25 +614,20 @@
                 <div class="free-course-main">
                     <div class="section-header-glass">
                         <div class="section-badge-glow">📚 Free Courses</div>
-                        <h2 class="section-title-3d">Choose the next lesson with confidence</h2>
-                        <p class="section-subtitle-glass">Open a course to study topics, generate AI notes, ask questions, and mark progress.</p>
+                        <h2 class="section-title-3d">Study pregnancy nutrition with confidence</h2>
+                        <p class="section-subtitle-glass">Open the course to study topics, generate AI notes, ask questions, and mark progress.</p>
                     </div>
                     <div class="course-control-panel">
                         <div class="course-search-field">
                             <span>Search</span>
-                            <input id="courseSearchInput" type="search" placeholder="Course, topic, nutrition, sleep..." autocomplete="off">
+                            <input id="courseSearchInput" type="search" placeholder="Search nutrients, food safety, hydration..." autocomplete="off">
                         </div>
                         <div class="course-filter-grid">
                             <label>
                                 Category
                                 <select id="courseCategoryFilter">
                                     <option value="all">All categories</option>
-                                    <option value="Pregnancy">Pregnancy</option>
                                     <option value="Nutrition">Nutrition</option>
-                                    <option value="Sleep">Sleep</option>
-                                    <option value="Wellness">Wellness</option>
-                                    <option value="Fitness">Fitness</option>
-                                    <option value="Safety">Safety</option>
                                 </select>
                             </label>
                             <label>
@@ -805,7 +658,7 @@
                     <div class="course-path-panel">
                         <div class="course-path-copy">
                             <span>Learning map</span>
-                            <strong>Your unlocked courses light up as you progress.</strong>
+                            <strong>Your nutrition course lights up as you progress.</strong>
                         </div>
                         <div id="neuralPathVisualizer" class="course-path-visualizer"></div>
                     </div>
@@ -815,8 +668,8 @@
 
                 <aside class="free-course-sidebar">
                     <div class="feature-card course-ai-panel">
-                        <h3>AI Path Builder</h3>
-                        <p>Personalize recommendations with your stage, goals, and learning pace.</p>
+                        <h3>AI Nutrition Builder</h3>
+                        <p>Personalize the nutrition course with your stage, goals, and learning pace.</p>
                         <label>
                             Stage
                             <select id="assessmentStage">
@@ -826,10 +679,10 @@
                             </select>
                         </label>
                         <div class="course-goal-chips">
-                            <label><input class="goal-checkbox" type="checkbox" value="birth"> Birth</label>
-                            <label><input class="goal-checkbox" type="checkbox" value="nutrition"> Nutrition</label>
-                            <label><input class="goal-checkbox" type="checkbox" value="sleep"> Sleep</label>
-                            <label><input class="goal-checkbox" type="checkbox" value="wellness"> Wellness</label>
+                            <label><input class="goal-checkbox" type="checkbox" value="nutrition" checked> Nutrition</label>
+                            <label><input class="goal-checkbox" type="checkbox" value="food-safety"> Food safety</label>
+                            <label><input class="goal-checkbox" type="checkbox" value="meal-planning"> Meal planning</label>
+                            <label><input class="goal-checkbox" type="checkbox" value="postpartum-nutrition"> Postpartum</label>
                         </div>
                         <div class="course-ai-selects">
                             <label>
@@ -849,7 +702,7 @@
                                 </select>
                             </label>
                         </div>
-                        <button class="btn-primary" onclick="generateCourseRecommendations()">Generate Path</button>
+                        <button class="btn-primary" onclick="generateCourseRecommendations()">Generate Nutrition Plan</button>
                     </div>
                     <div class="feature-card feature-card-highlight">
                         <h3>Today’s learning tip</h3>
@@ -858,7 +711,7 @@
                     </div>
 
                     <div class="feature-card">
-                        <h3>Unlocked courses</h3>
+                        <h3>Unlocked course</h3>
                         <div id="unlockedCoursesList" class="unlocked-courses-list"></div>
                     </div>
 
@@ -868,7 +721,7 @@
                             <div><span id="statTotalTopics">0</span><small>Topics</small></div>
                             <div><span id="statProgressAverage">0%</span><small>Average</small></div>
                         </div>
-                        <button class="btn-secondary" onclick="askExpert()">Ask Expert AI</button>
+                        <button class="btn-secondary" onclick="askExpert()">Ask Nutrition AI</button>
                     </div>
                 </aside>
             </div>
@@ -1301,7 +1154,7 @@
                 <button type="button" class="admin-nav" data-admin-view="users" onclick="adminSetView('users')">Users</button>
                 <button type="button" class="admin-nav" data-admin-view="ai" onclick="adminSetView('ai')">AI Monitoring</button>
                 <button type="button" class="admin-nav" data-admin-view="help" onclick="adminSetView('help')">Help Requests</button>
-                <button type="button" class="admin-nav" data-admin-view="emergency" onclick="adminSetView('emergency')">Emergencies</button>
+              
                 <button type="button" class="admin-nav" data-admin-view="content" onclick="adminSetView('content')">Content</button>
                 <button type="button" class="admin-nav" data-admin-view="notifications" onclick="adminSetView('notifications')">Notifications</button>
                 <button type="button" class="admin-nav" data-admin-view="reports" onclick="adminSetView('reports')">Reports</button>
@@ -1354,7 +1207,7 @@
                                 <div class="admin-action-grid">
                                     <button type="button" onclick="adminSetView('content')">Add Article</button>
                                     <button type="button" onclick="adminSetView('notifications')">Send Notification</button>
-                                    <button type="button" onclick="adminSetView('emergency')">View Emergencies</button>
+                                    
                                     <button type="button" onclick="adminSetView('ai')">Review AI Logs</button>
                                 </div>
                             </article>
@@ -1521,7 +1374,9 @@
                                 <option value="32">32 days</option>
                             </select>
                         </div>
-                        <button onclick="calculateDueDate()" class="btn-primary">Calculate Due Date</button>
+                        <button onclick="calculateDueDate(); window.syncPregnancyFromDueDate && window.syncPregnancyFromDueDate();" class="btn-primary">Calculate Due Date</button>
+
+
                         <div id="dueDateResult" class="result-box signs-result-panel due-date-result-panel">
                             <h4>Your Calculated Due Date</h4>
                             <div class="sign-result sign-result-low" id="dueDateBanner">
@@ -1883,7 +1738,7 @@
                 <div class="footer-col">
                     <h4>Resources</h4>
                     <ul>
-                        <li><a onclick="navigateTo('names')">Baby Names</a></li>
+
                         <li><a onclick="navigateTo('courses')">Courses</a></li>
                     </ul>
                 </div>
@@ -1917,7 +1772,7 @@
 
     <!-- Load modules in dependency order -->
     <!-- Consolidated application script - contains all functions -->
-    <script>
+<script>
         // Define navigateTo immediately to prevent timing issues
         function navigateTo(pageId, options = {}) {
             console.log(`🔄 Navigating to page: ${pageId}`);
@@ -1939,15 +1794,28 @@
                 window.scrollTo(0, 0);
             }
         }
+
+        // Firebase Auth bootstrap for the SPA login form
+        async function handleFirebaseEmailLogin(event) {
+            // If firebase-auth module already loaded, it exposes window.handleLogin
+            if (typeof window.handleLogin === 'function') {
+                return window.handleLogin(event);
+            }
+
+            // Fallback: keep old demo behavior if firebase module fails to load
+            return handleLogin(event);
+        }
     </script>
     <script src="js/config/api-config.js?v=20260608-admin-api-base"></script>
     <script src="js/services/api-service.js?v=20260611-rag-chatbot"></script>
     <script src="js/services/db-sync.js?v=20260528-backend-sync"></script>
     <script src="vendor/tfjs/tf.min.js?v=4.22.0"></script>
     <script src="js/features/pregnancy-rag.js?v=20260611-tfjs-backend-fallback"></script>
+    <script src="js/features/food-analysis-tool.js?v=20260618-food-analysis"></script>
     <script src="courses-functions.js?v=20260527-remove-resources-section"></script>
     <script src="script-new.js?v=20260612-admin-users-sync-v2"></script>
     <script src="js/features/courses-ui.js?v=20260527-remove-resources-section"></script>
+    <script type="module" src="js/auth/firebase-auth.js?v=20260607-index-google-login"></script>
     <script>
         // Ensure navigateToTool function is available
         function navigateToTool(pageId) {

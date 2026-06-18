@@ -82,7 +82,8 @@ const collectionFields = {
     mn_survey_records: ['title', 'summary', 'measureCode', 'measureLabel', 'countryName', 'category', 'pregnancyUse', 'keywords']
 };
 
-const RAG_COLLECTIONS = ['danger_signs', 'who_guidelines', 'who_document_chunks', 'pregnancy_weeks', 'symptoms', 'nutrition', 'faqs', 'articles', ...DOWNLOADED_COLLECTIONS];
+// Nutrition-only retrieval/context
+const RAG_COLLECTIONS = ['nutrition'];
 const PERSONAL_COLLECTIONS = ['users', 'pregnancies', 'pregnancy_vital_assessments', 'chat_sessions', 'reminders'];
 const PREGNANCY_EXPLORER_COLLECTIONS = [...PERSONAL_COLLECTIONS, ...RAG_COLLECTIONS];
 
@@ -994,26 +995,8 @@ async function retrievePregnancyContext(db, { question, week, symptoms }) {
         selected.push(candidate.item);
     };
 
-    includeCollectionWhenRequested(
-        'maternal_health_risk_records',
-        /expanded maternal|maternal health risk|blood pressure|systolic|diastolic|blood sugar|glucose|bmi|diabetes|risk record/.test(joinedTerms)
-    );
-    includeCollectionWhenRequested(
-        'maternal_mortality_indicators',
-        /maternal mortality|maternal death|mortality ratio|lifetime risk|population risk|country risk/.test(joinedTerms)
-    );
-    includeCollectionWhenRequested(
-        'health_pregnancy_indicators',
-        /pregnant women|women health|female health|antenatal|prenatal|postnatal|postpartum|skilled birth|birth attendant|fertility|contraceptive|family planning|anemia|anaemia|neonatal|newborn|stillbirth|breastfeeding|caesarean|cesarean|public health|health indicator|world bank|global health observatory|gho/.test(joinedTerms)
-    );
-    includeCollectionWhenRequested(
-        'who_anc_data_elements',
-        /who|anc|antenatal|quick check|data element|data dictionary/.test(joinedTerms)
-    );
-    includeCollectionWhenRequested(
-        'pregnancy_source_datasets',
-        /dataset|source|downloaded/.test(joinedTerms)
-    );
+// Nutrition-only mode: do not include any non-nutrition collections.
+    // (Intentionally left blank)
 
     return selected;
 }
@@ -2401,19 +2384,11 @@ async function savePregnancyVitalAssessment(db, { user = {}, metrics, symptoms =
 async function evaluatePregnancyDecisionSupport(db, { user = {}, week = '', symptoms = '', tfjsPrediction = null, ...input } = {}) {
     const metrics = normalizeVitalsInput(input);
     const ruleRisk = calculateMaternalRisk(metrics);
-    const tensorflowPrediction = normalizeTensorflowPrediction(tfjsPrediction);
-    const modelRisk = tensorflowPrediction
-        ? {
-            ...ruleRisk,
-            riskLevel: tensorflowPrediction.riskLevel,
-            riskClass: tensorflowPrediction.riskClass,
-            rationales: [
-                `TensorFlow.js model predicted ${tensorflowPrediction.riskLevel} with ${Math.round(tensorflowPrediction.confidenceScore * 100)}% confidence from MongoDB training records.`,
-                ...ruleRisk.rationales
-            ],
-            method: 'Saved TensorFlow.js maternal-risk model trained from MongoDB maternal-health-risk records, with backend rule checks retained for safety context.'
-        }
-        : ruleRisk;
+    // Groq-only mode: disable TensorFlow.js risk model usage entirely.
+    // We keep the rule-based maternal risk screen (thresholds) and symptom logic,
+    // but do not load or use any TFJS predictions.
+    const tensorflowPrediction = null;
+    const modelRisk = ruleRisk;
     const symptomOverrideQuestion = [
         `Risk level ${modelRisk.riskLevel}.`,
         `Blood pressure ${metrics.systolicBP}/${metrics.diastolicBP}.`,
@@ -2762,89 +2737,29 @@ function buildDatasetOnlyAnswer({ question, week, symptoms, matches, urgent }) {
         ].join('\n');
     }
 
-    const weekMatches = pickMatchesByCollection(matches, 'pregnancy_weeks', 2);
-    const symptomMatches = pickMatchesByCollection(matches, 'symptoms', 3);
-    const dangerMatches = pickMatchesByCollection(matches, 'danger_signs', 3);
-    const faqMatches = pickMatchesByCollection(matches, 'faqs', 2);
-    const nutritionMatches = pickMatchesByCollection(matches, 'nutrition', 2);
-    const maternalRiskMatches = pickMatchesByCollection(matches, 'maternal_health_risk_records', 3);
-    const healthIndicatorMatches = pickMatchesByCollection(matches, 'health_pregnancy_indicators', 3);
-    const whoDataElementMatches = pickMatchesByCollection(matches, 'who_anc_data_elements', 3);
-    const sourceDatasetMatches = pickMatchesByCollection(matches, 'pregnancy_source_datasets', 3);
-    const whoMatches = [
-        ...pickMatchesByCollection(matches, 'who_guidelines', 2),
-        ...pickMatchesByCollection(matches, 'who_document_chunks', 2)
-    ].slice(0, 3);
-    const articleMatches = pickMatchesByCollection(matches, 'articles', 2);
-    const usedCollections = [...new Set(matches.map(match => match.collection))].join(', ');
+    const nutritionMatches = pickMatchesByCollection(matches, 'nutrition', 6);
+    const usedCollections = 'nutrition';
 
     const sections = [
-        'Dataset-only pregnancy answer',
+        'Nutrition dataset-only pregnancy answer',
         '',
         week
-            ? `I searched the MongoDB pregnancy dataset for week ${week}${symptoms ? ` and symptoms/notes: ${symptoms}` : ''}.`
-            : `I searched the MongoDB pregnancy dataset${symptoms ? ` for symptoms/notes: ${symptoms}` : ''}.`,
-        `Records matched: ${matches.length}. Collections used: ${usedCollections}.`,
+            ? `I searched MongoDB nutrition dataset records for week ${week}${symptoms ? ` and symptoms/notes: ${symptoms}` : ''}.`
+            : `I searched the MongoDB nutrition dataset${symptoms ? ` for symptoms/notes: ${symptoms}` : ''}.`,
+        `Records matched: ${matches.length}. Collections used: nutrition.`,
         '',
-        'Important: this answer is built only from stored dataset records and sources. No Groq AI wording was used.'
+        'Important: this answer is built only from stored dataset records and sources.'
     ];
 
-    if (faqMatches.length) {
-        sections.push('', 'Direct dataset answers:', formatDatasetBullets(faqMatches, 300));
-    }
-
-    if (weekMatches.length) {
-        sections.push('', 'Week context from pregnancy_weeks:', formatDatasetBullets(weekMatches, 360));
-    }
-
-    if (symptomMatches.length) {
-        sections.push('', 'Symptom guidance from symptoms:', formatDatasetBullets(symptomMatches, 380));
-    }
-
     if (nutritionMatches.length) {
-        sections.push('', 'Nutrition records:', formatDatasetBullets(nutritionMatches, 300));
-    }
-
-    if (maternalRiskMatches.length) {
-        sections.push('', 'Maternal risk dataset records:', formatDatasetBullets(maternalRiskMatches, 320));
-    }
-
-    if (healthIndicatorMatches.length) {
-        sections.push('', 'Pregnancy and women-health indicators:', formatDatasetBullets(healthIndicatorMatches, 320));
-    }
-
-    if (whoMatches.length) {
-        sections.push('', 'WHO guidance stored in MongoDB:', formatDatasetBullets(whoMatches, 340));
-    }
-
-    if (whoDataElementMatches.length) {
-        sections.push('', 'WHO ANC data dictionary elements:', formatDatasetBullets(whoDataElementMatches, 320));
-    }
-
-    if (articleMatches.length) {
-        sections.push('', 'Related article records:', formatDatasetBullets(articleMatches, 300));
-    }
-
-    if (sourceDatasetMatches.length) {
-        sections.push('', 'Downloaded source datasets involved:', formatDatasetBullets(sourceDatasetMatches, 260));
-    }
-
-    if (dangerMatches.length) {
-        sections.push(
-            '',
-            'Safety records also matched:',
-            formatDatasetBullets(dangerMatches, 320),
-            '',
-            'If any warning sign feels severe, sudden, or worrying, contact your healthcare provider or emergency services.'
-        );
+        sections.push('', 'Nutrition records:', formatDatasetBullets(nutritionMatches, 320));
     }
 
     sections.push(
         '',
         'Next steps:',
-        '- Use the matched records above as educational guidance.',
-        '- Track the symptom, week, timing, and severity.',
-        '- Ask a qualified clinician for advice specific to this pregnancy.',
+        '- Use the matched nutrition records above as educational guidance.',
+        '- Ask a qualified clinician for advice specific to your pregnancy.',
         '',
         'This app is educational support and cannot diagnose or rule out a medical problem.'
     );
@@ -2853,6 +2768,50 @@ function buildDatasetOnlyAnswer({ question, week, symptoms, matches, urgent }) {
 }
 
 async function answerPregnancyQuestion(db, { question, week, symptoms }) {
+    // Nutrition-only guardrail: if the user asks about non-nutrition topics,
+    // return a nutrition-focused clarification instead of searching other datasets.
+    const lower = String(question || '').toLowerCase();
+    const nonNutritionPatterns = [
+        /bleeding|vaginal bleeding|spotting|water broke|fluid leaking|cramps?|contractions|pain|severe headache|vision changes|shortness of breath|chest pain|fainting|seizure|baby not moving|reduced movement|swelling|fever|chills/, 
+        /symptom|symptoms/, 
+        /danger sign|danger-sign|emergency|urgent/,
+        /who|antenatal|anc|guideline|data element|recommendation/, 
+        /maternal risk|blood pressure|systolic|diastolic|glucose|bmi|diabetes|risk level|mortality/,
+        /exercise|sleep|position|movement/ 
+    ];
+    const looksNonNutrition = nonNutritionPatterns.some(r => r.test(lower));
+
+    if (looksNonNutrition) {
+        return {
+            answer: [
+                'Nutrition-only support',
+                '',
+                'This chat is restricted to nutrition guidance (foods, pregnancy nutrition, and what to eat).',
+                '',
+                'Please ask a nutrition-related question (e.g., “What foods help with nausea in pregnancy?” or “What should I eat for iron?”).',
+                '',
+                'If you have urgent warning signs or severe symptoms, contact a healthcare provider or emergency services.'
+            ].join('\n'),
+            matches: [],
+            urgent: false,
+            safetyOverride: false,
+            model: 'nutrition-only-guard',
+            rag: {
+                pipeline: ['nutrition-only'],
+                dataset: {
+                    source: 'mongodb',
+                    database: process.env.MONGODB_DB_NAME || 'mamasafe',
+                    collections: ['nutrition'],
+                    runtimeDataset: true
+                },
+                query: { searchTerms: extractSearchTerms(question, symptoms), week: week || null, symptoms: symptoms || '' },
+                retrieval: { collectionsSearched: ['nutrition'], matchesReturned: 0, collectionsMatched: [], contextCharacters: 0 },
+                generation: { provider: 'groq', model: null, groqUsed: false, groqError: '' }
+            },
+            retrievedAt: new Date().toISOString()
+        };
+    }
+
     if (!question || !String(question).trim()) {
         throw new Error('Question is required');
     }
@@ -2958,24 +2917,17 @@ async function getPregnancyWeekPlanner(db, week) {
 
     let weekDocs = [];
     let nutritionDocs = [];
+    // Nutrition-only planner: ignore all other dataset collections.
     let dangerDocs = [];
     let symptomDocs = [];
     let articleDocs = [];
     let faqDocs = [];
-    let whoDocs = [];
+    let whoDocs = []; 
 
-    try {
-        const trimester = trimesterFromWeek(weekNumber);
-        weekDocs = await db.collection('pregnancy_weeks')
-            .find({ trimester })
-            .sort({ week: 1, schemaVersion: -1, seededAt: -1 })
-            .toArray();
-    } catch (error) {
-        console.log('pregnancy_weeks collection not found, skipping');
-    }
 
+    // Nutrition-only planner: only load nutritionDocs.
     try {
-        [nutritionDocs, dangerDocs, symptomDocs, articleDocs, faqDocs, whoDocs] = await Promise.all([
+        [nutritionDocs] = await Promise.all([
             (async () => {
                 try {
                     return await db.collection('nutrition')
@@ -2987,80 +2939,7 @@ async function getPregnancyWeekPlanner(db, week) {
                             sourceSystem: { $ne: 'mamasafe-nutrition-tracker' }
                         })
                         .sort({ sourceSystem: 1, food: 1 })
-                        .limit(5)
-                        .toArray();
-                } catch {
-                    return [];
-                }
-            })(),
-            (async () => {
-                try {
-                    return await db.collection('danger_signs')
-                        .find({
-                            $or: [
-                                { severity: /critical|urgent/i },
-                                { category: /urgent|emergency/i },
-                                { keywords: /bleeding|fluid|movement|headache|breathing|pain/i }
-                            ]
-                        })
-                        .limit(5)
-                        .toArray();
-                } catch {
-                    return [];
-                }
-            })(),
-            (async () => {
-                try {
-                    return await db.collection('symptoms')
-                        .find({ commonInWeeks: weekNumber })
-                        .limit(4)
-                        .toArray();
-                } catch {
-                    return [];
-                }
-            })(),
-            (async () => {
-                try {
-                    return await db.collection('articles')
-                        .find({
-                            $or: [
-                                { category: /nutrition|pregnancy weeks|antenatal care|safety|symptoms/i },
-                                { keywords: /nutrition|healthy eating|physical activity|exercise|movement|sleep|week|antenatal|warning/i }
-                            ]
-                        })
-                        .limit(6)
-                        .toArray();
-                } catch {
-                    return [];
-                }
-            })(),
-            (async () => {
-                try {
-                    return await db.collection('faqs')
-                        .find({
-                            $or: [
-                                { category: /nutrition|antenatal care|safety|symptoms/i },
-                                { tags: /exercise|physical activity|sleep|nutrition|food|appointment|antenatal|warning/i },
-                                { keywords: /exercise|physical activity|sleep|nutrition|food|appointment|antenatal|warning/i }
-                            ]
-                        })
                         .limit(10)
-                        .toArray();
-                } catch {
-                    return [];
-                }
-            })(),
-            (async () => {
-                try {
-                    return await db.collection('who_guidelines')
-                        .find({
-                            $or: [
-                                { title: /healthy eating|physical activity|antenatal|nutrition/i },
-                                { recommendation: /healthy eating|physical activity|antenatal|nutrition/i },
-                                { keywords: /healthy eating|physical activity|antenatal|nutrition/i }
-                            ]
-                        })
-                        .limit(3)
                         .toArray();
                 } catch {
                     return [];
@@ -3068,8 +2947,9 @@ async function getPregnancyWeekPlanner(db, week) {
             })()
         ]);
     } catch (error) {
-        console.log('Error loading planner data collections, using fallback:', error.message);
+        console.log('Error loading nutrition planner data, using fallback:', error.message);
     }
+
 
     const exactWeekDoc = weekDocs.find(doc => Number(doc.week) === weekNumber);
     const nearestPrior = [...weekDocs].reverse().find(doc => Number(doc.week) <= weekNumber);
@@ -3110,65 +2990,17 @@ async function getPregnancyWeekPlanner(db, week) {
         toList(doc.tags).join(' ')
     ].filter(Boolean).join(' '));
 
-    const movementItems = uniqueCompactList([
-        topicRecordLines(faqDocs, 'faqs', movementMatcher, 2),
-        topicRecordLines(whoDocs, 'who_guidelines', movementMatcher, 2),
-        topicRecordLines(articleDocs, 'articles', movementMatcher, 1),
-        exactWeekLine && /movement|activity|walk|exercise|physical/i.test(exactWeekLine) ? exactWeekLine : ''
-    ], 3);
-
-    const foodItems = topicRecordLines(nutritionDocs, 'nutrition', () => true, 4);
-
-    const sleepItems = uniqueCompactList([
-        topicRecordLines(faqDocs, 'faqs', sleepMatcher, 2),
-        topicRecordLines(symptomDocs, 'symptoms', sleepMatcher, 2),
-        exactWeekLine && /sleep|position|rest/i.test(exactWeekLine) ? exactWeekLine : ''
-    ], 3);
-
-    const careItems = uniqueCompactList([
-        datasetWeek === weekNumber ? exactWeekLine : '',
-        topicRecordLines(faqDocs, 'faqs', careMatcher, 2),
-        topicRecordLines(articleDocs, 'articles', careMatcher, 2)
-    ], 4);
-
-    const safetyItems = topicRecordLines(dangerDocs, 'danger_signs', () => true, 5);
-    const noExactWeek = datasetWeek !== weekNumber
-        ? `No exact pregnancy_weeks dataset record was found for week ${weekNumber}. Topic cards below use matching MongoDB records from other pregnancy dataset collections.`
-        : '';
+    const foodItems = topicRecordLines(nutritionDocs, 'nutrition', () => true, 8);
 
     const sections = [
         {
-            key: 'movement',
-            label: 'Exercises',
-            detail: 'Exercise and physical-activity dataset records',
-            items: movementItems.length ? movementItems : [`No exercise-specific dataset record found for week ${weekNumber}.`]
-        },
-        {
             key: 'food',
-            label: 'Foods to eat',
-            detail: 'Food records from nutrition dataset',
+            label: 'Foods to eat (nutrition dataset)',
+            detail: 'Food records from MongoDB nutrition dataset',
             items: foodItems.length ? foodItems : [`No recommended-food dataset record found for week ${weekNumber}.`]
-        },
-        {
-            key: 'sleep',
-            label: 'Sleep position',
-            detail: 'Sleep and rest dataset records',
-            items: sleepItems.length ? sleepItems : [`No sleep-position dataset record found for week ${weekNumber}.`]
-        },
-        {
-            key: 'care',
-            label: 'Care reminders',
-            detail: 'Week and antenatal-care dataset records',
-            items: careItems.length ? careItems : [`No appointment or antenatal-care dataset record found for week ${weekNumber}.`]
-        },
-        {
-            key: 'safety',
-            label: 'Call urgently for',
-            detail: 'Danger-sign records from MongoDB',
-            urgent: true,
-            items: safetyItems.length ? safetyItems : [`No danger-sign dataset record found for week ${weekNumber}.`]
         }
     ];
+
 
     return {
         week: weekNumber,

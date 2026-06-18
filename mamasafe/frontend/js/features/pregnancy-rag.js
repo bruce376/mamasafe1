@@ -2,16 +2,8 @@
     const TENSORFLOW_SCRIPT_URL = 'vendor/tfjs/tf.min.js';
     const TF_FEATURE_NAMES = [
         'age',
-        'systolicBP',
-        'diastolicBP',
-        'bloodSugar',
-        'bodyTemp',
-        'heartRate',
         'bmi',
-        'previousComplications',
-        'preexistingDiabetes',
-        'gestationalDiabetes',
-        'mentalHealth'
+        'previousComplications'
     ];
     const TF_LABELS = ['low risk', 'mid risk', 'high risk'];
     const WEEK_IMAGE_BASE_PATH = 'assets/pregnancy-weeks';
@@ -37,6 +29,8 @@
         tfModel: null,
         tfMetrics: null,
         tfLastPrediction: null,
+        weekGuideRequestId: 0,
+        nutritionRequestId: 0,
         kickSession: {
             active: false,
             count: 0,
@@ -44,21 +38,8 @@
             timerId: null,
             saved: false,
             saving: false
-        },
-        currentLanguage: 'en'
-    };
-
-    async function initLanguage() {
-        // Keep only local state sync on this page.
-        const savedLanguage = localStorage.getItem('mamasafe_language');
-        if (savedLanguage && ['en', 'fr', 'sw', 'rw'].includes(savedLanguage)) {
-            state.currentLanguage = savedLanguage;
-        } else {
-            state.currentLanguage = 'en';
-            localStorage.setItem('mamasafe_language', 'en');
         }
-    }
-
+    };
 
     function getBackendOrigin() {
         if (window.MAMASAFE_API_BASE) {
@@ -337,6 +318,32 @@
         };
     }
 
+    function normalizeWeekGuideList(value, fallback = []) {
+        if (Array.isArray(value)) return value.map(item => String(item || '').trim()).filter(Boolean).slice(0, 5);
+        if (typeof value === 'string' && value.trim()) {
+            return value.split(/\n|;|\|/g)
+                .map(item => item.replace(/^[-*•]\s*/, '').trim())
+                .filter(Boolean)
+                .slice(0, 5);
+        }
+        return fallback;
+    }
+
+    function applyAiWeekGuide(localGuide, guide = {}) {
+        if (!guide || typeof guide !== 'object') return localGuide;
+        return {
+            ...localGuide,
+            title: guide.title || localGuide.title,
+            intro: guide.intro || localGuide.intro,
+            baby: normalizeWeekGuideList(guide.baby, localGuide.baby),
+            mother: normalizeWeekGuideList(guide.mother, localGuide.mother),
+            care: normalizeWeekGuideList(guide.care, localGuide.care),
+            questions: normalizeWeekGuideList(guide.questions, localGuide.questions),
+            warnings: normalizeWeekGuideList(guide.warnings, localGuide.warnings),
+            generatedFrom: guide.source || 'groq-llama-week-guide'
+        };
+    }
+
     function renderPregnancyWeekGuide(guide) {
         const visual = getWeekVisual(guide.week);
         setElementText('pregnancyWeekCurrent', String(guide.week));
@@ -362,6 +369,7 @@
 
     async function selectPregnancyWeek(weekInput, options = {}) {
         const week = clampWeek(weekInput);
+        const requestId = ++state.weekGuideRequestId;
         const range = document.getElementById('pregnancyWeekRange');
         const number = document.getElementById('pregnancyWeekNumber');
         if (range) range.value = String(week);
@@ -374,13 +382,26 @@
 
         if (options.skipMongo) return;
         try {
-            const response = await fetchPregnancyRag(`/api/pregnancy-rag/week/${week}`);
-            if (!response.ok) return;
+            const response = await fetchPregnancyRag(`/api/pregnancy-rag/week-ai/${week}`);
             const data = await readJson(response);
-            if (data.success === false || !data.guide) return;
-            renderPregnancyWeekGuide(applyMongoGuide(buildLocalWeekGuide(week), data.guide));
+            if (!response.ok || data.success === false || !data.guide) {
+                throw new Error(data.error || data.details || `Request failed (${response.status})`);
+            }
+            if (requestId === state.weekGuideRequestId) {
+                renderPregnancyWeekGuide(applyAiWeekGuide(buildLocalWeekGuide(week), data.guide));
+            }
         } catch {
-            // Local week guide stays visible if the backend does not have a record for this week.
+            try {
+                const response = await fetchPregnancyRag(`/api/pregnancy-rag/week/${week}`);
+                if (!response.ok) return;
+                const data = await readJson(response);
+                if (data.success === false || !data.guide) return;
+                if (requestId === state.weekGuideRequestId) {
+                    renderPregnancyWeekGuide(applyMongoGuide(buildLocalWeekGuide(week), data.guide));
+                }
+            } catch {
+                // Local week guide stays visible if the backend does not have a record for this week.
+            }
         }
     }
 
@@ -1637,21 +1658,6 @@
         return Number.isFinite(numeric) ? numeric : fallback;
     }
 
-    function parseDecisionBloodPressure() {
-        const combined = document.getElementById('pregnancyDecisionBloodPressure')?.value || '';
-        const match = String(combined).match(/(\d{2,3})\D+(\d{2,3})/);
-        if (match) {
-            return {
-                systolic: numberOrDefault(match[1], 120),
-                diastolic: numberOrDefault(match[2], 80)
-            };
-        }
-        return {
-            systolic: numberOrDefault(document.getElementById('pregnancyDecisionSystolic')?.value, 120),
-            diastolic: numberOrDefault(document.getElementById('pregnancyDecisionDiastolic')?.value, 80)
-        };
-    }
-
     async function predictPregnancyCustomAi(payload = {}) {
         const response = await fetchPregnancyRag('/api/model/predict', {
             method: 'POST',
@@ -1677,29 +1683,15 @@
     }
 
     function buildPregnancyDecisionPayload() {
-        const diabetesType = document.getElementById('pregnancyDecisionDiabetes')?.value || 'none';
         const bodyWeight = numberOrDefault(document.getElementById('pregnancyDecisionWeight')?.value, 63);
-        const preexistingDiabetes = diabetesType === 'preexisting' ? 1 : 0;
-        const gestationalDiabetes = diabetesType === 'gestational' ? 1 : 0;
-        const glucose = diabetesType === 'none' ? 7.5 : 8.6;
 
         return {
             age: document.getElementById('pregnancyDecisionAge')?.value,
-            systolic: 120, // default value
-            diastolic: 80, // default value
-            glucose,
-            temp: 98.6, // default value
-            heartRate: 70, // default value
             bodyWeight,
             bmi: estimateBmiFromWeight(bodyWeight),
             previousComplications: document.getElementById('pregnancyDecisionPreviousComplications')?.value,
-            diabetes: diabetesType === 'none' ? 0 : 1,
-            preexistingDiabetes,
-            gestationalDiabetes,
-            mentalHealth: 0, // default value
             week: document.getElementById('pregnancyDecisionWeek')?.value,
-            symptoms: document.getElementById('pregnancyDecisionSymptoms')?.value.trim() || '',
-            language: state.currentLanguage
+            symptoms: document.getElementById('pregnancyDecisionSymptoms')?.value.trim() || ''
         };
     }
 
@@ -1718,14 +1710,10 @@
         if (!target) return;
         const payload = buildPregnancyDecisionPayload();
         const weight = Number(payload.bodyWeight);
-        const diabetesType = document.getElementById('pregnancyDecisionDiabetes')?.value || 'none';
-
         const weightTone = weight < 40 || weight > 140 ? 'borderline' : 'nominal';
-        const diabetesTone = diabetesType === 'none' ? 'nominal' : 'borderline';
 
         target.innerHTML = [
-            telemetryTone('Body weight', weight ? `${weight} kg` : '--', weightTone, weightTone === 'nominal' ? 'tracked' : weightTone),
-            telemetryTone('Diabetes', diabetesType === 'none' ? 'No diabetes' : diabetesType === 'preexisting' ? 'Before pregnancy' : 'Gestational', diabetesTone, diabetesTone === 'nominal' ? 'clear' : 'flagged')
+            telemetryTone('Body weight', weight ? `${weight} kg` : '--', weightTone, weightTone === 'nominal' ? 'tracked' : weightTone)
         ].join('');
     }
 
@@ -1951,34 +1939,268 @@
         }
     }
 
-    async function savePregnancyNutrition(event) {
+    function setNutritionOutput(html, tone = '') {
+        const target = document.getElementById('pregnancyNutritionOutput');
+        if (!target) return;
+        target.className = `pregnancy-rag-answer pregnancy-nutrition-output ${tone}`.trim();
+        target.innerHTML = html;
+    }
+
+    function nutritionPush(items, item) {
+        if (item && !items.includes(item)) items.push(item);
+    }
+
+    function readPregnancyNutritionPayload() {
+        const weekInput = document.getElementById('pregnancyNutritionWeek');
+        const waterInput = document.getElementById('pregnancyNutritionWater');
+        const week = clampWeek(weekInput?.value || document.getElementById('pregnancyReminderWeek')?.value || document.getElementById('pregnancyDecisionWeek')?.value || 24);
+        const parsedWater = Number.parseInt(waterInput?.value, 10);
+        const waterCups = Math.min(Math.max(Number.isFinite(parsedWater) ? parsedWater : 0, 0), 30);
+
+        if (weekInput) weekInput.value = week;
+        if (waterInput) waterInput.value = waterCups;
+
+        return {
+            week,
+            waterCups,
+            prenatalVitamin: !!document.getElementById('pregnancyNutritionPrenatal')?.checked,
+            ironFolicAcid: !!document.getElementById('pregnancyNutritionIron')?.checked,
+            fatigue: !!document.getElementById('pregnancyNutritionFatigue')?.checked,
+            meals: document.getElementById('pregnancyNutritionMeals')?.value.trim() || ''
+        };
+    }
+
+    function stageNutritionGuidance(week) {
+        if (week <= 13) {
+            return {
+                focus: 'Folate, nausea-tolerant foods, and steady fluids.',
+                meals: [
+                    'Use small, frequent meals if nausea or food aversions make full meals difficult.',
+                    'Choose folate-rich foods such as leafy greens, beans, citrus, avocado, and fortified grains.',
+                    'Pair bland carbohydrates with protein such as eggs, yogurt, nuts, tofu, fish low in mercury, or beans.'
+                ],
+                questions: [
+                    'Is my prenatal vitamin giving me the folic acid and iodine I need?',
+                    'What should I try if nausea keeps me from eating or drinking enough?'
+                ]
+            };
+        }
+
+        if (week <= 27) {
+            return {
+                focus: 'Protein, iron, calcium, fiber, and steady meal timing.',
+                meals: [
+                    'Build meals around protein plus vegetables, fruit, and whole grains for sustained energy.',
+                    'Add iron-rich foods such as beans, lentils, spinach, eggs, lean meat, tofu, or fortified cereal.',
+                    'Include calcium foods such as yogurt, milk, fortified drinks, calcium-set tofu, or leafy greens.'
+                ],
+                questions: [
+                    'Do I need blood count or iron testing based on my symptoms and diet?',
+                    'Should I adjust meals before or after gestational diabetes screening?'
+                ]
+            };
+        }
+
+        return {
+            focus: 'Smaller meals, iron and protein support, and practical postpartum prep.',
+            meals: [
+                'Use smaller meals and snacks if heartburn, fullness, or shortness of breath makes eating harder.',
+                'Keep protein and iron foods steady: eggs, beans, lentils, lean meat, tofu, nuts, and fish low in mercury.',
+                'Prepare simple freezer, pantry, or support-person meals for the first postpartum days.'
+            ],
+            questions: [
+                'Is my weight gain, appetite, and hydration pattern appropriate for this stage?',
+                'Should I keep taking iron, folic acid, vitamin D, or other supplements after birth?'
+            ]
+        };
+    }
+
+    function buildPregnancyNutritionPlan(payload) {
+        const week = clampWeek(payload.week);
+        const trimester = getTrimesterInfo(week);
+        const guidance = stageNutritionGuidance(week);
+        const notes = String(payload.meals || '').toLowerCase();
+        const hydration = [];
+        const supplements = [];
+        const noteTips = [];
+        const questions = [...guidance.questions];
+        const safety = [
+            'Call your provider urgently for severe belly pain, heavy bleeding, fluid leaking, fainting, chest pain, or severe headache.',
+            'Seek care quickly if you cannot keep fluids down, have signs of dehydration, or notice a clear reduction in baby movement after movements are established.'
+        ];
+
+        if (payload.waterCups < 6) {
+            hydration.push('Water looks low today. Sip regularly and add soups, fruit, or oral rehydration if nausea makes plain water difficult.');
+            nutritionPush(questions, 'How much fluid should I target if nausea, vomiting, swelling, or heat is affecting me?');
+        } else if (payload.waterCups < 8) {
+            hydration.push('You are close to the common 8-10 cup daily target. Add one cup with meals and one between meals if your clinician has not restricted fluids.');
+        } else if (payload.waterCups > 12) {
+            hydration.push('High water intake can be fine, but mention strong thirst, frequent urination, or swelling to your provider.');
+            nutritionPush(questions, 'Do my thirst and urination patterns need glucose or urine testing?');
+        } else {
+            hydration.push('Hydration looks on track. Keep spreading fluids across the day rather than drinking most of them at once.');
+        }
+
+        hydration.push('Use urine color, dizziness, dry mouth, and headache as practical hydration check-ins.');
+
+        if (payload.prenatalVitamin) {
+            supplements.push('Continue your prenatal vitamin as directed and tell your provider about any missed doses or side effects.');
+        } else {
+            supplements.push('Ask your provider which prenatal vitamin is right for you, especially for folic acid, iodine, iron, and vitamin D.');
+            nutritionPush(questions, 'Which prenatal vitamin should I use and what dose is right for me?');
+        }
+
+        if (payload.ironFolicAcid) {
+            supplements.push('If you take iron, ask whether to separate it from calcium, tea, or coffee and pair it with vitamin C when tolerated.');
+        } else {
+            supplements.push('Food can help, but supplements may still be needed. Ask whether folic acid or iron is recommended for your labs and diet.');
+        }
+
+        if (payload.fatigue) {
+            supplements.push('Fatigue can be common, but it can also reflect anemia, thyroid issues, infection, sleep disruption, or low intake.');
+            nutritionPush(questions, 'Should we check my CBC, ferritin, thyroid, vitamin D, or other labs because of fatigue?');
+        }
+
+        if (/nausea|morning sickness|queasy|vomit|vomiting/.test(notes)) {
+            noteTips.push('For nausea, try dry crackers before standing, cold foods, ginger, and small protein snacks; ask before using B6 or medicines.');
+        }
+        if (/heartburn|reflux|indigestion|burning/.test(notes)) {
+            noteTips.push('For heartburn, try smaller meals, avoid lying down after eating, and ask which antacids are safe for you.');
+        }
+        if (/constipation|hard stool|fiber/.test(notes)) {
+            noteTips.push('For constipation, increase fiber gradually with water: oats, beans, lentils, berries, prunes, vegetables, and whole grains.');
+        }
+        if (/spinach|beans|lentils|iron/.test(notes)) {
+            noteTips.push('Spinach, beans, and lentils support iron and folate. Add vitamin C foods like citrus, peppers, or tomatoes to help iron absorption.');
+        }
+        if (/egg|eggs/.test(notes)) {
+            noteTips.push('Eggs add protein and choline. Keep eggs fully cooked unless your clinician has advised otherwise.');
+        }
+        if (/vegetarian|vegan|plant-based/.test(notes)) {
+            noteTips.push('For vegetarian or vegan diets, ask about B12, iron, iodine, vitamin D, calcium, protein, and omega-3 DHA.');
+            nutritionPush(questions, 'Do I need B12, DHA, iodine, iron, calcium, or vitamin D based on my diet?');
+        }
+        if (/fish|salmon|tuna|seafood/.test(notes)) {
+            noteTips.push('Choose low-mercury fish and avoid high-mercury options. Ask your provider for local seafood guidance.');
+        }
+        if (/diabetes|glucose|sugar|gestational/.test(notes)) {
+            noteTips.push('For glucose concerns, pair carbohydrates with protein and fiber, and follow your clinic plan for testing and meal timing.');
+            nutritionPush(questions, 'What carbohydrate pattern and testing plan should I follow for glucose control?');
+        }
+        if (!noteTips.length) {
+            noteTips.push(payload.meals
+                ? 'Use your notes to spot patterns: energy dips, nausea triggers, heartburn foods, constipation, or meals that feel easier.'
+                : 'Add meals or symptoms next time for more tailored tips, such as nausea, heartburn, constipation, or vegetarian meals.');
+        }
+
+        if (week >= 24 && week <= 28) {
+            nutritionPush(questions, 'When is my gestational diabetes screening, and should I change anything before the test?');
+        }
+        if (week >= 28) {
+            nutritionPush(questions, 'Should I plan extra iron, protein, or postpartum meals based on my labs and birth plan?');
+        }
+
+        return {
+            week,
+            trimester,
+            waterCups: payload.waterCups,
+            title: `Week ${week} nutrition snapshot`,
+            summary: guidance.focus,
+            sections: [
+                { label: 'Hydration check', detail: `${payload.waterCups} cups/day`, items: hydration },
+                { label: 'This week\'s plate', detail: trimester.full, items: guidance.meals },
+                { label: 'Vitamins and minerals', detail: payload.prenatalVitamin ? 'Prenatal logged' : 'Prenatal not logged', items: supplements },
+                { label: 'Meal notes response', detail: payload.meals ? 'Based on your notes' : 'Add notes for more detail', items: noteTips }
+            ],
+            questions: questions.slice(0, 5),
+            safety
+        };
+    }
+
+    function renderPregnancyNutritionPlan(plan, status = {}) {
+        const backendTips = Array.isArray(plan.backendTips) ? plan.backendTips.filter(Boolean).slice(0, 4) : [];
+        return `
+            <div class="pregnancy-nutrition-summary">
+                <div>
+                    <span>${escapeHTML(plan.trimester.full)}</span>
+                    <strong>${escapeHTML(plan.title)}</strong>
+                    <p>${escapeHTML(plan.summary)}</p>
+                </div>
+                <em>${escapeHTML(plan.waterCups)} cups/day</em>
+            </div>
+
+            <div class="pregnancy-nutrition-grid">
+                ${plan.sections.map(section => `
+                    <article class="pregnancy-nutrition-card">
+                        <span>${escapeHTML(section.detail)}</span>
+                        <strong>${escapeHTML(section.label)}</strong>
+                        ${renderList(section.items)}
+                    </article>
+                `).join('')}
+                ${backendTips.length ? `
+                    <article class="pregnancy-nutrition-card">
+                        <span>MongoDB nutrition dataset</span>
+                        <strong>Saved-log tips</strong>
+                        ${renderList(backendTips)}
+                    </article>
+                ` : ''}
+                <article class="pregnancy-nutrition-card">
+                    <span>Provider questions</span>
+                    <strong>Ask at your visit</strong>
+                    ${renderList(plan.questions)}
+                </article>
+                <article class="pregnancy-nutrition-card urgent">
+                    <span>Safety check</span>
+                    <strong>Do not wait for nutrition tips</strong>
+                    ${renderList(plan.safety)}
+                </article>
+            </div>
+
+            ${status.label ? `<p class="pregnancy-nutrition-note"><strong>${escapeHTML(status.label)}</strong> ${escapeHTML(status.detail || '')}</p>` : ''}
+            <p class="pregnancy-nutrition-note">General pregnancy nutrition guidance only. Follow your clinician's advice for medical conditions, food allergies, lab results, medications, or pregnancy complications.</p>
+        `;
+    }
+
+    async function generatePregnancyNutritionFromWeek(event) {
         if (event) event.preventDefault();
-        setToolOutput('pregnancyNutritionOutput', '<strong>Saving daily nutrition log...</strong>', 'loading');
-        const week = clampWeek(document.getElementById('pregnancyReminderWeek')?.value || document.getElementById('pregnancyDecisionWeek')?.value || 24);
+        const requestId = ++state.nutritionRequestId;
+        const payload = readPregnancyNutritionPayload();
+        const plan = buildPregnancyNutritionPlan(payload);
+
+        setNutritionOutput(renderPregnancyNutritionPlan(plan, {
+            label: 'Tips generated.',
+            detail: 'Saving this nutrition log when the backend is available.'
+        }), 'ready');
+
         try {
             const response = await fetchPregnancyRag('/api/pregnancy-rag/nutrition-log', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    week,
-                    waterCups: document.getElementById('pregnancyNutritionWater')?.value,
-                    prenatalVitamin: document.getElementById('pregnancyNutritionPrenatal')?.checked,
-                    ironFolicAcid: document.getElementById('pregnancyNutritionIron')?.checked,
-                    fatigue: document.getElementById('pregnancyNutritionFatigue')?.checked,
-                    meals: document.getElementById('pregnancyNutritionMeals')?.value.trim()
-                })
+                body: JSON.stringify(payload)
             });
             const data = await readJson(response);
             if (!response.ok || data.success === false) {
                 throw new Error(data.error || data.details || `Request failed (${response.status})`);
             }
-            setToolOutput('pregnancyNutritionOutput', `
-                <strong>Saved in nutrition.</strong>
-                ${renderList(data.tips || [], 'Nutrition log saved.')}
-            `, 'ready');
+            if (requestId !== state.nutritionRequestId) return;
+            setNutritionOutput(renderPregnancyNutritionPlan({
+                ...plan,
+                backendTips: data.tips || []
+            }, {
+                label: 'Saved in nutrition.',
+                detail: 'Your daily nutrition log was stored for future care context.'
+            }), 'ready');
         } catch (error) {
-            setToolOutput('pregnancyNutritionOutput', `<strong>Could not save nutrition.</strong><p>${escapeHTML(error.message)}</p>`, 'urgent');
+            if (requestId !== state.nutritionRequestId) return;
+            setNutritionOutput(renderPregnancyNutritionPlan(plan, {
+                label: 'Tips ready offline.',
+                detail: `Could not save this log: ${error.message}`
+            }), 'ready');
         }
+    }
+
+    async function savePregnancyNutrition(event) {
+        return generatePregnancyNutritionFromWeek(event);
     }
 
     function normalizeDatasetPlanner(planner = null, requestedWeek = null) {
@@ -2283,6 +2505,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+
             const data = await readJson(response);
             if (!response.ok || data.success === false) {
                 throw new Error(data.error || data.details || `Request failed (${response.status})`);
@@ -2305,29 +2528,15 @@
         const examples = {
             high: {
                 age: 35,
-                systolic: 140,
-                diastolic: 90,
-                glucose: 13,
-                temp: 98,
-                heartRate: 70,
                 weight: weightFromBmi(31.2),
                 previousComplications: 1,
-                diabetes: 'preexisting',
-                mentalHealth: 1,
                 week: 28,
                 symptoms: 'headache and vision changes'
             },
             who: {
                 age: 29,
-                systolic: 122,
-                diastolic: 78,
-                glucose: 7.2,
-                temp: 98.6,
-                heartRate: 76,
                 weight: weightFromBmi(23),
                 previousComplications: 0,
-                diabetes: 'none',
-                mentalHealth: 0,
                 week: 24,
                 symptoms: 'nutrition, iron, swollen feet, antenatal care visits'
             }
@@ -2338,13 +2547,8 @@
             if (element) element.value = value;
         };
         set('pregnancyDecisionAge', selected.age);
-        set('pregnancyDecisionBloodPressure', `${selected.systolic}/${selected.diastolic}`);
-        set('pregnancyDecisionTemp', selected.temp);
-        set('pregnancyDecisionHeartRate', selected.heartRate);
         set('pregnancyDecisionWeight', selected.weight);
         set('pregnancyDecisionPreviousComplications', selected.previousComplications);
-        set('pregnancyDecisionDiabetes', selected.diabetes);
-        set('pregnancyDecisionMentalHealth', selected.mentalHealth);
         set('pregnancyDecisionWeek', selected.week);
         set('pregnancyDecisionSymptoms', selected.symptoms);
         document.getElementById('pregnancyDecisionForm')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -2461,8 +2665,7 @@
                 body: JSON.stringify({
                     question,
                     week: weekEl?.value || '',
-                    symptoms: symptomsEl?.value.trim() || '',
-                    language: state.currentLanguage
+                    symptoms: symptomsEl?.value.trim() || ''
                 })
             });
             const data = await readJson(response);
@@ -2489,15 +2692,10 @@
         document.getElementById('pregnancyKickStart')?.addEventListener('click', startPregnancyKickSession);
         document.getElementById('pregnancyKickTap')?.addEventListener('click', countPregnancyKick);
         document.getElementById('pregnancyKickSave')?.addEventListener('click', () => savePregnancyKickSession(false));
-        document.getElementById('pregnancyNutritionForm')?.addEventListener('submit', savePregnancyNutrition);
+        document.getElementById('pregnancyNutritionForm')?.addEventListener('submit', generatePregnancyNutritionFromWeek);
         document.getElementById('pregnancyReminderGenerate')?.addEventListener('click', generatePregnancyReminders);
 
-        [
-            'pregnancyDecisionBloodPressure',
-            'pregnancyDecisionHeartRate',
-            'pregnancyDecisionWeight',
-            'pregnancyDecisionDiabetes'
-        ].forEach(id => {
+        ['pregnancyDecisionWeight'].forEach(id => {
             const element = document.getElementById(id);
             element?.addEventListener('input', updatePregnancyTelemetryPreview);
             element?.addEventListener('change', updatePregnancyTelemetryPreview);
@@ -2518,22 +2716,11 @@
             document.getElementById('pregnancyDecisionForm')?.addEventListener('submit', evaluatePregnancyDecision);
         }
 
-        initLanguage();
         loadPregnancyDatasetStatus();
         loadPregnancyTensorflowTrainingData().catch(() => {});
         initializePregnancySupportTools();
         initializePregnancyWeekTracker();
     }
-
-    // Backwards-compatibility: older pages/scripts may call generateWeekButtons()
-    // If present, delegate to our current week tracker init.
-    window.generateWeekButtons = window.generateWeekButtons || function () {
-        try {
-            initializePregnancyWeekTracker();
-        } catch {
-            // no-op
-        }
-    };
 
     document.addEventListener('DOMContentLoaded', initializePregnancyRagPage);
 
@@ -2542,14 +2729,418 @@
     window.evaluatePregnancyDecision = evaluatePregnancyDecision;
     window.pregnancyDecisionUseExample = pregnancyDecisionUseExample;
     window.checkPregnancySymptoms = checkPregnancySymptoms;
-    window.startPregnancyKickSession = startPregnancyKickSession;
-    window.changeLanguage = changeLanguage;
-    window.initLanguage = initLanguage;
+    window.startPregnancyKickSession = startPregnancyKickSession;    
     window.countPregnancyKick = countPregnancyKick;
     window.savePregnancyKickSession = savePregnancyKickSession;
     window.savePregnancyNutrition = savePregnancyNutrition;
+    window.generatePregnancyNutritionFromWeek = generatePregnancyNutritionFromWeek;
     window.generatePregnancyReminders = generatePregnancyReminders;
     window.loadPregnancyRiskTrends = loadPregnancyRiskTrends;
+    // Expose internal helpers for pages that call calculatePregnancyProfile directly.
+    window.fetchPregnancyRag = fetchPregnancyRag;
+    window.buildLocalWeekGuide = buildLocalWeekGuide;
+    window.applyAiWeekGuide = applyAiWeekGuide;
+
     window.loadPregnancyDatasetStatus = loadPregnancyDatasetStatus;
     window.loadPregnancyTensorflowTrainingData = loadPregnancyTensorflowTrainingData;
+    window.calculatePregnancyProfile = calculatePregnancyProfile;
 })();
+
+async function calculatePregnancyProfile() {
+    // NOTE: this function is defined outside the main IIFE.
+    // Use global/window-exposed helpers so it always has access.
+    const _fetchPregnancyRag = window.fetchPregnancyRag;
+    const _buildLocalWeekGuide = window.buildLocalWeekGuide;
+    const _applyAiWeekGuide = window.applyAiWeekGuide;
+
+    const dueDateInput = document.getElementById('pregnancyDueDate');
+    const outputDiv = document.getElementById('pregnancyProfileOutput');
+
+    if (!_fetchPregnancyRag || !_buildLocalWeekGuide || typeof _applyAiWeekGuide !== 'function') {
+        if (outputDiv) {
+            outputDiv.innerHTML = '<p>Pregnancy profile is temporarily unavailable. Please reload the page.</p>';
+        }
+        return;
+    }
+
+
+    
+    if (!dueDateInput || !dueDateInput.value) {
+        if (outputDiv) outputDiv.innerHTML = '<p>Please enter your due date.</p>';
+        return;
+    }
+
+    const dueDate = new Date(dueDateInput.value);
+    const today = new Date();
+    
+    // Calculate current pregnancy week (40 weeks from conception, approximately 38 weeks from last period)
+    const weeksUntilDue = Math.ceil((dueDate - today) / (7 * 24 * 60 * 60 * 1000));
+    const currentWeek = Math.max(1, Math.min(42, 40 - weeksUntilDue));
+    
+    if (outputDiv) {
+        outputDiv.innerHTML = `
+            <div class="pregnancy-profile-loading">
+                <p>Calculating your pregnancy profile...</p>
+            </div>
+        `;
+    }
+
+    try {
+        // Get AI-powered week guide
+        const response = await _fetchPregnancyRag(`/api/pregnancy-rag/week-ai/${currentWeek}`);
+        const data = await readJson(response);
+
+        
+        if (!response.ok || data.success === false || !data.guide) {
+            throw new Error(data.error || data.details || `Request failed (${response.status})`);
+        }
+
+        const guide = applyAiWeekGuide(buildLocalWeekGuide(currentWeek), data.guide);
+        
+        if (outputDiv) {
+            outputDiv.innerHTML = `
+                <div class="pregnancy-profile-result">
+                    <div class="pregnancy-profile-header">
+                        <h3>Week ${currentWeek} - ${guide.trimester.label} Trimester</h3>
+                        <p class="pregnancy-profile-due">Due: ${dueDate.toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div class="pregnancy-profile-tips">
+                        <h4>🤱 Baby This Week</h4>
+                        <ul>${guide.baby.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>🌸 Your Changes</h4>
+                        <ul>${guide.mother.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>💡 AI-Powered Tips</h4>
+                        <ul>${guide.care.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>❓ Questions for Your Provider</h4>
+                        <ul>${guide.questions.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <div class="pregnancy-profile-warning">
+                            <h4>⚠️ Call Your Doctor If</h4>
+                            <ul>${guide.warnings.map(item => `<li>${item}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                    
+                    <div class="pregnancy-profile-actions">
+                        <button type="button" class="pregnancy-rag-secondary" onclick="selectPregnancyWeek(${currentWeek})">View Full Week Details</button>
+                    </div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Pregnancy profile error:', error);
+        
+        // Fallback to local guide if AI fails
+        const localGuide = _buildLocalWeekGuide(currentWeek);
+
+        
+        if (outputDiv) {
+            outputDiv.innerHTML = `
+                <div class="pregnancy-profile-result">
+                    <div class="pregnancy-profile-header">
+                        <h3>Week ${currentWeek} - ${localGuide.trimester.label} Trimester</h3>
+                        <p class="pregnancy-profile-due">Due: ${dueDate.toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div class="pregnancy-profile-tips">
+                        <h4>🤱 Baby This Week</h4>
+                        <ul>${localGuide.baby.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>🌸 Your Changes</h4>
+                        <ul>${localGuide.mother.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>💡 Care Focus</h4>
+                        <ul>${localGuide.care.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>❓ Questions for Your Provider</h4>
+                        <ul>${localGuide.questions.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <div class="pregnancy-profile-warning">
+                            <h4>⚠️ Call Your Doctor If</h4>
+                            <ul>${localGuide.warnings.map(item => `<li>${item}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                    
+                    <div class="pregnancy-profile-actions">
+                        <button type="button" class="pregnancy-rag-secondary" onclick="selectPregnancyWeek(${currentWeek})">View Full Week Details</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+// ==================== Nutrition Reminder System ====================
+
+let nutritionReminderTimer = null;
+const NUTRITION_REMINDER_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+function getStoredDueDate() {
+    const stored = localStorage.getItem('pregnancyDueDate');
+    return stored ? new Date(stored) : null;
+}
+
+function setStoredDueDate(dueDate) {
+    localStorage.setItem('pregnancyDueDate', dueDate.toISOString());
+}
+
+function calculateCurrentWeek() {
+    const dueDate = getStoredDueDate();
+    if (!dueDate) return null;
+    
+    const today = new Date();
+    const weeksUntilDue = Math.ceil((dueDate - today) / (7 * 24 * 60 * 60 * 1000));
+    const currentWeek = Math.max(1, Math.min(42, 40 - weeksUntilDue));
+    return currentWeek;
+}
+
+function getWeeklyNutritionRecommendations(week) {
+    const trimester = getTrimesterInfo(week);
+    
+    const nutritionData = {
+        first: {
+            foods: ['Leafy greens (spinach, kale)', 'Lean proteins (chicken, fish)', 'Whole grains', 'Dairy or fortified alternatives', 'Citrus fruits for vitamin C'],
+            tips: ['Focus on folic acid-rich foods', 'Stay hydrated with 8-10 cups water daily', 'Eat small, frequent meals to combat nausea', 'Avoid raw fish, unpasteurized dairy, and high-mercury fish'],
+            supplements: ['Prenatal vitamins with folic acid', 'Iron supplements if prescribed', 'Calcium and vitamin D']
+        },
+        second: {
+            foods: ['Lean beef for iron', 'Eggs for choline', 'Berries for antioxidants', 'Nuts and seeds', 'Greek yogurt for protein'],
+            tips: ['Increase protein intake for baby growth', 'Include omega-3 fatty acids for brain development', 'Monitor weight gain', 'Continue prenatal vitamins'],
+            supplements: ['Prenatal vitamins', 'DHA supplements', 'Calcium if dietary intake is low']
+        },
+        third: {
+            foods: ['High-fiber foods to prevent constipation', 'Lean proteins for tissue repair', 'Complex carbohydrates for energy', 'Iron-rich foods (red meat, beans)', 'Foods high in vitamin K'],
+            tips: ['Focus on foods that support labor preparation', 'Stay well-hydrated', 'Eat smaller, more frequent meals', 'Include foods that may help with labor (dates, raspberry leaf tea)'],
+            supplements: ['Prenatal vitamins', 'Iron supplements if needed', 'Probiotics for digestive health']
+        }
+    };
+
+    const stageData = trimester.stage === 'early' ? nutritionData.first : 
+                     trimester.stage === 'mid' ? nutritionData.second : nutritionData.third;
+
+    return {
+        week,
+        trimester: trimester.full,
+        foods: stageData.foods,
+        tips: stageData.tips,
+        supplements: stageData.supplements
+    };
+}
+
+async function sendNutritionReminder() {
+    const currentWeek = calculateCurrentWeek();
+    if (!currentWeek) return;
+
+    const nutrition = getWeeklyNutritionRecommendations(currentWeek);
+    
+    const notification = {
+        id: `nutrition-reminder-${Date.now()}`,
+        type: 'nutrition',
+        title: `Week ${currentWeek} Nutrition Guide`,
+        message: `Today's nutrition focus: ${nutrition.foods.slice(0, 2).join(', ')}`,
+        body: `Week ${currentWeek} (${nutrition.trimester}): ${nutrition.tips[0]}`,
+        timestamp: new Date().toISOString(),
+        data: {
+            week: currentWeek,
+            foods: nutrition.foods,
+            tips: nutrition.tips,
+            supplements: nutrition.supplements
+        }
+    };
+
+    // Add to in-app notifications
+    if (typeof addAppNotification === 'function') {
+        addAppNotification(notification);
+    }
+
+    // Send browser notification if enabled
+    if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+            new Notification(notification.title, {
+                body: notification.body,
+                icon: 'assets/mamasafe-logo.png',
+                tag: `nutrition-week-${currentWeek}`
+            });
+        } catch (error) {
+            console.error('Browser notification failed:', error);
+        }
+    }
+
+    // Store last reminder time
+    localStorage.setItem('lastNutritionReminder', Date.now().toString());
+}
+
+function startNutritionReminders() {
+    // Clear existing timer
+    if (nutritionReminderTimer) {
+        clearInterval(nutritionReminderTimer);
+    }
+
+    // Check if due date is stored
+    const dueDate = getStoredDueDate();
+    if (!dueDate) return;
+
+    // Send immediate reminder
+    sendNutritionReminder();
+
+    // Set up periodic reminders
+    nutritionReminderTimer = setInterval(() => {
+        sendNutritionReminder();
+    }, NUTRITION_REMINDER_INTERVAL_MS);
+}
+
+function stopNutritionReminders() {
+    if (nutritionReminderTimer) {
+        clearInterval(nutritionReminderTimer);
+        nutritionReminderTimer = null;
+    }
+}
+
+// Enhanced pregnancy profile function to enable nutrition reminders
+async function calculatePregnancyProfile() {
+    const dueDateInput = document.getElementById('pregnancyDueDate');
+    const outputDiv = document.getElementById('pregnancyProfileOutput');
+    
+    if (!dueDateInput || !dueDateInput.value) {
+        if (outputDiv) outputDiv.innerHTML = '<p>Please enter your due date.</p>';
+        return;
+    }
+
+    const dueDate = new Date(dueDateInput.value);
+    const today = new Date();
+    
+    // Store due date for nutrition reminders
+    setStoredDueDate(dueDate);
+    
+    // Start nutrition reminders
+    startNutritionReminders();
+    
+    // Calculate current pregnancy week (40 weeks from conception, approximately 38 weeks from last period)
+    const weeksUntilDue = Math.ceil((dueDate - today) / (7 * 24 * 60 * 60 * 1000));
+    const currentWeek = Math.max(1, Math.min(42, 40 - weeksUntilDue));
+    
+    if (outputDiv) {
+        outputDiv.innerHTML = `
+            <div class="pregnancy-profile-loading">
+                <p>Calculating your pregnancy profile...</p>
+            </div>
+        `;
+    }
+
+    try {
+        // Get AI-powered week guide
+        const response = await fetchPregnancyRag(`/api/pregnancy-rag/week-ai/${currentWeek}`);
+        const data = await readJson(response);
+        
+        if (!response.ok || data.success === false || !data.guide) {
+            throw new Error(data.error || data.details || `Request failed (${response.status})`);
+        }
+
+        const guide = applyAiWeekGuide(buildLocalWeekGuide(currentWeek), data.guide);
+        const nutrition = getWeeklyNutritionRecommendations(currentWeek);
+        
+        if (outputDiv) {
+            outputDiv.innerHTML = `
+                <div class="pregnancy-profile-result">
+                    <div class="pregnancy-profile-header">
+                        <h3>Week ${currentWeek} - ${guide.trimester.label} Trimester</h3>
+                        <p class="pregnancy-profile-due">Due: ${dueDate.toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div class="pregnancy-profile-tips">
+                        <h4>🤱 Baby This Week</h4>
+                        <ul>${guide.baby.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>🌸 Your Changes</h4>
+                        <ul>${guide.mother.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>💡 AI-Powered Tips</h4>
+                        <ul>${guide.care.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>🥗 Nutrition Focus This Week</h4>
+                        <ul>${nutrition.foods.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>💊 Recommended Supplements</h4>
+                        <ul>${nutrition.supplements.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>❓ Questions for Your Provider</h4>
+                        <ul>${guide.questions.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <div class="pregnancy-profile-warning">
+                            <h4>⚠️ Call Your Doctor If</h4>
+                            <ul>${guide.warnings.map(item => `<li>${item}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                    
+                    <div class="pregnancy-profile-actions">
+                        <button type="button" class="pregnancy-rag-secondary" onclick="selectPregnancyWeek(${currentWeek})">View Full Week Details</button>
+                        <button type="button" class="pregnancy-rag-secondary" onclick="stopNutritionReminders()">Stop Nutrition Reminders</button>
+                    </div>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('Pregnancy profile error:', error);
+        
+        // Fallback to local guide if AI fails
+        const localGuide = buildLocalWeekGuide(currentWeek);
+        const nutrition = getWeeklyNutritionRecommendations(currentWeek);
+        
+        if (outputDiv) {
+            outputDiv.innerHTML = `
+                <div class="pregnancy-profile-result">
+                    <div class="pregnancy-profile-header">
+                        <h3>Week ${currentWeek} - ${localGuide.trimester.label} Trimester</h3>
+                        <p class="pregnancy-profile-due">Due: ${dueDate.toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div class="pregnancy-profile-tips">
+                        <h4>🤱 Baby This Week</h4>
+                        <ul>${localGuide.baby.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>🌸 Your Changes</h4>
+                        <ul>${localGuide.mother.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>💡 Care Focus</h4>
+                        <ul>${localGuide.care.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>🥗 Nutrition Focus This Week</h4>
+                        <ul>${nutrition.foods.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>💊 Recommended Supplements</h4>
+                        <ul>${nutrition.supplements.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <h4>❓ Questions for Your Provider</h4>
+                        <ul>${localGuide.questions.map(item => `<li>${item}</li>`).join('')}</ul>
+                        
+                        <div class="pregnancy-profile-warning">
+                            <h4>⚠️ Call Your Doctor If</h4>
+                            <ul>${localGuide.warnings.map(item => `<li>${item}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+                    
+                    <div class="pregnancy-profile-actions">
+                        <button type="button" class="pregnancy-rag-secondary" onclick="selectPregnancyWeek(${currentWeek})">View Full Week Details</button>
+                        <button type="button" class="pregnancy-rag-secondary" onclick="stopNutritionReminders()">Stop Nutrition Reminders</button>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+// Initialize nutrition reminders on page load if due date is stored
+document.addEventListener('DOMContentLoaded', () => {
+    const dueDate = getStoredDueDate();
+    if (dueDate) {
+        startNutritionReminders();
+    }
+});
+
+// Export functions
+window.startNutritionReminders = startNutritionReminders;
+window.stopNutritionReminders = stopNutritionReminders;
+window.sendNutritionReminder = sendNutritionReminder;

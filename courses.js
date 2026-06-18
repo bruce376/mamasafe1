@@ -669,10 +669,40 @@ const coursesDatabase = [
     }
 ];
 
+const nutritionCourse = coursesDatabase.find(course => course.id === 'nutrition-pregnancy');
+if (nutritionCourse) {
+    nutritionCourse.name = 'Pregnancy Nutrition Masterclass';
+    nutritionCourse.description = 'Expanded nutrition course for pregnancy food safety, essential nutrients, meal planning, hydration, cravings, and postpartum recovery.';
+    nutritionCourse.highlights = [
+        '8 expanded nutrition modules',
+        'Food safety and helpful/harmful food guidance',
+        'Trimester meal planning templates',
+        'Hydration, fiber, and postpartum recovery planning'
+    ];
+    nutritionCourse.learningOutcomes = [
+        'Identify essential pregnancy nutrients',
+        'Know which foods are helpful, harmful, or need caution',
+        'Build balanced meals by trimester',
+        'Plan hydration, fiber, cravings, and postpartum nutrition'
+    ];
+    nutritionCourse.modules = [
+        'Essential pregnancy nutrients',
+        'Food safety during pregnancy',
+        'Trimester meal planning',
+        'Iron, folate, and blood-building meals',
+        'Protein, choline, and DHA',
+        'Hydration, fiber, and digestion',
+        'Cravings, aversions, and nausea',
+        'Postpartum and breastfeeding nutrition'
+    ];
+}
+
+const activeCoursesDatabase = nutritionCourse ? [nutritionCourse] : [];
+
 // Pagination
 let currentPage = 1;
 const coursesPerPage = 12;
-let filteredCourses = [...coursesDatabase];
+let filteredCourses = [...activeCoursesDatabase];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', function() {
@@ -775,7 +805,7 @@ function filterCourses() {
     const rating = document.getElementById('ratingFilter').value;
     const instructor = document.getElementById('instructorFilter').value;
 
-    filteredCourses = coursesDatabase.filter(course => {
+    filteredCourses = activeCoursesDatabase.filter(course => {
         const matchSearch = course.name.toLowerCase().includes(searchTerm) || 
                            course.description.toLowerCase().includes(searchTerm);
         const matchCategory = !category || course.category === category;
@@ -859,7 +889,7 @@ function resetFilters() {
     document.getElementById('ratingFilter').value = '';
     document.getElementById('instructorFilter').value = '';
 
-    filteredCourses = [...coursesDatabase];
+    filteredCourses = [...activeCoursesDatabase];
     currentPage = 1;
     updateFilterTags();
     displayCourses();
@@ -909,7 +939,7 @@ function changePage(page) {
 
 // Open course modal
 function openCourseModal(courseId) {
-    const course = coursesDatabase.find(c => c.id === courseId);
+    const course = activeCoursesDatabase.find(c => c.id === courseId);
     if (!course) return;
 
     const modal = document.getElementById('courseModal');

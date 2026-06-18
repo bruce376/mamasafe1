@@ -396,6 +396,14 @@ window.handleSignup = async function handleSignup(event) {
             carePriority: document.getElementById('carePriority')?.value || '',
             weeklyTipsOptIn: document.getElementById('weeklyTipsOptIn')?.checked !== false
         };
+
+        // Pregnancy week persistence
+        // If signup provides a date (careDate), convert it to a week and persist it.
+        // The pregnancy page/account dashboard will read `bc_pregnancy_data.currentWeek`.
+        const computedWeek = computePregnancyWeekFromDueDate(profile.careDate);
+        if (computedWeek) {
+            persistPregnancyWeekToLocalStorage(computedWeek);
+        }
         localStorage.setItem('mamasafe_profile', JSON.stringify(profile));
 
         if (typeof window.syncUserToBackend === 'function') {
@@ -416,10 +424,83 @@ window.handleSignup = async function handleSignup(event) {
     }
 };
 
+function setAuthLoading(isLoading) {
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) {
+        loadingEl.style.display = isLoading ? 'block' : 'none';
+    }
+
+    const googleButtons = [
+        document.getElementById('firebaseGoogleLogin'),
+        document.getElementById('firebaseGoogleSignup'),
+        document.getElementById('googleLogin')
+    ].filter(Boolean);
+
+    googleButtons.forEach((btn) => {
+        btn.disabled = !!isLoading;
+        if (isLoading) btn.setAttribute('aria-busy', 'true');
+        else btn.removeAttribute('aria-busy');
+    });
+}
+
+function safeNumber(val) {
+    const n = Number(val);
+    return Number.isFinite(n) ? n : null;
+}
+
+function computePregnancyWeekFromDueDate(dueDateStr) {
+    // dueDateStr expected in YYYY-MM-DD format
+    const due = dueDateStr ? new Date(dueDateStr) : null;
+    if (!due || Number.isNaN(due.getTime())) return null;
+
+    const now = new Date();
+    const msInDay = 1000 * 60 * 60 * 24;
+
+    // Pregnancy week approximation: 40 weeks = 280 days from LMP to due date.
+    // Weeks pregnant from conception approximation: (280 - daysUntilDue) / 7
+    const daysUntilDue = (due.getTime() - now.getTime()) / msInDay;
+    const weeks = (280 - daysUntilDue) / 7;
+
+    // Clamp to [1..42]
+    const rounded = Math.round(weeks);
+    return Math.max(1, Math.min(42, rounded));
+}
+
+function persistPregnancyWeekToLocalStorage(week) {
+    const w = safeNumber(week);
+    if (!w) return;
+
+    // app dashboard/account reads bc_pregnancy_data.currentWeek
+    const existing = (() => {
+        try {
+            return JSON.parse(localStorage.getItem('bc_pregnancy_data') || '{}');
+        } catch {
+            return {};
+        }
+    })();
+
+    existing.currentWeek = w;
+    localStorage.setItem('bc_pregnancy_data', JSON.stringify(existing));
+
+    // also keep a simple key for any other scripts
+    localStorage.setItem('bc_pregnancy_week', String(w));
+}
+
 window.handleGoogleAuth = async function handleGoogleAuth() {
+    setAuthLoading(true);
     try {
         await setPersistence(auth, browserLocalPersistence);
         const credential = await signInWithPopup(auth, googleProvider);
+
+        // Pregnancy week persistence (best-effort)
+        // - On login UI we may not have due date fields, so use what the page provides.
+        // - If due date exists in localStorage (set elsewhere), compute from it.
+        // - Otherwise keep current local week as-is.
+        const dueDateInput = document.getElementById('signupCareDate')?.value || null;
+        const dueDateFromProfile = dueDateInput;
+        const computedWeek = computePregnancyWeekFromDueDate(dueDateFromProfile) || computePregnancyWeekFromDueDate(document.getElementById('pregnancyDueDate')?.value);
+        if (computedWeek) persistPregnancyWeekToLocalStorage(computedWeek);
+
         await finishAuth(credential.user, 'Google sign-in successful!');
     } catch (error) {
         console.error('Firebase Google sign-in failed:', {
@@ -440,6 +521,8 @@ window.handleGoogleAuth = async function handleGoogleAuth() {
                 : authErrorMessage(error);
 
         notify(message, 'error');
+    } finally {
+        setAuthLoading(false);
     }
 };
 
@@ -515,6 +598,17 @@ window.mamasafeFirebaseAuth = {
     signInWithGoogle: window.handleGoogleAuth,
     signOut: window.handleLogout
 };
+
+// Stable wrapper for the main SPA signup form
+// (prevents other scripts that define handleSignup() from intercepting signup)
+window.handleFirebaseSignup = function handleFirebaseSignup(event) {
+    if (typeof window.handleSignup !== 'function') {
+        console.error('Firebase handleSignup not available');
+        return;
+    }
+    return window.handleSignup(event);
+};
+
 
 if (['#login', '#signup'].includes(window.location.hash)) {
     setTimeout(() => {

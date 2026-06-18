@@ -238,8 +238,8 @@ window.MamasafeAI = {
     chatHistory: [],
     capabilities: [
         'pregnancy_advice', 'pregnancy_tracking', 'course_guidance',
-        'health_monitoring', 'nutrition_planning', 'sleep_analysis',
-        'fetal_development', 'emotional_support', 'professional_support'
+        'health_monitoring', 'nutrition_planning', 
+        
     ],
     
     async initialize(options = {}) {
@@ -294,7 +294,7 @@ window.MamasafeAI = {
                 <div class="ai-fullscreen-header">
                     <div class="ai-header-content">
                         <h2>🤖 Mamasafe assistant AI</h2>
-                        <p>Ask anything about pregnancy, courses, names, support, or your Mamasafe tools</p>
+                        <p>Ask anything about Nutrition support</p>
                     </div>
                     <button onclick="MamasafeAI.closeFullscreen()" class="ai-close-btn">✕</button>
                 </div>
@@ -312,16 +312,9 @@ window.MamasafeAI = {
                         <button onclick="MamasafeAI.clearConversation()" class="topic-btn ai-new-chat-btn" type="button">New chat</button>
                         <div class="topic-grid">
                             <button onclick="MamasafeAI.askTopic('pregnancy-weeks')" class="topic-btn">🤰 Pregnancy Weeks</button>
-                            <button onclick="MamasafeAI.askTopic('symptoms')" class="topic-btn">🩺 Symptoms</button>
+                           
                             <button onclick="MamasafeAI.askTopic('nutrition')" class="topic-btn">🥗 Nutrition</button>
-                            <button onclick="MamasafeAI.askTopic('exercise')" class="topic-btn">🏃 Exercise</button>
-                            <button onclick="MamasafeAI.askTopic('fetal-development')" class="topic-btn">👶 Baby Development</button>
-                            <button onclick="MamasafeAI.askTopic('labor')" class="topic-btn">🏥 Labor & Delivery</button>
-                            <button onclick="MamasafeAI.askTopic('postpartum')" class="topic-btn">🤱 Postpartum Care</button>
-                            <button onclick="MamasafeAI.askTopic('breastfeeding')" class="topic-btn">🍼 Breastfeeding</button>
-                            <button onclick="MamasafeAI.askTopic('sleep')" class="topic-btn">😴 Sleep</button>
-                            <button onclick="MamasafeAI.askTopic('mental-health')" class="topic-btn">🧠 Mental Health</button>
-                            <button onclick="MamasafeAI.askTopic('complications')" class="topic-btn">⚠️ Complications</button>
+                       
                         </div>
                     </div>
                     
@@ -1088,7 +1081,7 @@ window.MamasafeAI = {
     addWelcomeMessage: function() {
         const messagesContainer = document.getElementById('ai-chat-messages');
         if (messagesContainer && messagesContainer.children.length === 0) {
-            this.addMessage('👋 Hello! I\'m your Mamasafe assistant AI. I can help with pregnancy, courses, names, symptoms, nutrition, sleep, and professional support. Click on any topic above or ask me anything!', 'ai');
+            this.addMessage('👋 Hello! I\'m your Mamasafe assistant AI. I can help with pregnancy, courses,  nutrition, & AI support. Click on any topic above or ask me anything!', 'ai');
         }
     },
     
@@ -1604,6 +1597,19 @@ Tip: Persistent headaches, vision changes, chest pain, or trouble breathing with
     },
     
     generateResponse: async function(userMessage) {
+        // Hard nutrition-only gate (prevents both backend and offline answers from going out-of-scope)
+        const msg = String(userMessage || '').toLowerCase();
+        const nutritionAllowed = /\b(nutrition|food|foods|eat|eating|diet|meal|snack|hydration|water|protein|carb|carbohydrate|fiber|folate|folic|iron|calcium|vitamin|zinc|iodine|omega|omega-3|omega3|breakfast|lunch|dinner|snacks)\b/.test(msg);
+        const nutritionDenied = /\b(bleeding|vaginal bleeding|spotting|water broke|fluid leaking|danger sign|danger-sign|emergency|urgent|who|antenatal|anc|guideline|blood pressure|bp|systolic|diastolic|glucose|diabetes|bmi|risk level|mortality|exercise|workout|sleep|position|movement|contraction|cramps|pain|headache|vision changes|swelling|fever|fainting|seizure|vomit|vomiting|nausea|heartburn|indigestion)\b/.test(msg);
+
+        if (nutritionDenied || !nutritionAllowed) {
+            this.addMessage(
+                'Mamasafe nutrition support (dataset-only).\n\nI can only answer nutrition-related pregnancy questions using your stored nutrition datasets.\n\nExamples you can ask:\n• “What foods help with nausea in pregnancy?”\n• “What should I eat to increase iron (and folate)?”\n• “Which foods are best for calcium and protein in pregnancy?”\n\nIf you have urgent warning signs or severe symptoms, contact a healthcare provider or emergency services.',
+                'ai'
+            );
+            return;
+        }
+
         // Show typing indicator
         this.addMessage('Thinking...', 'ai', { save: false });
         
@@ -3272,18 +3278,18 @@ function useHelpLocation() {
             }))
             .sort((a, b) => a.distance - b.distance)[0];
         
-        // Filter hospitals in the same province, then sort by distance
+        // Sort all hospitals by distance from GPS (closest first)
         const sorted = helpHospitals
-            .filter(hospital => hospital.province === closestDistrict.province)
             .map(hospital => ({ ...hospital, distance: getDistanceKm(latitude, longitude, hospital.lat, hospital.lng) }))
             .sort((a, b) => a.distance - b.distance);
-        
+
         renderHelpHospitals(sorted.slice(0, 20));
-        
+
         if (status) {
-            status.textContent = `GPS found your location near ${closestDistrict.district}, ${closestDistrict.province}. Showing nearest hospitals in your province.`;
+            status.textContent = `GPS found your location near ${closestDistrict.district}, ${closestDistrict.province}. Showing the nearest hospitals overall.`;
         }
-        showNotification(`Hospitals in ${closestDistrict.province} sorted by your current GPS location.`, 'success');
+        showNotification(`Hospitals sorted by your current GPS location.`, 'success');
+
     }, (error) => {
         const message = error.code === error.PERMISSION_DENIED
             ? 'Location permission was denied.'
@@ -4333,14 +4339,9 @@ function showBrowserNotification(item = {}) {
 
 async function enableBrowserNotifications() {
     if (!('Notification' in window)) {
-        showNotification('Browser notifications are not supported here.', 'warning');
         return;
     }
     const permission = await Notification.requestPermission();
-    showNotification(
-        permission === 'granted' ? 'Browser notifications enabled.' : 'Browser notifications were not enabled.',
-        permission === 'granted' ? 'success' : 'warning'
-    );
 }
 
 function startNotificationPolling() {
@@ -4718,10 +4719,9 @@ function setupNavSearch() {
 // ==========================================
 
 const homeJourneyCopy = {
-    pregnancy: 'Track week-by-week growth, symptoms, kicks, appointments, contractions, and pregnancy AI briefing.',
-    courses: 'Continue guided lessons for pregnancy preparation, birth planning, breastfeeding basics, safety, and recovery.',
-    names: 'Search baby names, compare meanings, save favorites, and open AI-powered details.',
-    'help-section': 'Open emergency guidance, hospital search, professional requests, and trusted support resources.'
+    pregnancy: 'Track week-by-week nutrition recommmendation & Analyse food nutrients.',
+    courses: 'Continue guided lessons for pregnancy Nutrution Recommendations',
+   
 };
 
 function initializeHomeFeatures() {

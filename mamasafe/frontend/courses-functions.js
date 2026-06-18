@@ -392,7 +392,149 @@ class CourseManager {
             }
         ];
 
-        return advancedCourses;
+        const nutritionCourse = advancedCourses.find(course => course.id === 'nutrition');
+        if (!nutritionCourse) return [];
+
+        Object.assign(nutritionCourse, {
+            title: 'Pregnancy Nutrition Masterclass',
+            description: 'A complete pregnancy nutrition course covering essential nutrients, food safety, meal planning, hydration, cravings, and postpartum recovery.',
+            level: 'Expanded Masterclass',
+            thumbnail: '🥗',
+            color: '#00d4aa'
+        });
+
+        nutritionCourse.topics = [
+            {
+                id: 1,
+                title: 'Essential Pregnancy Nutrients',
+                duration: '45 min',
+                quickNotes: 'Understand folate, iron, calcium, vitamin D, iodine, choline, protein, and DHA.',
+                detailedContent: [
+                    {
+                        heading: 'The Core Nutrient Map',
+                        body: 'Pregnancy nutrition starts with a few high-impact nutrients: folate for neural tube development, iron for blood volume, calcium and vitamin D for bones, iodine for thyroid support, choline and DHA for brain development, and protein for fetal and placental tissue growth.'
+                    },
+                    {
+                        heading: 'Food-First Thinking',
+                        body: 'Prenatal vitamins help fill gaps, but they do not replace balanced meals. Build meals around protein, fiber-rich carbohydrates, healthy fats, fruit or vegetables, and steady hydration.'
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: 'Food Safety During Pregnancy',
+                duration: '40 min',
+                quickNotes: 'Learn which foods need caution and how preparation changes pregnancy safety.',
+                detailedContent: [
+                    {
+                        heading: 'Preparation Changes the Verdict',
+                        body: 'Many foods are not simply good or bad. Eggs can be helpful when fully cooked but risky when raw. Fish can be excellent when low-mercury and cooked, but unsafe when raw or high in mercury. Dairy should be pasteurized.'
+                    },
+                    {
+                        heading: 'High-Risk Food Patterns',
+                        body: 'Raw seafood, unpasteurized dairy, high-mercury fish, raw sprouts, alcohol, and cold deli meats without reheating are common pregnancy safety concerns. When unsure, choose a well-cooked and properly stored alternative.'
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: 'Trimester Meal Planning',
+                duration: '50 min',
+                quickNotes: 'Adjust meals for nausea, appetite changes, heartburn, growth, and late-pregnancy comfort.',
+                detailedContent: [
+                    {
+                        heading: 'First Trimester',
+                        body: 'Early pregnancy often benefits from small frequent meals, bland carbohydrate options, protein snacks, ginger or citrus if tolerated, and hydration strategies that work around nausea.'
+                    },
+                    {
+                        heading: 'Second and Third Trimester',
+                        body: 'As appetite and growth needs shift, aim for consistent protein, iron-rich foods, calcium sources, fiber, and smaller meals if reflux or fullness becomes uncomfortable.'
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: 'Iron, Folate, and Blood Building',
+                duration: '35 min',
+                quickNotes: 'Use food pairings to support iron and folate intake.',
+                detailedContent: [
+                    {
+                        heading: 'Iron Absorption',
+                        body: 'Iron needs rise in pregnancy. Pair plant iron sources like beans, lentils, spinach, and fortified grains with vitamin C foods such as oranges, bell peppers, or strawberries. Tea and coffee can reduce absorption when taken with iron-rich meals.'
+                    },
+                    {
+                        heading: 'Folate-Rich Meals',
+                        body: 'Leafy greens, beans, lentils, citrus, avocado, and fortified grains can support folate intake alongside a prenatal vitamin plan recommended by a clinician.'
+                    }
+                ]
+            },
+            {
+                id: 5,
+                title: 'Protein, Choline, and DHA',
+                duration: '40 min',
+                quickNotes: 'Support fetal tissue, brain, and eye development through smart food choices.',
+                detailedContent: [
+                    {
+                        heading: 'Protein Rhythm',
+                        body: 'Including protein at breakfast, lunch, dinner, and snacks can support steady energy and fetal growth. Options include eggs, poultry, fish, beans, lentils, yogurt, tofu, nuts, and seeds.'
+                    },
+                    {
+                        heading: 'Brain-Supportive Nutrients',
+                        body: 'Choline from fully cooked eggs and DHA from low-mercury cooked fish are useful nutrients to discuss with a clinician, especially if dietary restrictions make intake difficult.'
+                    }
+                ]
+            },
+            {
+                id: 6,
+                title: 'Hydration, Fiber, and Digestion',
+                duration: '30 min',
+                quickNotes: 'Plan fluids and fiber to support constipation, energy, and comfort.',
+                detailedContent: [
+                    {
+                        heading: 'Hydration Basics',
+                        body: 'Hydration needs vary with heat, activity, vomiting, and swelling. A water bottle routine, soups, fruit, and electrolyte guidance from a clinician can help when plain water is hard to tolerate.'
+                    },
+                    {
+                        heading: 'Fiber With Fluids',
+                        body: 'Fiber from oats, beans, vegetables, fruit, and whole grains works best with enough fluid. Increase fiber gradually if bloating or nausea is an issue.'
+                    }
+                ]
+            },
+            {
+                id: 7,
+                title: 'Cravings, Aversions, and Nausea',
+                duration: '35 min',
+                quickNotes: 'Work with food aversions while keeping nutrition realistic.',
+                detailedContent: [
+                    {
+                        heading: 'Flexible Nutrition',
+                        body: 'Pregnancy nutrition should be practical. If nausea is intense, focus first on fluids, tolerated foods, and small protein opportunities. A perfect plate matters less than consistent nourishment.'
+                    },
+                    {
+                        heading: 'Craving Strategy',
+                        body: 'Cravings can be included with balance. Pair sweet or salty cravings with protein, fiber, or fluid when possible to make snacks more sustaining.'
+                    }
+                ]
+            },
+            {
+                id: 8,
+                title: 'Postpartum and Breastfeeding Nutrition',
+                duration: '40 min',
+                quickNotes: 'Prepare recovery meals, hydration, and nutrient support after birth.',
+                detailedContent: [
+                    {
+                        heading: 'Recovery Fuel',
+                        body: 'Postpartum meals can prioritize protein, iron, fluids, fiber, and easy preparation. Freezer meals, snack stations, and support-person checklists can reduce decision fatigue.'
+                    },
+                    {
+                        heading: 'Breastfeeding Considerations',
+                        body: 'Breastfeeding can increase fluid and energy needs. Many parents benefit from simple high-protein snacks, hydration cues, and clinician guidance for supplements or dietary restrictions.'
+                    }
+                ]
+            }
+        ];
+
+        return [nutritionCourse];
     }
 
     getCourseById(id) {

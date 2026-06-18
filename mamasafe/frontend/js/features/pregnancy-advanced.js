@@ -1,106 +1,11 @@
 // Advanced Pregnancy Page Functions
 // Comprehensive pregnancy companion with 20+ features
 
-// ==================== 1. Pregnancy Week Tracker ====================
-function calculatePregnancyWeek(lastPeriodDate) {
-    const lastPeriod = new Date(lastPeriodDate);
-    const today = new Date();
-    const diffTime = Math.abs(today - lastPeriod);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const weeks = Math.floor(diffDays / 7);
-    const days = diffDays % 7;
-    
-    const trimester = weeks <= 12 ? 'First' : weeks <= 26 ? 'Second' : 'Third';
-    const dueDate = new Date(lastPeriod);
-    dueDate.setDate(dueDate.getDate() + 280);
-    const daysRemaining = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
-    
-    return {
-        weeks,
-        days,
-        trimester,
-        dueDate: dueDate.toLocaleDateString(),
-        daysRemaining: Math.max(0, daysRemaining)
-    };
-}
 
-function displayPregnancyWeek() {
-    const lastPeriodInput = document.getElementById('modalLastPeriodDate') || document.getElementById('lastPeriodDate');
-    const weekDisplay = document.getElementById('modalPregnancyWeekDisplay') || document.getElementById('pregnancyWeekDisplay');
-    
-    if (!lastPeriodInput || !weekDisplay) return;
-    
-    const lastPeriodDate = lastPeriodInput.value;
-    if (!lastPeriodDate) return;
-    
-    const pregnancyInfo = calculatePregnancyWeek(lastPeriodDate);
-    const currentWeek = pregnancyInfo.weeks;
-    const weekGuidance = pregnancyWeekGuidance[currentWeek] || pregnancyWeekGuidance[1];
-    
-    weekDisplay.innerHTML = `
-        <div class="pregnancy-week-card">
-            <h3>🤰 Pregnancy Progress</h3>
-            <div class="week-info">
-                <div class="current-week">
-                    <span class="week-number">${pregnancyInfo.weeks}</span>
-                    <span class="week-label">Weeks</span>
-                    <span class="day-number">${pregnancyInfo.days}</span>
-                    <span class="day-label">Days</span>
-                </div>
-                <div class="trimester-info">
-                    <span class="trimester-badge">${pregnancyInfo.trimester} Trimester</span>
-                </div>
-                <div class="due-date-info">
-                    <span class="due-date-label">Due Date:</span>
-                    <span class="due-date">${pregnancyInfo.dueDate}</span>
-                </div>
-                <div class="days-remaining">
-                    <span class="days-remaining-number">${pregnancyInfo.daysRemaining}</span>
-                    <span class="days-remaining-label">Days Remaining</span>
-                </div>
-            </div>
-            
-            <div class="week-guidance-section">
-                <h4>${weekGuidance.title}</h4>
-                
-                <div class="guidance-item">
-                    <h5>👶 Baby's Development</h5>
-                    <p>${weekGuidance.babyDevelopment}</p>
-                </div>
-                
-                <div class="guidance-item">
-                    <h5>🌸 Your Body</h5>
-                    <p>${weekGuidance.bodyChanges}</p>
-                </div>
-                
-                <div class="guidance-item">
-                    <h5>📋 This Week's Guidance</h5>
-                    <ul>
-                        ${weekGuidance.guidance.map(item => `<li>${item}</li>`).join('')}
-                    </ul>
-                </div>
-                
-                <div class="guidance-item">
-                    <h5>🥗 Nutrition Focus</h5>
-                    <p>${weekGuidance.nutrition}</p>
-                </div>
-                
-                <div class="guidance-item">
-                    <h5>🏃 Exercise</h5>
-                    <p>${weekGuidance.exercise}</p>
-                </div>
-                
-                <div class="guidance-item warning">
-                    <h5>⚠️ Important</h5>
-                    <p>${weekGuidance.warnings}</p>
-                </div>
-            </div>
-        </div>
-    `;
-}
 
 // ==================== 2. Baby Growth Tracker ====================
 const babyGrowthByWeek = [
+
     { week: 4, size: 'Poppy seed', weight: '0.1g', length: '0.4cm', emoji: '🌱' },
     { week: 8, size: 'Raspberry', weight: '1g', length: '1.6cm', emoji: '🫐' },
     { week: 12, size: 'Lime', weight: '14g', length: '5.4cm', emoji: '🍋' },
@@ -1361,39 +1266,251 @@ function shareLocation() {
     }
 }
 
-// ==================== 9. Nutrition Guide ====================
-const nutritionGuide = {
-    recommended: [
-        'Leafy greens (spinach, kale)',
-        'Lean proteins (chicken, fish, beans)',
-        'Whole grains (oats, quinoa, brown rice)',
-        'Dairy or fortified alternatives',
-        'Fruits and vegetables',
-        'Nuts and seeds',
-        'Healthy fats (avocado, olive oil)'
-    ],
-    avoid: [
-        'Raw or undercooked meat and eggs',
-        'High-mercury fish (shark, swordfish)',
-        'Unpasteurized dairy products',
-        'Excessive caffeine',
-        'Alcohol',
-        'Processed foods with additives',
-        'Raw sprouts'
-    ],
-    weeklyMeals: [
-        { day: 'Monday', meals: ['Oatmeal with berries', 'Grilled chicken salad', 'Salmon with vegetables'] },
-        { day: 'Tuesday', meals: ['Greek yogurt with nuts', 'Turkey wrap', 'Stir-fry with tofu'] },
-        { day: 'Wednesday', meals: ['Smoothie with spinach', 'Quinoa bowl', 'Baked fish'] },
-        { day: 'Thursday', meals: ['Whole grain toast', 'Lentil soup', 'Chicken with sweet potato'] },
-        { day: 'Friday', meals: ['Eggs with vegetables', 'Tuna salad', 'Pasta with vegetables'] },
-        { day: 'Saturday', meals: ['Pancakes with fruit', 'Grilled vegetables', 'Lean beef'] },
-        { day: 'Sunday', meals: ['Avocado toast', 'Mixed grain bowl', 'Roasted chicken'] }
-    ],
-    detailedGuidance: {
-        trimesters: {
-            first: {
-                title: "First Trimester Nutrition",
+/*
+// ==================== 9. Food Analysis Tool (legacy duplicate retained only for reference)
+const foodAnalysisKB = {
+    // Helpful during pregnancy: nutrient mapping (simple heuristic / not medical advice)
+    helpful: {
+        fish_salmon: {
+            nutrients: ['Omega-3 (DHA)', 'Protein', 'Vitamin B12', 'Vitamin D'],
+            notes: ['Supports fetal brain and eye development (DHA)', 'Choose low-mercury fish', 'Prefer cooked fish to reduce infection risk']
+        },
+        spinach: {
+            nutrients: ['Folate', 'Iron', 'Vitamin C', 'Vitamin K'],
+            notes: ['Folate supports neural tube development', 'Pair iron foods with vitamin C for better absorption']
+        },
+        eggs: {
+            nutrients: ['Choline', 'Protein', 'Vitamin D', 'B12'],
+            notes: ['Keep eggs fully cooked unless your clinician advises otherwise']
+        },
+        yogurt: {
+            nutrients: ['Calcium', 'Protein', 'Vitamin B12', 'Probiotics (if live cultures)'],
+            notes: ['Prefer pasteurized dairy', 'Helps with calcium intake']
+        },
+        avocado: {
+            nutrients: ['Folate', 'Healthy fats', 'Fiber', 'Potassium'],
+            notes: ['Supports steady energy and helps with constipation (fiber)']
+        },
+        lentils: {
+            nutrients: ['Iron', 'Folate', 'Protein', 'Fiber'],
+            notes: ['Plant-based iron and protein option', 'Increase fluids with fiber foods to reduce constipation']
+        },
+        broccoli: {
+            nutrients: ['Vitamin C', 'Fiber', 'Folate', 'Vitamin K'],
+            notes: ['Supports immunity and digestion', 'Steam or cook to improve tolerance if needed']
+        },
+        brown_rice: {
+            nutrients: ['Complex carbohydrates', 'Fiber', 'Magnesium'],
+            notes: ['Steadier energy and helps manage cravings', 'Useful if nausea is improving and you need consistent carbs']
+        },
+        beans: {
+            nutrients: ['Folate', 'Iron', 'Protein', 'Fiber'],
+            notes: ['Supports blood volume and fetal growth', 'Fiber can help constipation; increase fluids too']
+        },
+        oatmeal: {
+            nutrients: ['Complex carbohydrates', 'Fiber', 'Iron', 'B vitamins'],
+            notes: ['Gentle option for nausea-prone mornings', 'Can support steady energy between meals']
+        },
+        sweet_potato: {
+            nutrients: ['Vitamin A (as beta-carotene)', 'Fiber', 'Potassium', 'Vitamin C'],
+            notes: ['Beta-carotene supports healthy development without the same concern as high-dose retinol', 'Pair with protein for a steadier meal']
+        },
+        lean_chicken: {
+            nutrients: ['Protein', 'Iron', 'Vitamin B6', 'Niacin'],
+            notes: ['Supports fetal tissue growth and maternal blood volume', 'Cook poultry fully and avoid cross-contamination']
+        },
+        oranges: {
+            nutrients: ['Vitamin C', 'Folate', 'Fluid', 'Fiber'],
+            notes: ['Vitamin C helps iron absorption from plant foods', 'Hydrating and often tolerable with nausea']
+        }
+    },
+    // Harmful / to avoid or be cautious with during pregnancy.
+    harmful: {
+        raw_shellfish: {
+            label: 'Harmful: raw/undercooked seafood',
+            guidance: ['Avoid raw or undercooked seafood (infection risk)', 'Choose fully cooked options']
+        },
+        unpasteurized_dairy: {
+            label: 'Harmful: unpasteurized dairy',
+            guidance: ['Avoid unpasteurized milk, cheese, or yogurt', 'Choose pasteurized dairy']
+        },
+        high_mercury_fish: {
+            label: 'Caution/Harmful: high-mercury fish',
+            guidance: ['Avoid shark, swordfish, king mackerel, and tilefish (high mercury)', 'Prefer low-mercury fish like salmon, sardines']
+        },
+        alcohol: {
+            label: 'Harmful: alcohol',
+            guidance: ['Avoid alcohol during pregnancy']
+        },
+        raw_eggs: {
+            label: 'Caution/Harmful: raw/undercooked eggs',
+            guidance: ['Avoid raw egg preparations (e.g., runny eggs, homemade mayo, certain desserts) unless well-cooked']
+        },
+        excessive_caffeine: {
+            label: 'Caution: excessive caffeine',
+            guidance: ['Limit caffeine (often recommended max is ~200mg/day; confirm with your clinician)']
+        },
+        deli_meat: {
+            label: 'Caution: deli meat or refrigerated ready-to-eat meat',
+            guidance: ['Heat deli meat until steaming hot to reduce listeria risk', 'Choose freshly cooked protein when possible']
+        },
+        raw_sprouts: {
+            label: 'Harmful: raw sprouts',
+            guidance: ['Avoid raw sprouts during pregnancy because bacteria can be difficult to wash away', 'Eat sprouts only if thoroughly cooked']
+        }
+    },
+    // Keyword-based matcher from user input.
+    keywordMap: {
+        salmon: 'fish_salmon',
+        'wild salmon': 'fish_salmon',
+        spinach: 'spinach',
+        'leafy greens': 'spinach',
+        eggs: 'eggs',
+        egg: 'eggs',
+        yogurt: 'yogurt',
+        'greek yogurt': 'yogurt',
+        avocado: 'avocado',
+        lentils: 'lentils',
+        chickpeas: 'lentils',
+        broccoli: 'broccoli',
+        'brown rice': 'brown_rice',
+        rice: 'brown_rice',
+        beans: 'beans',
+        bean: 'beans',
+        'black beans': 'beans',
+        oats: 'oatmeal',
+        oatmeal: 'oatmeal',
+        porridge: 'oatmeal',
+        'sweet potato': 'sweet_potato',
+        chicken: 'lean_chicken',
+        poultry: 'lean_chicken',
+        orange: 'oranges',
+        oranges: 'oranges',
+        salmonella: 'raw_eggs',
+        'raw egg': 'raw_eggs',
+        runny: 'raw_eggs',
+        uncooked: 'raw_eggs'
+    },
+    harmfulKeywords: {
+        'raw fish': 'raw_shellfish',
+        'raw seafood': 'raw_shellfish',
+        sushi: 'raw_shellfish',
+        oysters: 'raw_shellfish',
+        unpasteurized: 'unpasteurized_dairy',
+        'unpasteurized dairy': 'unpasteurized_dairy',
+        cheese: 'unpasteurized_dairy',
+        'high mercury': 'high_mercury_fish',
+        shark: 'high_mercury_fish',
+        swordfish: 'high_mercury_fish',
+        'king mackerel': 'high_mercury_fish',
+        alcohol: 'alcohol',
+        caffeine: 'excessive_caffeine',
+        'energy drink': 'excessive_caffeine'
+    }
+};
+
+function escapeHTML(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '<')
+        .replace(/>/g, '>')
+        .replace(/"/g, '"')
+        .replace(/'/g, '&#039;');
+}
+
+function detectFoodCategory(foodText) {
+    const t = String(foodText || '').toLowerCase();
+    for (const [kw, key] of Object.entries(foodAnalysisKB.harmfulKeywords)) {
+        if (t.includes(kw)) return { kind: 'harmful', key };
+    }
+    for (const [kw, key] of Object.entries(foodAnalysisKB.keywordMap)) {
+        if (t.includes(kw)) return { kind: 'helpful', key };
+    }
+    return { kind: 'unknown', key: null };
+}
+
+function buildFoodAnalysisOutput(foodName, notes = '') {
+    const foodText = `${foodName} ${notes}`.toLowerCase();
+    const detected = detectFoodCategory(foodText);
+
+    if (detected.kind === 'harmful') {
+        const info = foodAnalysisKB.harmful[detected.key];
+        return `
+            <div class="food-analysis-result urgent">
+                <h4>⚠️ ${escapeHTML(info.label)}</h4>
+                <p>Pregnancy safety guidance is prioritized here (educational only).</p>
+                <h5>What to do</h5>
+                <ul>
+                    ${info.guidance.map(g => `<li>${escapeHTML(g)}</li>`).join('')}
+                </ul>
+                <p class="pregnancy-rag-muted">Confirm with your clinician if you have medical conditions or specific dietary restrictions.</p>
+            </div>
+        `;
+    }
+
+    if (detected.kind === 'helpful') {
+        const info = foodAnalysisKB.helpful[detected.key];
+        return `
+            <div class="food-analysis-result ready">
+                <h4>✅ Helpful for pregnancy (generally)</h4>
+                <p><strong>Food:</strong> ${escapeHTML(foodName)}</p>
+                <h5>Essential nutrients</h5>
+                <ul>
+                    ${info.nutrients.map(n => `<li>${escapeHTML(n)}</li>`).join('')}
+                </ul>
+                <h5>Why it helps</h5>
+                <ul>
+                    ${info.notes.map(n => `<li>${escapeHTML(n)}</li>`).join('')}
+                </ul>
+                <p class="pregnancy-rag-muted">This is educational guidance; preparation matters (e.g., cooked vs raw, pasteurized vs unpasteurized).</p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="food-analysis-result review">
+            <h4>🧩 Food detected: ${escapeHTML(foodName)}</h4>
+            <p>I couldn’t match this food to a specific nutrient/safety profile in the starter knowledge base.</p>
+            <h5>General pregnancy-safe guidance</h5>
+            <ul>
+                <li>Choose well-cooked foods; avoid raw/undercooked animal foods.</li>
+                <li>Prefer pasteurized dairy and properly stored foods.</li>
+                <li>Build meals around protein, fiber, vitamins, and hydration.</li>
+                <li>Ask your clinician about caffeine limits and any dietary restrictions for your health.</li>
+            </ul>
+        </div>
+    `;
+}
+
+function analyzeFoodForPregnancy() {
+    const input = document.getElementById('foodAnalysisInput');
+    const notesEl = document.getElementById('foodAnalysisNotes');
+    const output = document.getElementById('foodAnalysisOutput');
+    const button = document.getElementById('foodAnalysisButton');
+    if (!input || !output) return;
+
+    const foodName = input.value?.trim();
+    const notes = notesEl?.value?.trim() || '';
+
+    if (!foodName) {
+        output.innerHTML = '<p class="pregnancy-rag-muted">Please enter a food name to analyze.</p>';
+        input.focus();
+        return;
+    }
+
+    output.innerHTML = '<strong>Analyzing food for pregnancy...</strong>';
+
+    // (Legacy fallback removed; AI/local analysis is rendered by the fetch chain above.)
+}
+*/
+
+
+// ==================== Food Analysis Tool (replaces Nutrition Guide) ====================
+// Tool displays essential nutrients + helpful/harmful verdict.
+
+/*
+
+
                 focus: "Focus on folate-rich foods and managing nausea",
                 keyNutrients: [
                     { nutrient: "Folic Acid", sources: "Leafy greens, fortified cereals, citrus fruits", dailyAmount: "400-800mcg" },
@@ -1512,122 +1629,356 @@ const nutritionGuide = {
         }
     }
 };
+*/
 
-function displayNutritionGuide() {
-    const nutritionDisplay = document.getElementById('modalNutritionGuideDisplay') || document.getElementById('nutritionGuideDisplay');
-    if (!nutritionDisplay) return;
-    
-    const savedLastPeriod = localStorage.getItem('lastPeriodDate');
-    let currentTrimester = 'first';
-    
-    if (savedLastPeriod) {
-        const lastPeriod = new Date(savedLastPeriod);
-        const today = new Date();
-        const diffDays = Math.ceil(Math.abs(today - lastPeriod) / (1000 * 60 * 60 * 24));
-        const currentWeek = Math.floor(diffDays / 7);
-        
-        if (currentWeek <= 12) currentTrimester = 'first';
-        else if (currentWeek <= 26) currentTrimester = 'second';
-        else currentTrimester = 'third';
+// ==================== 9. Food Analysis Tool (replaces Nutrition Guide) ====================
+const foodAnalysisKB = {
+    // Helpful during pregnancy: nutrient mapping (simple heuristic / not medical advice)
+    helpful: {
+        fish_salmon: {
+            nutrients: ['Omega-3 (DHA)', 'Protein', 'Vitamin B12', 'Vitamin D'],
+            notes: ['Supports fetal brain and eye development (DHA)', 'Choose low-mercury fish', 'Prefer cooked fish to reduce infection risk']
+        },
+        spinach: {
+            nutrients: ['Folate', 'Iron', 'Vitamin C', 'Vitamin K'],
+            notes: ['Folate supports neural tube development', 'Pair iron foods with vitamin C for better absorption']
+        },
+        eggs: {
+            nutrients: ['Choline', 'Protein', 'Vitamin D', 'B12'],
+            notes: ['Keep eggs fully cooked unless your clinician advises otherwise']
+        },
+        yogurt: {
+            nutrients: ['Calcium', 'Protein', 'Vitamin B12', 'Probiotics (if live cultures)'],
+            notes: ['Prefer pasteurized dairy', 'Helps with calcium intake']
+        },
+        avocado: {
+            nutrients: ['Folate', 'Healthy fats', 'Fiber', 'Potassium'],
+            notes: ['Supports steady energy and helps with constipation (fiber)']
+        },
+        lentils: {
+            nutrients: ['Iron', 'Folate', 'Protein', 'Fiber'],
+            notes: ['Plant-based iron and protein option', 'Increase fluids with fiber foods to reduce constipation']
+        },
+        broccoli: {
+            nutrients: ['Vitamin C', 'Fiber', 'Folate', 'Vitamin K'],
+            notes: ['Supports immunity and digestion', 'Steam or cook to improve tolerance if needed']
+        },
+        brown_rice: {
+            nutrients: ['Complex carbohydrates', 'Fiber', 'Magnesium'],
+            notes: ['Steadier energy and helps manage cravings', 'Useful if nausea is improving and you need consistent carbs']
+        },
+        beans: {
+            nutrients: ['Folate', 'Iron', 'Protein', 'Fiber'],
+            notes: ['Supports blood volume and fetal growth', 'Increase fluids with fiber foods']
+        },
+        oatmeal: {
+            nutrients: ['Complex carbohydrates', 'Fiber', 'Iron', 'B vitamins'],
+            notes: ['Gentle breakfast option', 'Can help keep energy steadier']
+        },
+        sweet_potato: {
+            nutrients: ['Beta-carotene', 'Fiber', 'Potassium', 'Vitamin C'],
+            notes: ['Supports healthy development', 'Pair with protein for a balanced meal']
+        },
+        lean_chicken: {
+            nutrients: ['Protein', 'Iron', 'Vitamin B6', 'Niacin'],
+            notes: ['Supports fetal tissue growth', 'Cook poultry fully']
+        },
+        oranges: {
+            nutrients: ['Vitamin C', 'Folate', 'Fluid', 'Fiber'],
+            notes: ['Vitamin C helps iron absorption', 'Hydrating and often nausea-friendly']
+        }
+    },
+    // Harmful / to avoid or be cautious with during pregnancy.
+    harmful: {
+        raw_shellfish: {
+            label: 'Harmful: raw/undercooked seafood',
+            guidance: ['Avoid raw or undercooked seafood (infection risk)', 'Choose fully cooked options']
+        },
+        unpasteurized_dairy: {
+            label: 'Harmful: unpasteurized dairy',
+            guidance: ['Avoid unpasteurized milk, cheese, or yogurt', 'Choose pasteurized dairy']
+        },
+        high_mercury_fish: {
+            label: 'Caution/Harmful: high-mercury fish',
+            guidance: ['Avoid shark, swordfish, king mackerel, and tilefish (high mercury)', 'Prefer low-mercury fish like salmon, sardines']
+        },
+        alcohol: {
+            label: 'Harmful: alcohol',
+            guidance: ['Avoid alcohol during pregnancy']
+        },
+        raw_eggs: {
+            label: 'Caution/Harmful: raw/undercooked eggs',
+            guidance: ['Avoid raw egg preparations (e.g., runny eggs, homemade mayo, certain desserts) unless well-cooked']
+        },
+        excessive_caffeine: {
+            label: 'Caution: excessive caffeine',
+            guidance: ['Limit caffeine (often recommended max is ~200mg/day; confirm with your clinician)']
+        },
+        deli_meat: {
+            label: 'Caution: deli meat or cold cuts',
+            guidance: ['Heat deli meat until steaming hot to reduce listeria risk', 'Choose freshly cooked protein when possible']
+        },
+        raw_sprouts: {
+            label: 'Harmful: raw sprouts',
+            guidance: ['Avoid raw sprouts because bacteria can be difficult to wash away', 'Eat sprouts only if thoroughly cooked']
+        }
+    },
+    // Keyword-based matcher from user input.
+    keywordMap: {
+        salmon: 'fish_salmon',
+        'wild salmon': 'fish_salmon',
+        spinach: 'spinach',
+        'leafy greens': 'spinach',
+        eggs: 'eggs',
+        egg: 'eggs',
+        yogurt: 'yogurt',
+        'greek yogurt': 'yogurt',
+        avocado: 'avocado',
+        lentils: 'lentils',
+        chickpeas: 'lentils',
+        broccoli: 'broccoli',
+        'brown rice': 'brown_rice',
+        rice: 'brown_rice',
+        beans: 'beans',
+        bean: 'beans',
+        'black beans': 'beans',
+        oats: 'oatmeal',
+        oatmeal: 'oatmeal',
+        porridge: 'oatmeal',
+        'sweet potato': 'sweet_potato',
+        chicken: 'lean_chicken',
+        poultry: 'lean_chicken',
+        orange: 'oranges',
+        oranges: 'oranges'
+    },
+    harmfulKeywords: {
+        'raw fish': 'raw_shellfish',
+        'raw seafood': 'raw_shellfish',
+        sushi: 'raw_shellfish',
+        oysters: 'raw_shellfish',
+        'unpasteurized': 'unpasteurized_dairy',
+        'unpasteurized dairy': 'unpasteurized_dairy',
+        cheese: 'unpasteurized_dairy',
+        'high mercury': 'high_mercury_fish',
+        shark: 'high_mercury_fish',
+        swordfish: 'high_mercury_fish',
+        'king mackerel': 'high_mercury_fish',
+        alcohol: 'alcohol',
+        'caffeine': 'excessive_caffeine',
+        'energy drink': 'excessive_caffeine',
+        'deli meat': 'deli_meat',
+        'cold cuts': 'deli_meat',
+        salami: 'deli_meat',
+        'raw sprouts': 'raw_sprouts',
+        sprouts: 'raw_sprouts'
     }
-    
-    const trimesterGuidance = nutritionGuide.detailedGuidance.trimesters[currentTrimester];
-    
-    nutritionDisplay.innerHTML = `
-        <div class="nutrition-guide-card">
-            <h3>🥗 Nutrition Guide</h3>
-            
-            <div class="current-trimester-section">
-                <h4>${trimesterGuidance.title}</h4>
-                <p class="trimester-focus">${trimesterGuidance.focus}</p>
-                
-                <div class="guidance-section">
-                    <h5>🔑 Key Nutrients</h5>
-                    <div class="nutrients-grid">
-                        ${trimesterGuidance.keyNutrients.map(nutrient => `
-                            <div class="nutrient-item">
-                                <div class="nutrient-name">${nutrient.nutrient}</div>
-                                <div class="nutrient-amount">${nutrient.dailyAmount}</div>
-                                <div class="nutrient-sources">${nutrient.sources}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                
-                <div class="guidance-section">
-                    <h5>💡 Tips for This Trimester</h5>
-                    <ul>
-                        ${trimesterGuidance.tips.map(tip => `<li>${tip}</li>`).join('')}
-                    </ul>
-                </div>
-                
-                <div class="guidance-section">
-                    <h5>📋 Meal Planning</h5>
-                    <ul>
-                        ${trimesterGuidance.mealPlanning.map(tip => `<li>${tip}</li>`).join('')}
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="nutrition-sections">
-                <div class="nutrition-section">
-                    <h4>✅ Recommended Foods</h4>
-                    <ul>
-                        ${nutritionGuide.recommended.map(food => `<li>${food}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="nutrition-section">
-                    <h4>❌ Foods to Avoid</h4>
-                    <ul>
-                        ${nutritionGuide.avoid.map(food => `<li>${food}</li>`).join('')}
-                    </ul>
-                </div>
-            </div>
-            
-            <div class="guidance-section">
-                <h4>📋 Practical Preparation</h4>
-                <div class="practical-sections">
-                    <div class="practical-subsection">
-                        <h5>Before Birth</h5>
-                        <ul>
-                            ${practical.beforeBirth.map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                    <div class="practical-subsection">
-                        <h5>After Birth</h5>
-                        <ul>
-                            ${practical.afterBirth.map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                    <div class="practical-subsection">
-                        <h5>Essentials to Have</h5>
-                        <ul>
-                            ${practical.essentials.map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="guidance-section">
-                <h4>💼 Returning to Work</h4>
-                <div class="work-sections">
-                    <div class="work-subsection">
-                        <h5>Planning Ahead</h5>
-                        <ul>
-                            ${work.planning.map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                    <div class="work-subsection">
-                        <h5>Tips for Transition</h5>
-                        <ul>
-                            ${work.tips.map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-            </div>
+};
+
+function escapeHTML(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function normalizeFoodText(text = '') {
+    return String(text || '').toLowerCase().trim();
+}
+
+function foodArray(value) {
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (!value) return [];
+    return String(value)
+        .split(/\n|;|\u2022/g)
+        .map(item => item.replace(/^[-*]\s*/, '').trim())
+        .filter(Boolean);
+}
+
+function detectFoodCategory(foodText) {
+    const t = normalizeFoodText(foodText);
+
+    // Harmful checks first
+    for (const [kw, key] of Object.entries(foodAnalysisKB.harmfulKeywords)) {
+        if (t.includes(kw)) return { kind: 'harmful', key };
+    }
+
+    // Helpful mapping
+    for (const [kw, key] of Object.entries(foodAnalysisKB.keywordMap)) {
+        if (t.includes(kw)) return { kind: 'helpful', key };
+    }
+
+    return { kind: 'unknown', key: null };
+}
+
+function getPregnancyFoodAiUrl() {
+    const localHosts = ['localhost', '127.0.0.1', '0.0.0.0'];
+    const configured = window.MAMASAFE_BACKEND_ORIGIN || window.BACKEND_API?.getBaseUrl?.();
+    const origin = configured || (localHosts.includes(window.location.hostname) && window.location.port !== '5000'
+        ? `${window.location.protocol}//${window.location.hostname}:5000`
+        : window.location.origin);
+    return `${origin.replace(/\/$/, '')}/api/ai-nutrition-analysis`;
+}
+
+async function fetchPregnancyFoodAiAnalysis(foodName, notes = '') {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 9000);
+
+    try {
+        const response = await fetch(getPregnancyFoodAiUrl(), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'pregnancy-food-analysis',
+                food: foodName,
+                notes,
+                prompt: `Analyze ${foodName} for pregnancy. Include essential nutrients and whether it is helpful, harmful, or needs caution.`
+            }),
+            signal: controller.signal
+        });
+
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!data || (!data.verdict && !data.essentialNutrients && !data.safetyLevel)) {
+            throw new Error('Unexpected nutrition response');
+        }
+        return data;
+    } finally {
+        window.clearTimeout(timeout);
+    }
+}
+
+function buildAiFoodAnalysisOutput(foodName, analysis) {
+    const verdict = analysis.verdict || analysis.safetyLevel || 'Review';
+    const tone = /harm|avoid|unsafe/i.test(verdict)
+        ? 'urgent'
+        : /caution|limit|mixed|review/i.test(verdict)
+            ? 'review'
+            : 'ready';
+    const nutrients = foodArray(analysis.essentialNutrients || analysis.nutrients);
+    const helpful = foodArray(analysis.whyHelpful || analysis.benefits || analysis.helpfulPoints);
+    const risks = foodArray(analysis.risks || analysis.harmfulReasons || analysis.cautions);
+    const tips = foodArray(analysis.preparationTips || analysis.guidance || analysis.safePreparation);
+
+    return `
+        <div class="food-analysis-result ${tone}">
+            <h4>AI pregnancy food verdict: ${escapeHTML(verdict)}</h4>
+            <p><strong>Food:</strong> ${escapeHTML(foodName)}</p>
+            ${analysis.summary ? `<p>${escapeHTML(analysis.summary)}</p>` : ''}
+            <h5>Essential nutrients</h5>
+            <ul>${(nutrients.length ? nutrients : ['Nutrients were not specified by the AI response.']).map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>
+            ${helpful.length ? `<h5>Why it may help</h5><ul>${helpful.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>` : ''}
+            ${risks.length ? `<h5>Pregnancy cautions</h5><ul>${risks.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>` : ''}
+            ${tips.length ? `<h5>Safer preparation</h5><ul>${tips.map(item => `<li>${escapeHTML(item)}</li>`).join('')}</ul>` : ''}
+            <p class="pregnancy-rag-muted">Educational only. Preparation, allergies, lab results, and your clinician's advice can change what is right for you.</p>
         </div>
     `;
 }
+
+function buildFoodAnalysisOutput(foodName, notes = '', options = {}) {
+    if (options.aiAnalysis) return buildAiFoodAnalysisOutput(foodName, options.aiAnalysis);
+
+    const foodText = `${foodName} ${notes}`.toLowerCase();
+    const detected = detectFoodCategory(foodText);
+
+    if (detected.kind === 'harmful') {
+        const info = foodAnalysisKB.harmful[detected.key];
+        return `
+            <div class="food-analysis-result urgent">
+                <h4>⚠️ ${escapeHTML(info.label)}</h4>
+                <p>Why this matters: pregnancy safety guidance is prioritized here (educational only).</p>
+                <h5>What to do</h5>
+                <ul>
+                    ${info.guidance.map(g => `<li>${escapeHTML(g)}</li>`).join('')}
+                </ul>
+                <p class="pregnancy-rag-muted">${options.notice ? escapeHTML(options.notice) : 'Local pregnancy safety guidance shown.'}</p>
+            </div>
+        `;
+    }
+
+    if (detected.kind === 'helpful') {
+        const info = foodAnalysisKB.helpful[detected.key];
+        return `
+            <div class="food-analysis-result ready">
+                <h4>✅ Helpful for pregnancy (generally)</h4>
+                <p><strong>Food:</strong> ${escapeHTML(foodName)}</p>
+                <h5>Essential nutrients</h5>
+                <ul>
+                    ${info.nutrients.map(n => `<li>${escapeHTML(n)}</li>`).join('')}
+                </ul>
+                <h5>Why it helps</h5>
+                <ul>
+                    ${info.notes.map(n => `<li>${escapeHTML(n)}</li>`).join('')}
+                </ul>
+                <p class="pregnancy-rag-muted">${options.notice ? escapeHTML(options.notice) : 'Local nutrient map shown. Preparation matters, such as cooked vs raw and pasteurized vs unpasteurized.'}</p>
+            </div>
+        `;
+    }
+
+    // Unknown / fallback
+    return `
+        <div class="food-analysis-result review">
+            <h4>🧩 Food detected: ${escapeHTML(foodName)}</h4>
+            <p>I couldn’t match this food to a specific nutrient/safety profile in the built-in starter knowledge base.</p>
+            <h5>General pregnancy-safe guidance</h5>
+            <ul>
+                <li>Choose well-cooked foods; avoid raw/undercooked animal foods.</li>
+                <li>Prefer pasteurized dairy and properly stored foods.</li>
+                <li>Build meals around protein, fiber, vitamins, and hydration.</li>
+                <li>Ask your clinician about caffeine limits and any dietary restrictions for your labs/health conditions.</li>
+            </ul>
+            <p class="pregnancy-rag-muted">${options.notice ? escapeHTML(options.notice) : 'Local fallback guidance shown.'}</p>
+        </div>
+    `;
+}
+
+function analyzeFoodForPregnancy() {
+    const input = document.getElementById('foodAnalysisInput');
+    const notesEl = document.getElementById('foodAnalysisNotes');
+    const output = document.getElementById('foodAnalysisOutput');
+    const button = document.getElementById('foodAnalysisButton');
+    if (!input || !output) return;
+
+    const foodName = input.value?.trim();
+    const notes = notesEl?.value?.trim() || '';
+
+    if (!foodName) {
+        output.innerHTML = '<p class="pregnancy-rag-muted">Please enter a food name to analyze.</p>';
+        input.focus();
+        return;
+    }
+
+    if (button) button.disabled = true;
+    output.innerHTML = '<div class="food-analysis-loading">Analyzing food for pregnancy...</div>';
+
+    fetchPregnancyFoodAiAnalysis(foodName, notes)
+        .then(aiAnalysis => {
+            output.innerHTML = buildFoodAnalysisOutput(foodName, notes, { aiAnalysis });
+        })
+        .catch(() => {
+            output.innerHTML = buildFoodAnalysisOutput(foodName, notes, {
+                notice: 'AI service is unavailable, so this local pregnancy safety map is shown instead.'
+            });
+        })
+        .finally(() => {
+            if (button) button.disabled = false;
+        });
+}
+
+
+function setupFoodAnalysisTool() {
+    const input = document.getElementById('foodAnalysisInput');
+    if (!input || input.dataset.foodAnalysisBound === 'true') return;
+    input.dataset.foodAnalysisBound = 'true';
+    input.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            analyzeFoodForPregnancy();
+        }
+    });
+}
+
 
 // ==================== 19. Trimester Educational Content ====================
 const trimesterEducation = {
@@ -2043,8 +2394,9 @@ function addWeightRecord() {
         id: Date.now(),
         weight: parseFloat(weightInput.value),
         date: dateInput.value,
-        week: calculatePregnancyWeek(localStorage.getItem('lastPeriodDate')).weeks
+        week: null
     };
+
     
     weightRecords.push(record);
     localStorage.setItem('pregnancyWeight', JSON.stringify(weightRecords));
@@ -2162,7 +2514,8 @@ function recordMood(moodIndex) {
         mood: mood.label,
         emoji: mood.emoji,
         date: new Date().toISOString(),
-        week: calculatePregnancyWeek(localStorage.getItem('lastPeriodDate')).weeks
+        week: null
+
     };
     
     moodRecords.push(record);
@@ -2206,164 +2559,11 @@ function displayMoodTracking() {
     `;
 }
 
-// ==================== 14. Kick Counter ====================
-let kickRecords = JSON.parse(localStorage.getItem('kickRecords')) || [];
-let currentKickSession = { startTime: null, kicks: 0 };
-
-function startKickCounting() {
-    currentKickSession = {
-        startTime: new Date().toISOString(),
-        kicks: 0
-    };
-    displayKickCounter();
-}
-
-function recordKick() {
-    if (!currentKickSession.startTime) {
-        startKickCounting();
-    }
-    currentKickSession.kicks++;
-    displayKickCounter();
-}
-
-function endKickSession() {
-    if (!currentKickSession.startTime) return;
-    
-    const session = {
-        id: Date.now(),
-        date: currentKickSession.startTime,
-        kicks: currentKickSession.kicks,
-        duration: Math.round((new Date() - new Date(currentKickSession.startTime)) / 60000)
-    };
-    
-    kickRecords.push(session);
-    localStorage.setItem('kickRecords', JSON.stringify(kickRecords));
-    
-    currentKickSession = { startTime: null, kicks: 0 };
-    displayKickCounter();
-    if (window.DB_SYNC) window.DB_SYNC.savePregnancy({ type: 'kick-session', ...session });
-}
-
-function displayKickCounter() {
-    const kickDisplay = document.getElementById('modalKickDisplay') || document.getElementById('kickDisplay');
-    if (!kickDisplay) return;
-    
-    kickDisplay.innerHTML = `
-        <div class="kick-counter-card">
-            <h3>👶 Kick Counter</h3>
-            <div class="kick-session">
-                ${currentKickSession.startTime ? `
-                    <div class="kick-info">
-                        <div class="kick-count">
-                            <span class="kick-number">${currentKickSession.kicks}</span>
-                            <span class="kick-label">Kicks</span>
-                        </div>
-                        <div class="kick-time">
-                            <span class="time-label">Session Time:</span>
-                            <span class="time-value">${Math.round((new Date() - new Date(currentKickSession.startTime)) / 60000)} min</span>
-                        </div>
-                    </div>
-                    <div class="kick-actions">
-                        <button onclick="recordKick()" class="btn-record-kick">👣 Record Kick</button>
-                        <button onclick="endKickSession()" class="btn-end-session">End Session</button>
-                    </div>
-                ` : `
-                    <div class="kick-start">
-                        <p>Start counting baby's movements</p>
-                        <button onclick="startKickCounting()" class="btn-start-kick">Start Counting</button>
-                    </div>
-                `}
-            </div>
-            <div class="kick-history">
-                <h4>Recent Sessions</h4>
-                ${kickRecords.slice(-5).map(record => `
-                    <div class="kick-record">
-                        <span class="kick-date">${new Date(record.date).toLocaleDateString()}</span>
-                        <span class="kick-count">${record.kicks} kicks</span>
-                        <span class="kick-duration">${record.duration} min</span>
-                    </div>
-                `).join('')}
-            </div>
-            <div class="kick-guidance">
-                <p>💡 Count kicks when baby is most active, usually after meals. You should feel at least 10 movements within 2 hours.</p>
-            </div>
-        </div>
-    `;
-}
-
-// ==================== 15. Contraction Timer ====================
-let contractionSession = { active: false, contractions: [], startTime: null };
-
-function startContraction() {
-    if (!contractionSession.active) {
-        contractionSession.active = true;
-        contractionSession.startTime = new Date().toISOString();
-    }
-    displayContractionTimer();
-}
-
-function endContraction() {
-    if (!contractionSession.active || !contractionSession.startTime) return;
-    
-    const duration = Math.round((new Date() - new Date(contractionSession.startTime)) / 1000 / 60);
-    
-    contractionSession.contractions.push({
-        startTime: contractionSession.startTime,
-        duration: duration,
-        endTime: new Date().toISOString()
-    });
-    
-    contractionSession.active = false;
-    contractionSession.startTime = null;
-    
-    displayContractionTimer();
-}
-
-function resetContractionTimer() {
-    contractionSession = { active: false, contractions: [], startTime: null };
-    displayContractionTimer();
-}
-
-function displayContractionTimer() {
-    const contractionDisplay = document.getElementById('modalContractionDisplay') || document.getElementById('contractionDisplay');
-    if (!contractionDisplay) return;
-    
-    contractionDisplay.innerHTML = `
-        <div class="contraction-timer-card">
-            <h3>⏱️ Contraction Timer</h3>
-            <div class="contraction-session">
-                ${contractionSession.active ? `
-                    <div class="active-contraction">
-                        <div class="timer-display">
-                            <span class="timer-label">Duration:</span>
-                            <span class="timer-value">${Math.round((new Date() - new Date(contractionSession.startTime)) / 1000 / 60)}:${Math.round((new Date() - new Date(contractionSession.startTime)) / 1000 % 60).toString().padStart(2, '0')}</span>
-                        </div>
-                        <button onclick="endContraction()" class="btn-end-contraction">End Contraction</button>
-                    </div>
-                ` : `
-                    <div class="contraction-start">
-                        <button onclick="startContraction()" class="btn-start-contraction">Start Contraction</button>
-                    </div>
-                `}
-            </div>
-            <div class="contraction-history">
-                <h4>Recent Contractions</h4>
-                ${contractionSession.contractions.slice(-5).map(contraction => `
-                    <div class="contraction-record">
-                        <span class="contraction-time">${new Date(contraction.startTime).toLocaleTimeString()}</span>
-                        <span class="contraction-duration">${contraction.duration} min</span>
-                    </div>
-                `).join('')}
-            </div>
-            <div class="contraction-guidance">
-                <p>💡 Contact your healthcare provider if contractions become regular (every 5 minutes), last 60+ seconds, and continue for 1+ hour.</p>
-            </div>
-        </div>
-    `;
-}
-
+// ==================== 14. (Removed) Kick Counter ====================
+// ==================== 15. (Removed) Contraction Timer ====================
 // ==================== 16. Personal Notes Section ====================
 let personalNotes = JSON.parse(localStorage.getItem('personalNotes')) || [];
+
 
 function addNote() {
     const noteInput = document.getElementById('modalNoteInput') || document.getElementById('noteInput');
@@ -2419,6 +2619,18 @@ function displayPersonalNotes() {
     `;
 }
 
+function getCycleLengthDaysFromUIOrStorage() {
+    const cycleLengthInput = document.getElementById('cycleLength');
+    if (cycleLengthInput && cycleLengthInput.value) return parseInt(cycleLengthInput.value, 10) || 28;
+
+    const savedCycleLength = localStorage.getItem('cycleLength');
+    return savedCycleLength ? parseInt(savedCycleLength, 10) || 28 : 28;
+}
+
+function isPregnancyRemindersEnabled() {
+    return localStorage.getItem('enablePregnancyReminders') !== 'false';
+}
+
 // ==================== 17. Notifications System ====================
 function setupNotifications() {
     if ('Notification' in window) {
@@ -2430,95 +2642,33 @@ function setupNotifications() {
     }
 }
 
-function scheduleNotification(title, body, delay) {
+function showNotificationNow(title, body) {
     if ('Notification' in window && Notification.permission === 'granted') {
-        setTimeout(() => {
-            new Notification(title, { body });
-        }, delay);
+        new Notification(title, { body });
     }
 }
 
-function checkReminders() {
-    // Check medication reminders
-    medications.forEach(med => {
-        if (!med.takenToday) {
-            scheduleNotification('Medication Reminder', `Time to take ${med.name}`, 60000);
-        }
-    });
-    
-    // Check appointment reminders
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    appointments.forEach(apt => {
-        const aptDate = new Date(apt.date);
-        if (aptDate.toDateString() === tomorrow.toDateString() && !apt.completed) {
-            scheduleNotification('Appointment Reminder', `You have ${apt.type} tomorrow`, 120000);
-        }
-    });
-}
-
-// ==================== 18. Multilingual Support ====================
-const translations = {
-    english: {
-        pregnancyWeek: 'Pregnancy Week',
-        babyGrowth: 'Baby Growth',
-        bodyChanges: 'Body Changes',
-        dailyTip: 'Daily Tip',
-        appointments: 'Appointments',
-        medications: 'Medications',
-        nutrition: 'Nutrition',
-        exercise: 'Exercise'
-    },
-    kinyarwanda: {
-        pregnancyWeek: 'Icyumweru cyo imbarutso',
-        babyGrowth: 'Imyitwarire y\'umwana',
-        bodyChanges: 'Ihindagurika ry\'umubiri',
-        dailyTip: 'Inama ya buri munsi',
-        appointments: 'Ibiro by\'abaganga',
-        medications: 'Imiti',
-        nutrition: 'Imbuto',
-        exercise: 'Imyitozo'
-    },
-    french: {
-        pregnancyWeek: 'Semaine de grossesse',
-        babyGrowth: 'Croissance du bébé',
-        bodyChanges: 'Changements corporels',
-        dailyTip: 'Conseil quotidien',
-        appointments: 'Rendez-vous',
-        medications: 'Médicaments',
-        nutrition: 'Nutrition',
-        exercise: 'Exercice'
+// Keep old API used by medication/appointments
+function scheduleNotification(title, body, delay) {
+    // Existing reminder engine is handled globally in script-new.js.
+    // Keep this function for backward compatibility with older code.
+    try {
+        if (!('Notification' in window)) return;
+        if (Notification.permission !== 'granted') return;
+        const ms = Math.max(0, Number(delay) || 0);
+        window.setTimeout(() => {
+            new Notification(title || 'Notification', {
+                body: body || ''
+            });
+        }, ms);
+    } catch (e) {
+        // Ignore notification errors (blocked permissions, unsupported contexts, etc.)
     }
-};
-
-let currentLanguage = 'english';
-
-function setLanguage(language) {
-    currentLanguage = language;
-    localStorage.setItem('preferredLanguage', language);
-    updateUITranslations();
-}
-
-function updateUITranslations() {
-    const translation = translations[currentLanguage];
-    
-    // Update UI elements with translations
-    document.querySelectorAll('[data-translate]').forEach(element => {
-        const key = element.getAttribute('data-translate');
-        if (translation[key]) {
-            element.textContent = translation[key];
-        }
-    });
-}
-
-function initializeLanguage() {
-    const savedLanguage = localStorage.getItem('preferredLanguage') || 'english';
-    setLanguage(savedLanguage);
 }
 
 // ==================== Modal Functions ====================
 function openPregnancyModal() {
+
     const modal = document.getElementById('pregnancyAdvancedModal');
     if (!modal) return;
     
@@ -2532,15 +2682,16 @@ function openPregnancyModal() {
     }
     
     // Initialize displays
-    displayPregnancyWeek();
+    // (Due date / pregnancy timing UI removed)
     displayDailyTip();
     displayAppointments();
     displayMedications();
     displayWaterIntake();
     displayMoodTracking();
-    displayKickCounter();
-    displayContractionTimer();
+    // (Kick counter removed)
+    // (Contraction timer removed)
     displayPersonalNotes();
+
     
     // Update dashboard
     updateDashboard();
@@ -2724,6 +2875,17 @@ function searchPregnancyFeatures(searchTerm) {
 
 // ==================== Initialize All Functions ====================
 function initializePregnancyPage() {
+    // Wire pregnancy-advanced.js to pregnancyRag.js backend-powered pregnancy profile.
+    // If pregnancy-rag page helpers exist, we enable an AI-backed week guide.
+    try {
+        if (typeof window.calculatePregnancyProfile === 'function') {
+            window.calculatePregnancyProfile();
+        } else if (typeof window.calculatePregnancyProfile === 'undefined') {
+            // no-op
+        }
+    } catch (e) {
+        // silent: keep local UI functional
+    }
     // Load saved data
     const savedLastPeriod = localStorage.getItem('lastPeriodDate');
     if (savedLastPeriod) {
@@ -2732,19 +2894,20 @@ function initializePregnancyPage() {
     }
     
     // Initialize displays
-    displayPregnancyWeek();
+    // (Due date / pregnancy timing UI removed)
     displayDailyTip();
     displayAppointments();
     displayMedications();
     displayWaterIntake();
     displayMoodTracking();
-    displayKickCounter();
-    displayContractionTimer();
+    // (Kick counter removed)
+    // (Contraction timer removed)
     displayPersonalNotes();
+    setupFoodAnalysisTool();
+
     
     // Setup notifications
     setupNotifications();
-    initializeLanguage();
     
     // Check reminders every minute
     setInterval(checkReminders, 60000);
